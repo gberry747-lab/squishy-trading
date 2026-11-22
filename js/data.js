@@ -162,7 +162,19 @@ sq138|Over the Rainbow|rainbowarc|white||e
 sq139|Rosy Apple|apple|red||c
 sq140|Cocoa Capybara|capy|choc||c
 sq141|Glitter Capybara|capy|peach||e|glitter
-sq142|Jumbo Capybara|capy|tan||e||J`,
+sq142|Jumbo Capybara|capy|tan||e||J
+sq143|Rice Ball Buddy|onigiri|white||c
+sq144|Salmon Rice Ball|onigiri|white|rose|r
+sq145|Dango Trio|dango|pink||c
+sq146|Cherry Gummy Bear|gummy|red||c
+sq147|Lime Gummy Bear|gummy|lime||c
+sq148|Glitter Gummy Bear|gummy|lilac||e|glitter
+sq149|Caramel Pudding|pudding|yellow|choc|r
+sq150|Strawberry Pudding|pudding|pink|red|c
+sq151|Buttery Croissant|croissant|tan||r
+sq152|Cinnamon Roll|cinroll|tan|white|c
+sq153|Rainbow Mochi|blob|pink||e|rainbow
+sq154|Jumbo Cinnamon Roll|cinroll|tan|white|e||J`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -211,7 +223,12 @@ fi44|Marble Maze|maze|sky|pink|r
 fi45|Twirly Top|top|pink|yellow|c
 fi46|Galaxy Top|top|grape|sky|e|galaxy
 fi47|Clicky Pen|pen|teal|yellow|c
-fi48|Golden Maze|maze|gold|orange|l|glitter`,
+fi48|Golden Maze|maze|gold|orange|l|glitter
+fi49|Neon Popper|popper|lime||c
+fi50|Sunset Spinner|spinner|orange|pink|c
+fi51|Berry Dimple|dimple|grape||r
+fi52|Ocean Slug|slug|teal||c
+fi53|Candy Maze|maze|pink|white|r`,
   slime: `
 sl01|Strawberry Slime|glossy|pink||c
 sl02|Ocean Slime|glossy|blue||c
@@ -247,7 +264,11 @@ sl31|Glitter Bomb Slime|glossy|pink||l|glitter
 sl32|Mango Butter|butter|orange||c
 sl33|Grape Soda Crunch|crunchy|grape||r
 sl34|Minty Cloud|cloud|mint||r
-sl35|Rainbow Sherbet|glossy|pink||e|rainbow`,
+sl35|Rainbow Sherbet|glossy|pink||e|rainbow
+sl36|Bubblegum Crunch|crunchy|pink||c
+sl37|Ocean Cloud|cloud|blue||r
+sl38|Lime Clear|clear|lime||c
+sl39|Galaxy Butter|butter|grape||e|galaxy`,
   putty: `
 pu01|Bubblegum Putty|swirl|pink|white|c
 pu02|Ocean Swirl|swirl|blue|teal|c
@@ -275,7 +296,10 @@ pu23|Candy Corn Swirl|swirl|orange|white|c
 pu24|Midnight Glow|glow|grape||e
 pu25|Lemon Zest Putty|swirl|yellow|white|c
 pu26|Mirror Shine|metal|sky||r
-pu27|Glow Lava|glow|orange||e`,
+pu27|Glow Lava|glow|orange||e
+pu28|Strawberry Swirl Putty|swirl|red|white|c
+pu29|Gold Glow|glow|gold||e
+pu30|Teal Shine|metal|teal||r`,
   dough: `
 do01|Red Dough|ball|red||c
 do02|Blue Dough|ball|blue||c
@@ -306,7 +330,10 @@ do26|Glitter Swirl|swirl|pink||e|glitter
 do27|Peach Heart|heart|peach||r
 do28|Coral Dough|ball|rose||c
 do29|Mint Heart|heart|mint||c
-do30|Galaxy Star Dough|star|grape||e|galaxy`,
+do30|Galaxy Star Dough|star|grape||e|galaxy
+do31|Navy Dough|ball|navy||c
+do32|Lemon Swirl|swirl|yellow||c
+do33|Glitter Heart Dough|heart|lilac||e|glitter`,
   springy: `
 sp01|Classic Springy|arc|gray||c
 sp02|Pink Springy|arc|pink||c
@@ -335,7 +362,10 @@ sp24|Lemon Lime Springy|arc|yellow|lime|c
 sp25|Glitter Stack|stack|pink|lilac|e|glitter
 sp26|Peachy Springy|arc|peach||c
 sp27|Ocean Stack|stack|teal|sky|c
-sp28|Golden Stack|stack|gold||l|glitter`,
+sp28|Golden Stack|stack|gold||l|glitter
+sp29|Cherry Stack|stack|red|white|c
+sp30|Lilac Springy|arc|lilac||c
+sp31|Twilight Springy|arc|grape|sky|r`,
   plushie: `
 pl01|Buttons the Bear|bear|tan|cream|r
 pl02|Clover the Bunny|bunny|white|pink|r
@@ -370,7 +400,13 @@ pl30|Snoozy the Sloth|sloth|tan|cream|r
 pl31|Bubbles the Hippo|hippo|lilac|pink|r
 pl32|Bandit the Raccoon|raccoon|gray|white|e
 pl33|Fawn the Deer|deer|tan|cream|e
-pl34|Nibbles the Hamster|hamster|peach|white|r`,
+pl34|Nibbles the Hamster|hamster|peach|white|r
+pl35|Peaches the Bear|bear|peach|cream|r
+pl36|Lavender the Bunny|bunny|lilac|white|r
+pl37|Sky the Dino|dino|sky|yellow|r
+pl38|Ruby the Fox|fox|red|white|e
+pl39|Cloud the Sheep|sheep|sky|navy|r
+pl40|Goldie the Lion|lion|gold|orange|l|glitter`,
 };
 
 export const TOYS = {};
@@ -437,6 +473,9 @@ export const QUESTS = [
   { id: 'hilo8', text: 'Guess right 8 times in More or Less', ev: 'hilo', goal: 8, coins: 30 },
   { id: 'pattern6', text: 'Finish 6 patterns', ev: 'pattern', goal: 6, coins: 30 },
   { id: 'tactoe1', text: 'Win a round of Squishy Tac Toe', ev: 'tactoe', goal: 1, coins: 30 },
+  { id: 'four1', text: 'Win a game of Four in a Row', ev: 'four', goal: 1, coins: 30 },
+  { id: 'math8', text: 'Answer 8 Shop Math questions', ev: 'math', goal: 8, coins: 30 },
+  { id: 'tug1', text: 'Win a Tap Tug', ev: 'tug', goal: 1, coins: 25 },
   { id: 'bomb5', text: 'Throw 5 glitter bombs', ev: 'bomb', goal: 5, coins: 25 },
   { id: 'count8', text: 'Count right 8 times in Quick Count', ev: 'count', goal: 8, coins: 30 },
 ];

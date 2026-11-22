@@ -2,7 +2,7 @@
 import { TOYS, TOY_LIST, CATS, RARITY, FRIENDS } from './data.js';
 import { toySVG, icon } from './art.js';
 import { P, save, addCoins, track, rollToy } from './state.js';
-import { $, router, actions, sfx, coins, confetti, glitterBurst } from './ui.js';
+import { $, router, actions, sfx, coins, confetti, glitterBurst, modal, closeModal } from './ui.js';
 
 const GAMES = [
   { id: 'pop', name: 'Pop Party', art: 'fi01', how: 'Pop the bubbles that puff up. Gold ones are worth 3!', unit: 'pops' },
@@ -24,7 +24,11 @@ const GAMES = [
   { id: 'tapit', name: 'Tap It!', art: 'fi02', how: 'Toys pop up. Tap only the kind the sign asks for.', unit: 'points' },
   { id: 'hilo', name: 'More or Less', art: 'sq137', how: 'Is the next toy worth more coins or less? Learn what makes a toy rare.', unit: 'right guesses' },
   { id: 'pattern', name: 'Finish the Pattern', art: 'sq138', how: 'Look at the row of toys. Which one comes next?', unit: 'patterns' },
-  { id: 'tactoe', name: 'Squishy Tac Toe', art: 'pl32', how: 'Get three in a row before your computer friend does. Best of three rounds.', unit: 'wins' },
+  { id: 'tactoe', name: 'Squishy Tac Toe', art: 'pl32', how: 'Get three in a row. Play the computer or a friend sitting with you. Best of three rounds.', unit: 'wins', vs: true },
+  { id: 'four', name: 'Four in a Row', art: 'sq145', how: 'Drop squishies into the frame. First to line up four wins. Play the computer or a friend.', unit: 'wins', vs: true },
+  { id: 'tug', name: 'Tap Tug', art: 'sp05', how: 'Tap as fast as you can to pull the squishy to your side. Play the computer or a friend.', unit: 'wins', vs: true },
+  { id: 'quick', name: 'Quick Squish', art: 'sq58', how: 'Wait for SQUISH, then tap first. Tap too early and you lose the round. Computer or a friend.', unit: 'rounds won', vs: true },
+  { id: 'math', name: 'Shop Math', art: 'sq149', how: 'Add up toys and count your change. Pick the right number of coins.', unit: 'right answers' },
 ];
 const view = () => $('#view');
 // The player's own handmade squishies join in several games.
@@ -69,11 +73,22 @@ function finish(g, score, won, line) {
   sfx.win(); if (won >= 20) confetti();
   view().innerHTML = `<section class="card result"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div><h1>${line}</h1>
     <p class="big-num">${score} ${g.unit}${isBest && score ? ' <span class="pill">New best!</span>' : ''}</p><p>You win ${coins(won)}</p>
-    <div class="row center"><button class="btn primary big" data-act="play" data-id="${g.id}">Play again</button><button class="btn big" data-act="go" data-to="games">More games</button></div></section>`;
+    <div class="row center"><button class="btn primary big" data-act="play" data-id="${g.id}" ${g.vs ? `data-mode="${lastMode[g.id] || '1'}"` : ''}>Play again</button><button class="btn big" data-act="go" data-to="games">More games</button></div></section>`;
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
+const START = () => ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe, four, tug, quick, math });
+// Games marked "vs" ask first: play the computer, or a friend on the same screen?
+actions.play = (el) => {
+  sfx.tap();
+  const g = GAMES.find((x) => x.id === el.dataset.id);
+  if (g.vs && !el.dataset.mode) {
+    return modal(`<h2>${g.name}</h2><p class="muted">Who is playing?</p><div class="modes"><button class="mode" data-act="play" data-id="${g.id}" data-mode="1"><b>1 player</b><small>You against the computer</small></button><button class="mode" data-act="play" data-id="${g.id}" data-mode="2"><b>2 players</b><small>Take turns on this screen</small></button></div>`, { label: g.name });
+  }
+  closeModal(); lastMode[g.id] = el.dataset.mode || lastMode[g.id] || '1';
+  START()[g.id](g, lastMode[g.id] === '2');
+};
+const lastMode = {};
 
 // ---------- Pop Party ----------
 function pop(g) {
@@ -640,42 +655,176 @@ function pattern(g) {
   countdown(45, () => { track('pattern', score); finish(g, score, Math.min(45, score * 4), score >= 8 ? 'Pattern pro!' : 'Good thinking!'); });
 }
 
+// Helpers for games you can play against the computer or a friend on the same screen.
+const rival = (two) => (two ? { name: 'Player 2', avatar: P().buddy === 'sq08' ? 'sq06' : 'sq08' } : FRIENDS[rnd(FRIENDS.length)]);
+const vsCoins = (two, won, tied) => (two ? 10 : won ? 28 : tied ? 14 : 8);
+
 // ---------- Squishy Tac Toe ----------
-function tactoe(g) {
+function tactoe(g, two) {
   const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
-  const me = P().buddy, bot = FRIENDS[rnd(FRIENDS.length)];
-  let wins = 0, draws = 0, round = 0, cells = [], busy = false;
+  const me = P().buddy, bot = rival(two), myName = P().name;
+  let wins = 0, losses = 0, draws = 0, round = 0, cells = [], busy = false, turn = 'me';
   frame(g, `<p class="game-say" id="say" aria-live="polite"></p><div class="ttt" id="ttt"></div>`);
   const winner = (b) => { for (const [a, c, d] of LINES) if (b[a] && b[a] === b[c] && b[a] === b[d]) return [b[a], [a, c, d]]; return b.every(Boolean) ? ['draw', []] : null; };
-  const draw = (line = []) => { $('#ttt').innerHTML = cells.map((v, i) => `<button class="ttt-cell${line.includes(i) ? ' win' : ''}" data-act="tttPick" data-i="${i}" aria-label="${v === 'me' ? 'Your squishy' : v === 'bot' ? bot.name + "'s toy" : 'Empty square ' + (i + 1)}" ${v ? 'disabled' : ''}>${v ? toySVG(v === 'me' ? me : bot.avatar) : ''}</button>`).join(''); };
-  const start = () => { round++; cells = Array(9).fill(''); busy = false; draw(); $('#say').textContent = `Round ${round} of 3 against ${bot.name}. Your turn!`; };
+  const draw = (line = []) => { $('#ttt').innerHTML = cells.map((v, i) => `<button class="ttt-cell${line.includes(i) ? ' win' : ''}${v ? ' p-' + v : ''}" data-act="tttPick" data-i="${i}" aria-label="${v === 'me' ? myName + "'s squishy" : v === 'bot' ? bot.name + "'s squishy" : 'Empty square ' + (i + 1)}" ${v ? 'disabled' : ''}>${v ? toySVG(v === 'me' ? me : bot.avatar) : ''}</button>`).join(''); };
+  const say = () => { $('#say').textContent = turn === 'me' ? `${myName}, your turn!` : two ? `${bot.name}, your turn!` : `${bot.name} is thinking...`; };
+  const start = () => { round++; cells = Array(9).fill(''); busy = false; turn = round % 2 ? 'me' : 'bot'; draw(); say(); if (turn === 'bot' && !two) { busy = true; later(botMove, 700); } };
   const over = (res, line) => {
     busy = true; draw(line);
-    if (res === 'me') { wins++; setScore(wins); sfx.win(); $('#say').textContent = 'Three in a row. You win this round!'; }
-    else if (res === 'bot') { sfx.no(); $('#say').textContent = `${bot.name} got three in a row.`; }
+    if (res === 'me') { wins++; setScore(wins); sfx.win(); $('#say').textContent = `Three in a row. ${myName} wins this round!`; }
+    else if (res === 'bot') { losses++; two ? sfx.win() : sfx.no(); $('#say').textContent = `${bot.name} got three in a row.`; }
     else { draws++; $('#say').textContent = 'A tie! Nobody got three.'; }
-    later(() => { if (round >= 3) { track('tactoe', wins); finish(g, wins, 8 + wins * 12 + draws * 5, wins >= 2 ? 'Tac Toe champion!' : wins ? 'Nice playing!' : 'Good game!'); } else start(); }, 1500);
+    later(() => { if (round >= 3) { track('tactoe', wins); finish(g, wins, two ? 10 : 8 + wins * 12 + draws * 5, two ? (wins > losses ? `${myName} wins!` : losses > wins ? `${bot.name} wins!` : 'It is a tie!') : wins >= 2 ? 'Tac Toe champion!' : wins ? 'Nice playing!' : 'Good game!'); } else start(); }, 1500);
   };
-  const botMove = () => {
+  const place = (i, who) => { cells[i] = who; const w = winner(cells); if (w) { over(w[0], w[1]); return true; } return false; };
+  function botMove() {
     const free = cells.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
     const find = (who) => free.find((i) => { const b = [...cells]; b[i] = who; const w = winner(b); return w && w[0] === who; });
     let m = find('bot');
     if (m === undefined && Math.random() < 0.75) m = find('me');
     if (m === undefined && !cells[4] && Math.random() < 0.6) m = 4;
     if (m === undefined) m = free[rnd(free.length)];
-    cells[m] = 'bot'; sfx.tap();
-    const w = winner(cells);
-    if (w) return over(w[0], w[1]);
-    busy = false; draw(); $('#say').textContent = 'Your turn!';
-  };
+    sfx.tap();
+    if (place(m, 'bot')) return;
+    turn = 'me'; busy = false; draw(); say();
+  }
   actions.tttPick = (b) => {
     const i = +b.dataset.i;
     if (busy || cells[i]) return;
-    cells[i] = 'me'; sfx.squish(); busy = true;
-    const w = winner(cells);
-    if (w) return over(w[0], w[1]);
-    draw(); $('#say').textContent = `${bot.name} is thinking...`;
-    later(botMove, 650);
+    sfx.squish();
+    if (place(i, turn)) return;
+    turn = turn === 'me' ? 'bot' : 'me'; draw(); say();
+    if (turn === 'bot' && !two) { busy = true; later(botMove, 650); }
   };
   start();
+}
+
+// ---------- Four in a Row ----------
+function four(g, two) {
+  const W = 7, H = 6, me = P().buddy, bot = rival(two), myName = P().name;
+  let b = Array.from({ length: H }, () => Array(W).fill('')), turn = 'me', busy = false;
+  frame(g, `<p class="game-say" id="say" aria-live="polite"></p><div class="four-cols" id="four-cols"></div><div class="four" id="four"></div>`);
+  const lowest = (c, board = b) => { for (let r = H - 1; r >= 0; r--) if (!board[r][c]) return r; return -1; };
+  const won = (board, who) => {
+    for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const cells = [0, 1, 2, 3].map((k) => [r + dr * k, c + dc * k]);
+      if (cells.every(([y, x]) => y >= 0 && y < H && x >= 0 && x < W && board[y][x] === who)) return cells;
+    }
+    return null;
+  };
+  const draw = (line = []) => {
+    const hit = (r, c) => line.some(([y, x]) => y === r && x === c);
+    $('#four-cols').innerHTML = Array.from({ length: W }, (_, c) => `<button class="four-drop" data-act="fourDrop" data-c="${c}" aria-label="Drop in column ${c + 1}" ${lowest(c) < 0 ? 'disabled' : ''}>${icon('back')}</button>`).join('');
+    $('#four').innerHTML = b.map((row, r) => row.map((v, c) => `<span class="four-cell${v ? ' p-' + v : ''}${hit(r, c) ? ' win' : ''}">${v ? toySVG(v === 'me' ? me : bot.avatar) : ''}</span>`).join('')).join('');
+  };
+  const say = () => { $('#say').textContent = turn === 'me' ? `${myName}, pick a column.` : two ? `${bot.name}, pick a column.` : `${bot.name} is thinking...`; };
+  const end = (res, line) => {
+    busy = true; draw(line || []);
+    const iWon = res === 'me';
+    if (res === 'draw') $('#say').textContent = 'The frame is full. It is a tie!'; else { $('#say').textContent = `${iWon ? myName : bot.name} lined up four!`; iWon || two ? sfx.win() : sfx.no(); }
+    if (iWon) setScore(1);
+    later(() => { if (iWon) track('four'); finish(g, iWon ? 1 : 0, vsCoins(two, iWon, res === 'draw'), res === 'draw' ? 'A tie game!' : `${iWon ? myName : bot.name} wins!`); }, 1700);
+  };
+  const drop = (c, who) => {
+    const r = lowest(c); if (r < 0) return false;
+    b[r][c] = who; sfx.squish();
+    const line = won(b, who);
+    if (line) { end(who, line); return true; }
+    if (b[0].every(Boolean)) { end('draw'); return true; }
+    return false;
+  };
+  const botMove = () => {
+    const cols = Array.from({ length: W }, (_, c) => c).filter((c) => lowest(c) >= 0);
+    const wins = (who) => cols.find((c) => { const t = b.map((r) => [...r]); t[lowest(c)][c] = who; return won(t, who); });
+    let c = wins('bot');
+    if (c === undefined && Math.random() < 0.8) c = wins('me');
+    if (c === undefined) { const fav = cols.filter((x) => x >= 2 && x <= 4); c = fav.length && Math.random() < 0.6 ? fav[rnd(fav.length)] : cols[rnd(cols.length)]; }
+    if (drop(c, 'bot')) return;
+    turn = 'me'; busy = false; draw(); say();
+  };
+  actions.fourDrop = (el) => {
+    if (busy) return;
+    if (drop(+el.dataset.c, turn)) return;
+    turn = turn === 'me' ? 'bot' : 'me'; draw(); say();
+    if (turn === 'bot' && !two) { busy = true; later(botMove, 700); }
+  };
+  draw(); say();
+}
+
+// ---------- Tap Tug ----------
+function tug(g, two) {
+  const me = P().buddy, bot = rival(two), myName = P().name;
+  let pos = 50, run = false, over = false;
+  frame(g, `<div class="tug">
+    <button class="tug-btn top" data-act="tugTap" data-who="bot" ${two ? '' : 'disabled'} aria-label="${bot.name} taps here"><span>${toySVG(bot.avatar)}</span><b>${two ? bot.name + ': tap here!' : bot.name}</b></button>
+    <div class="tug-rope" aria-hidden="true"><i class="tug-line"></i><span class="tug-knot" id="knot">${toySVG('sp05')}</span></div>
+    <p class="game-say" id="say" aria-live="polite">Get ready...</p>
+    <button class="tug-btn" data-act="tugTap" data-who="me" aria-label="${myName} taps here"><span>${toySVG(me)}</span><b>${myName}: tap here!</b></button></div>`);
+  const knot = $('#knot');
+  const place = () => { knot.style.top = pos + '%'; };
+  const end = (who) => {
+    if (over) return; over = true; run = false;
+    const iWon = who === 'me';
+    $('#say').textContent = `${iWon ? myName : bot.name} wins the tug!`; iWon || two ? sfx.win() : sfx.no();
+    if (iWon) { setScore(1); track('tug'); }
+    later(() => finish(g, iWon ? 1 : 0, vsCoins(two, iWon, false), `${iWon ? myName : bot.name} wins!`), 1400);
+  };
+  const pull = (who) => { if (!run) return; pos += who === 'me' ? 2.4 : -2.4; place(); if (pos >= 88) end('me'); else if (pos <= 12) end('bot'); };
+  actions.tugTap = (el) => { sfx.tap(); pull(el.dataset.who); };
+  place();
+  later(() => { run = true; $('#say').textContent = 'TAP! TAP! TAP!'; sfx.whoosh(); if (!two) every(() => { if (run && Math.random() < 0.8) pull('bot'); }, 175); }, 1400);
+  later(() => { if (!over) end(pos >= 50 ? 'me' : 'bot'); }, 21400);
+}
+
+// ---------- Quick Squish ----------
+function quick(g, two) {
+  const me = P().buddy, bot = rival(two), myName = P().name, ROUNDS = 5;
+  let round = 0, a = 0, b = 0, state = 'wait', timer = 0, botTimer = 0;
+  frame(g, `<div class="tug quick">
+    <button class="tug-btn top" data-act="quickTap" data-who="bot" ${two ? '' : 'disabled'} aria-label="${bot.name} taps here"><span>${toySVG(bot.avatar)}</span><b id="q-b">${bot.name}: 0</b></button>
+    <div class="quick-sign" id="q-sign" aria-live="assertive">Wait...</div>
+    <button class="tug-btn" data-act="quickTap" data-who="me" aria-label="${myName} taps here"><span>${toySVG(me)}</span><b id="q-a">${myName}: 0</b></button></div>`);
+  const sign = $('#q-sign');
+  const show = () => { $('#q-a').textContent = `${myName}: ${a}`; $('#q-b').textContent = `${bot.name}: ${b}`; setScore(a); };
+  const next = () => {
+    if (round >= ROUNDS) { track('quick', a); return finish(g, a, two ? 10 : 6 + a * 6, a > b ? `${myName} wins!` : b > a ? `${bot.name} wins!` : 'It is a tie!'); }
+    round++; state = 'wait'; sign.className = 'quick-sign'; sign.textContent = `Round ${round}: wait...`;
+    timer = later(() => { state = 'go'; sign.className = 'quick-sign go'; sign.textContent = 'SQUISH!'; sfx.pop(); if (!two) botTimer = later(() => point('bot', `${bot.name} was faster.`), 380 + Math.random() * 330); }, 1400 + Math.random() * 2600);
+  };
+  const point = (who, text) => {
+    if (state === 'done') return;
+    state = 'done'; clearTimeout(timer); clearTimeout(botTimer);
+    if (who === 'me') { a++; sfx.win(); } else { b++; two ? sfx.win() : sfx.no(); }
+    sign.className = 'quick-sign'; sign.textContent = text; show(); later(next, 1300);
+  };
+  actions.quickTap = (el) => {
+    const who = el.dataset.who, name = who === 'me' ? myName : bot.name;
+    if (state === 'wait') return point(who === 'me' ? 'bot' : 'me', `${name} tapped too early!`);
+    if (state === 'go') point(who, `${name} was fastest!`);
+  };
+  show(); next();
+}
+
+// ---------- Shop Math ----------
+function math(g) {
+  let score = 0;
+  frame(g, `<section class="card missing"><div class="math-art" id="math-art"></div><p class="game-say" id="say"></p><div class="count-opts" id="opts"></div></section>`);
+  const toy = () => TOY_LIST[rnd(TOY_LIST.length)];
+  const next = () => {
+    const kind = rnd(score < 3 ? 2 : 3);
+    let art = '', q = '', right = 0;
+    if (kind === 0) { const x = toy(), y = toy(); right = x.value + y.value; art = toySVG(x.id) + toySVG(y.id); q = `<b>${x.name}</b> is worth ${x.value} coins and <b>${y.name}</b> is worth ${y.value}. How much together?`; }
+    else if (kind === 1) { const cost = [40, 40, 50, 90, 120, 150][rnd(6)], have = cost + 10 * (1 + rnd(12)); right = have - cost; art = toySVG('sq01'); q = `You have ${have} coins. A mystery bag costs ${cost}. How many coins are left?`; }
+    else { const x = toy(), n = 2 + rnd(3); right = x.value * n; art = Array.from({ length: n }, () => toySVG(x.id)).join(''); q = `You have ${n} of <b>${x.name}</b>. Each is worth ${x.value} coins. How much for all ${n}?`; }
+    const opts = new Set([right]);
+    while (opts.size < 3) { const v = right + (rnd(2) ? 1 : -1) * [5, 10, 15, 20][rnd(4)]; if (v > 0) opts.add(v); }
+    $('#math-art').innerHTML = art; $('#say').innerHTML = q;
+    $('#opts').innerHTML = [...opts].sort((m, n) => m - n).map((v) => `<button class="btn big" data-act="mathPick" data-hit="${v === right ? 1 : 0}">${v}</button>`).join('');
+  };
+  actions.mathPick = (el) => {
+    if (el.dataset.hit === '1') { score++; sfx.coin(); setScore(score); next(); }
+    else { sfx.no(); el.disabled = true; }
+  };
+  next();
+  countdown(50, () => { track('math', score); finish(g, score, Math.min(45, score * 4), score >= 8 ? 'Math whiz!' : 'Good counting!'); });
 }

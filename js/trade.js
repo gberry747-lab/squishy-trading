@@ -13,20 +13,27 @@ const value = (ids) => ids.reduce((a, id) => a + TOYS[id].value, 0);
 const toMap = (arr) => arr.reduce((m, id) => ((m[id] = (m[id] || 0) + 1), m), {});
 
 // ---------- trade hub ----------
+let hubMode = 'bot';
 export function tradeScreen() {
   T = null;
   const p = P(), others = store.profiles.filter((x) => x.id !== p.id);
-  return `<h1>Trading post</h1><p class="muted">Pick someone to trade with. A good trade is fair for both sides.</p>
-    <section><h2>Computer friends</h2><p class="muted">They get new toys every day. Each one has a favorite kind and will trade extra for it.</p>
+  const mode = (k, title, sub) => `<button class="mode" data-act="tMode" data-v="${k}" aria-pressed="${hubMode === k}"><b>${title}</b><small>${sub}</small></button>`;
+  const panel = hubMode === 'bot'
+    ? `<section><h2>Pick a computer friend</h2><p class="muted">They get new toys every day. Each one has a favorite kind and will trade extra for it. Tap one to open the trading board.</p>
       <div class="friends">${FRIENDS.map((b) => `<button class="card friend" data-act="tBot" data-id="${b.id}"><span class="friend-art">${toySVG(b.avatar)}</span>
-        <span><b>${b.name}</b><small>Loves ${CATS[b.fav].name.toLowerCase()}</small></span></button>`).join('')}</div></section>
-    <section class="card"><h2>A friend sitting with you</h2><p class="muted">Two players, one screen. You both have to agree.</p>
-      <div class="row">${others.map((x) => `<button class="btn" data-act="tLocal" data-id="${x.id}"><span class="mini-art">${toySVG(x.buddy)}</span>${esc(x.name)}</button>`).join('')}
-      <button class="btn ${others.length ? '' : 'primary'}" data-act="addPlayer">Add a player</button></div></section>
-    <section class="card"><h2>Friends online</h2><p class="muted">Make a room and tell your friend the 4-letter code. Ask a grown-up first!</p>
+        <span><b>${b.name}</b><small>Loves ${CATS[b.fav].name.toLowerCase()}</small></span></button>`).join('')}</div></section>`
+    : hubMode === 'local'
+      ? `<section class="card"><h2>Two players, one screen</h2><p class="muted">Trade with someone sitting next to you. Each player needs their own name and toys, and you both have to agree.</p>
+      <div class="row">${others.map((x) => `<button class="btn" data-act="tLocal" data-id="${x.id}"><span class="mini-art">${toySVG(x.buddy)}</span>Trade with ${esc(x.name)}</button>`).join('')}
+      <button class="btn ${others.length ? '' : 'primary'}" data-act="addPlayer">Add ${others.length ? 'another' : 'the second'} player</button></div></section>`
+      : `<section class="card"><h2>Trade with friends online</h2><p class="muted">One friend makes a room and tells the others the 4-letter code. Up to 6 friends can join. Ask a grown-up first!</p>
       <div class="row"><button class="btn primary" data-act="tHost">Make a room</button>
       <form class="join" data-form="join"><label class="sr" for="code">Room code</label><input id="code" name="code" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" required pattern="[A-Za-z]{4}"><button class="btn" type="submit">Join a room</button></form></div></section>`;
+  return `<h1>Trading post</h1><p class="muted">Who do you want to trade with?</p>
+    <div class="modes" role="group" aria-label="Who to trade with">${mode('bot', '1 player', 'You and a computer friend')}${mode('local', '2 players', 'On this iPad or computer')}${mode('online', 'Online', 'Friends on their own devices')}</div>
+    ${panel}`;
 }
+actions.tMode = (el) => { hubMode = el.dataset.v; sfx.tap(); router.go('trade'); };
 
 // ---------- the trade table ----------
 function myAvail() { return availOf(P().inv, T.mine); }
