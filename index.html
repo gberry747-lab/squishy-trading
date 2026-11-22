@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Grace Emilia's Squishy Trading</title>
+  <meta name="description" content="Collect and trade squishies, slimes, fidgets, putty, play dough, springies and plushies. Play mini-games, read stories and win coins.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#FFF4E4">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='50' cy='58' rx='40' ry='32' fill='%23FF8FC0'/%3E%3Ccircle cx='38' cy='56' r='5' fill='%232A1846'/%3E%3Ccircle cx='62' cy='56' r='5' fill='%232A1846'/%3E%3Cpath d='M44 66q6 6 12 0' fill='none' stroke='%232A1846' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="no-profile">
+  <a class="skip" href="#view">Skip to the game</a>
+  <header class="top">
+    <button class="brand" data-act="go" data-to="home" aria-label="Grace Emilia's Squishy Trading, home"><small>Grace Emilia's</small><span>Squishy Trading</span></button>
+    <div class="top-right">
+      <span id="coins" class="coin-pill" aria-label="Your coins"></span>
+      <button id="sound" class="icon-btn" data-act="sound" aria-label="Turn sound off"></button>
+      <button id="who" class="who" data-act="who" aria-label="Change player"></button>
+    </div>
+  </header>
+  <nav id="nav" aria-label="Game sections"></nav>
+  <main id="view" class="view" tabindex="-1"></main>
+  <div id="modal" hidden></div>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="confetti" aria-hidden="true"></div>
+  <noscript><p style="padding:24px">This game needs JavaScript turned on.</p></noscript>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
