@@ -119,6 +119,33 @@ function squishy(t, P) {
       return `<path d="M8 36A42 42 0 0 0 92 36Z" fill="#4E9A3E" transform="translate(0 6)"/><path d="M14 36A36 36 0 0 0 86 36Z" fill="#E9F7C8" transform="translate(0 6)"/><path d="M18 36A32 32 0 0 0 82 36Z" fill="${f}" transform="translate(0 6)"/><g fill="${INK}"><ellipse cx="30" cy="50" rx="1.6" ry="2.6"/><ellipse cx="70" cy="50" rx="1.6" ry="2.6"/><ellipse cx="40" cy="66" rx="1.6" ry="2.6"/><ellipse cx="60" cy="66" rx="1.6" ry="2.6"/></g>${face(50, 54, 0.85, dk)}`;
     case 'cactus':
       return `<path d="M34 56H25Q18 56 18 48V40" stroke="${f}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M66 48H75Q82 48 82 40V32" stroke="${f}" stroke-width="12" fill="none" stroke-linecap="round"/><rect x="33" y="16" width="34" height="66" rx="17" fill="${f}"/><path d="M42 24v8M58 26v8M50 62v8M40 66v6M60 66v6" stroke="${d}" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="14" r="6.5" fill="#FF8FC0"/><circle cx="50" cy="14" r="2.5" fill="#FFD84A"/><path d="M29 76L33 94L67 94L71 76Z" fill="#E08A5B"/><rect x="26" y="72" width="48" height="8" rx="4" fill="#C9703F"/>${face(50, 46, 0.8, dk)}`;
+    case 'pizza':
+      return `<path d="M50 94L13 28Q50 12 87 28Z" fill="${f}" stroke="${f}" stroke-width="4" stroke-linejoin="round"/><path d="M12 28Q50 8 88 28" stroke="#D99A4E" stroke-width="12" stroke-linecap="round" fill="none"/><circle cx="34" cy="42" r="5.5" fill="#E2483F"/><circle cx="64" cy="44" r="5.5" fill="#E2483F"/><circle cx="50" cy="76" r="4.5" fill="#E2483F"/><circle cx="50" cy="38" r="2" fill="#5DBB4A"/>${face(50, 57, 0.8, false)}`;
+    case 'sushi':
+      return `<circle cx="50" cy="56" r="36" fill="#2F3B35"/><circle cx="50" cy="56" r="29" fill="${f}"/><circle cx="45" cy="42" r="8" fill="${P.c2}"/><circle cx="57" cy="44" r="5" fill="#5DBB4A"/><circle cx="52" cy="36" r="3.5" fill="#FFD84A"/>${face(50, 64, 0.85, false)}`;
+    case 'bee':
+      return `<path d="M50 30q-6 -12 -14 -12M54 30q6 -12 14 -10" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="38" cy="34" rx="11" ry="15" fill="#fff" stroke="#BFE3FF" stroke-width="2" transform="rotate(-24 38 34)"/><ellipse cx="62" cy="33" rx="11" ry="15" fill="#fff" stroke="#BFE3FF" stroke-width="2" transform="rotate(20 62 33)"/><path d="M82 62l10 3l-9 5Z" fill="${INK}"/><ellipse cx="50" cy="62" rx="33" ry="26" fill="${f}"/><path d="M60 37q8 25 0 50M72 43q6 19 0 38" stroke="${INK}" stroke-width="7" fill="none" stroke-linecap="round"/>${shine(32, 48, 6, 3.5)}${face(38, 62, 0.85, false, 8)}`;
+    case 'ladybug':
+      return `<path d="M42 26q-4 -12 -12 -12M58 26q4 -12 12 -12" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="50" cy="32" r="15" fill="${INK}"/><circle cx="50" cy="60" r="32" fill="${f}"/><path d="M50 76V92" stroke="${INK}" stroke-width="2.5"/><g fill="${INK}"><circle cx="30" cy="52" r="5.5"/><circle cx="70" cy="52" r="5.5"/><circle cx="34" cy="76" r="4.5"/><circle cx="66" cy="76" r="4.5"/><circle cx="50" cy="40" r="4"/></g>${shine(34, 40, 6, 3.5)}${face(50, 60, 0.9, dk)}`;
+    case 'turtle':
+      return `<circle cx="22" cy="80" r="9" fill="${shade(P.base, 0.25)}"/><circle cx="78" cy="80" r="9" fill="${shade(P.base, 0.25)}"/><ellipse cx="50" cy="48" rx="36" ry="32" fill="${d}"/><path d="M50 18L66 30L62 50L38 50L34 30ZM34 30L16 40M66 30L84 40M38 50L26 68M62 50L74 68" fill="none" stroke="${shade(P.base, 0.2)}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="50" cy="70" r="21" fill="${shade(P.base, 0.25)}"/>${shine(42, 58, 5, 3)}${face(50, 70, 0.85, false)}`;
+    case 'pig':
+      return `<path d="M24 44L22 24L42 34ZM76 44L78 24L58 34Z" fill="${d}" stroke="${d}" stroke-width="5" stroke-linejoin="round"/>${body}${shine(34, 46)}${face(50, 58, 1, dk)}<ellipse cx="50" cy="69" rx="12" ry="8.5" fill="${d}"/><ellipse cx="46" cy="69" rx="2" ry="3" fill="${INK}" opacity=".6"/><ellipse cx="54" cy="69" rx="2" ry="3" fill="${INK}" opacity=".6"/>`;
+    case 'moon':
+      return `<path d="M64 12A42 42 0 1 0 88 74A34 34 0 1 1 64 12Z" fill="${f}"/>${star4(78, 36, 7, '#FFF3B0')}${star4(88, 54, 4, '#FFF3B0')}${shine(26, 40, 5, 9, 20)}${face(38, 60, 0.75, dk)}`;
+    case 'sun': {
+      let rays = '';
+      for (let i = 0; i < 10; i++) rays += `<path d="M50 12L43 28L57 28Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="3" stroke-linejoin="round" transform="rotate(${i * 36} 50 54)"/>`;
+      return `${rays}<circle cx="50" cy="54" r="27" fill="${f}"/>${shine(40, 40, 6, 3.5)}${face(50, 55, 0.95, dk)}`;
+    }
+    case 'planet':
+      return `<ellipse cx="50" cy="58" rx="45" ry="12" fill="none" stroke="${P.c2}" stroke-width="5" transform="rotate(-16 50 58)"/><circle cx="50" cy="54" r="27" fill="${f}"/><path d="M30 44q20 -8 40 0" stroke="#fff" stroke-width="3" fill="none" opacity=".35" stroke-linecap="round"/>${face(50, 48, 0.85, dk)}<path d="M5 58A45 12 0 0 0 95 58" fill="none" stroke="${P.c2}" stroke-width="5" stroke-linecap="round" transform="rotate(-16 50 58)"/>`;
+    case 'pumpkin':
+      return `<path d="M47 30q-2 -12 6 -16l5 4q-5 4 -4 12Z" fill="#5DBB4A"/><ellipse cx="30" cy="62" rx="20" ry="27" fill="${d}"/><ellipse cx="70" cy="62" rx="20" ry="27" fill="${d}"/><ellipse cx="50" cy="62" rx="24" ry="30" fill="${f}"/>${shine(40, 42, 6, 3.5)}${face(50, 63, 1, dk)}`;
+    case 'snowman':
+      return `<circle cx="50" cy="70" r="25" fill="${f}" stroke="${d}" stroke-width="1.5"/><circle cx="50" cy="36" r="19" fill="${f}" stroke="${d}" stroke-width="1.5"/><rect x="33" y="50" width="34" height="8" rx="4" fill="#F0524F"/><rect x="58" y="52" width="8" height="18" rx="4" fill="#F0524F"/><rect x="36" y="6" width="28" height="16" rx="3" fill="${INK}"/><rect x="29" y="19" width="42" height="6" rx="3" fill="${INK}"/><circle cx="50" cy="68" r="2.4" fill="${INK}"/><circle cx="50" cy="78" r="2.4" fill="${INK}"/>${face(50, 35, 0.7, false)}<path d="M50 36l10 2.5l-10 2.5Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="1.5" stroke-linejoin="round"/>`;
+    case 'cherry':
+      return `<path d="M32 50Q36 26 58 14M68 54Q66 30 58 14" fill="none" stroke="#5DBB4A" stroke-width="3.5" stroke-linecap="round"/><path d="M58 14q14 -8 24 2q-12 8 -24 -2Z" fill="#5DBB4A"/><circle cx="32" cy="68" r="20" fill="${f}"/><circle cx="70" cy="72" r="19" fill="${f}"/>${shine(24, 58, 5, 3)}${shine(62, 62, 5, 3)}${face(32, 69, 0.6, dk, 8)}${face(70, 73, 0.6, dk, 8)}`;
     default:
       return `<ellipse cx="50" cy="60" rx="35" ry="29" fill="${f}"/>${shine(34, 44)}${face(50, 61, 1, dk)}`;
   }
@@ -185,6 +212,23 @@ function fidget(t, P) {
       for (let i = 0; i < 4; i++) s += `<line x1="${pts[i][0]}" y1="${pts[i][1]}" x2="${pts[i + 1][0]}" y2="${pts[i + 1][1]}" stroke="${shade(RAINBOW[i + 1], -0.2)}" stroke-width="17" stroke-linecap="round"/><line x1="${pts[i][0]}" y1="${pts[i][1] - 1.5}" x2="${pts[i + 1][0]}" y2="${pts[i + 1][1] - 1.5}" stroke="${t.fx === 'rainbow' ? RAINBOW[i + 1] : (i % 2 ? P.c2 : P.base)}" stroke-width="13" stroke-linecap="round"/>`;
       return s + pts.map(([x, y]) => `<circle cx="${x}" cy="${y - 1.5}" r="3.6" fill="#fff"/>`).join('');
     }
+    case 'dimple': {
+      const cs = t.fx === 'rainbow' ? ['#FF8FC0', '#FFD84A', '#8ED3FF'] : [P.base, shade(P.base, 0.3), P.base];
+      return `<circle cx="14" cy="30" r="8" fill="none" stroke="#B9BEC9" stroke-width="3.5"/><rect x="7" y="34" width="86" height="42" rx="21" fill="${t.fx === 'rainbow' ? '#fff' : d}" stroke="${d}" stroke-width="2"/>${bubble(27, 55, 12.5, cs[0])}${bubble(50, 55, 12.5, cs[1])}${bubble(73, 55, 12.5, cs[2])}`;
+    }
+    case 'yoyo':
+      return `<path d="M50 30V8" stroke="#B9BEC9" stroke-width="2.5"/><circle cx="50" cy="7" r="4.5" fill="none" stroke="#B9BEC9" stroke-width="2.5"/><circle cx="50" cy="60" r="31" fill="${d}"/><circle cx="50" cy="58" r="31" fill="${f}"/><circle cx="50" cy="58" r="19" fill="${P.c2}"/>${star4(50, 58, 11, '#fff')}${shine(34, 40, 7, 4)}`;
+    case 'ring': {
+      let s = '';
+      for (let i = 0; i < 14; i++) s += `<circle cx="${(50 + 34 * Math.cos(i * 0.4488)).toFixed(1)}" cy="${(54 + 34 * Math.sin(i * 0.4488)).toFixed(1)}" r="5" fill="${d}"/>`;
+      return s + `<circle cx="50" cy="54" r="25" fill="none" stroke="${d}" stroke-width="15"/><circle cx="50" cy="53" r="25" fill="none" stroke="${f}" stroke-width="12"/><path d="M30 40q8 -10 20 -11" stroke="#fff" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>`;
+    }
+    case 'pinwheel': {
+      const cs = t.fx === 'rainbow' ? [RAINBOW[0], RAINBOW[2], RAINBOW[3], RAINBOW[4]] : [P.base, P.c2, P.base, P.c2];
+      let s = `<rect x="48" y="44" width="4.5" height="52" rx="2" fill="#B9BEC9"/>`;
+      for (let i = 0; i < 4; i++) s += `<path d="M50 44L50 8Q78 16 50 44Z" fill="${cs[i]}" stroke="${shade(cs[i], -0.2)}" stroke-width="1.5" stroke-linejoin="round" transform="rotate(${i * 90} 50 44)"/>`;
+      return s + `<circle cx="50" cy="44" r="6" fill="#fff" stroke="${INK}" stroke-width="2"/>`;
+    }
     default:
       return `<circle cx="50" cy="54" r="34" fill="${f}"/>`;
   }
@@ -201,7 +245,7 @@ function slime(t, P) {
   }
   if (t.v === 'butter') s += `<path d="M30 36q10 -10 20 0t20 0" fill="none" stroke="${P.light}" stroke-width="3" stroke-linecap="round"/>`;
   if (clear) s += `<circle cx="44" cy="70" r="3" fill="#fff" opacity=".7"/><circle cx="58" cy="62" r="2" fill="#fff" opacity=".7"/><circle cx="54" cy="80" r="2.4" fill="#fff" opacity=".7"/>`;
-  return s + shine(34, 30, 6, 3.5) + face(50, 38, 0.8, P.darkFace);
+  return s + shine(34, 30, 6, 3.5) + face(50, 38, 0.8, P.darkFace && t.v !== 'cloud');
 }
 
 function putty(t, P) {
@@ -268,6 +312,10 @@ function plushie(t, P) {
     case 'koala': ears = `<circle cx="21" cy="26" r="14" fill="${f}"/><circle cx="79" cy="26" r="14" fill="${f}"/><circle cx="21" cy="26" r="8" fill="#FFC9DC"/><circle cx="79" cy="26" r="8" fill="#FFC9DC"/>`; post = `<ellipse cx="50" cy="44" rx="5.5" ry="7.5" fill="${INK}"/><ellipse cx="48.6" cy="41" rx="1.6" ry="2.2" fill="#fff" opacity=".7"/>`; break;
     case 'frog': ears = `<circle cx="35" cy="16" r="11" fill="${f}"/><circle cx="65" cy="16" r="11" fill="${f}"/>`; post = `<circle cx="35" cy="15" r="6.5" fill="#fff"/><circle cx="65" cy="15" r="6.5" fill="#fff"/><circle cx="36" cy="16" r="3.4" fill="${INK}"/><circle cx="64" cy="16" r="3.4" fill="${INK}"/>`; faceStr = `<path d="M38 44q12 9 24 0" fill="none" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/><circle cx="30" cy="46" r="3.4" fill="#FF5F9E" opacity=".45"/><circle cx="70" cy="46" r="3.4" fill="#FF5F9E" opacity=".45"/>`; break;
     case 'lion': { let mane = ''; for (let i = 0; i < 12; i++) mane += `<circle cx="${(50 + 27 * Math.cos(i * 0.5236)).toFixed(1)}" cy="${(38 + 27 * Math.sin(i * 0.5236)).toFixed(1)}" r="9.5" fill="${c2}"/>`; ears = mane; extra = `<ellipse cx="50" cy="47" rx="9" ry="6.5" fill="#FFF3D6"/><path d="M72 84q16 2 14 -14" fill="none" stroke="${f}" stroke-width="5" stroke-linecap="round"/><circle cx="86" cy="68" r="5" fill="${c2}"/>`; break; }
+    case 'owl': ears = `<path d="M27 26L24 4L44 16ZM73 26L76 4L56 16Z" fill="${f}" stroke="${f}" stroke-width="4" stroke-linejoin="round"/>`; extra = `<circle cx="39" cy="38" r="11" fill="${c2}"/><circle cx="61" cy="38" r="11" fill="${c2}"/>`; post = `<circle cx="39" cy="38" r="4.6" fill="${INK}"/><circle cx="61" cy="38" r="4.6" fill="${INK}"/><circle cx="37.6" cy="36.4" r="1.6" fill="#fff"/><circle cx="59.6" cy="36.4" r="1.6" fill="#fff"/><path d="M46 46L54 46L50 53Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="2" stroke-linejoin="round"/>`; faceStr = `<circle cx="27" cy="48" r="3.4" fill="#FF5F9E" opacity=".45"/><circle cx="73" cy="48" r="3.4" fill="#FF5F9E" opacity=".45"/>`; break;
+    case 'pig': ears = `<path d="M27 24L24 6L44 16ZM73 24L76 6L56 16Z" fill="${c2}" stroke="${c2}" stroke-width="4" stroke-linejoin="round"/>`; post = `<ellipse cx="50" cy="50" rx="10" ry="7.5" fill="${c2}"/><ellipse cx="46.5" cy="50" rx="1.8" ry="2.8" fill="${INK}" opacity=".6"/><ellipse cx="53.5" cy="50" rx="1.8" ry="2.8" fill="${INK}" opacity=".6"/>`; break;
+    case 'elephant': ears = `<circle cx="16" cy="38" r="17" fill="${f}"/><circle cx="84" cy="38" r="17" fill="${f}"/><circle cx="16" cy="38" r="10" fill="${c2}"/><circle cx="84" cy="38" r="10" fill="${c2}"/>`; post = `<path d="M50 45Q50 62 59 60" fill="none" stroke="${d}" stroke-width="9" stroke-linecap="round"/>`; break;
+    case 'monkey': ears = `<circle cx="22" cy="38" r="10" fill="${f}"/><circle cx="78" cy="38" r="10" fill="${f}"/><circle cx="22" cy="38" r="5.5" fill="${c2}"/><circle cx="78" cy="38" r="5.5" fill="${c2}"/>`; extra = `<path d="M31 40Q30 25 42 28Q50 31 58 28Q70 25 69 40Q71 59 50 59Q29 59 31 40Z" fill="${c2}"/><path d="M72 84q18 0 14 -22" fill="none" stroke="${f}" stroke-width="5" stroke-linecap="round"/>`; faceStr = face(50, 41, 0.95, false); break;
     case 'unicorn': ears = `<path d="M50 0L45 20L55 20Z" fill="#F5B921"/><path d="M28 28L29 10L44 20ZM72 28L71 10L56 20Z" fill="${f}" stroke="${f}" stroke-width="4" stroke-linejoin="round"/>`; extra = `<path d="M70 20q14 6 10 26q-8 -8 -12 -12Z" fill="${c2}"/><path d="M76 34q8 8 2 22q-4 -10 -8 -12Z" fill="#FF8FC0"/>`; break;
   }
   const isPeng = t.v === 'penguin';

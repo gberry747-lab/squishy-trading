@@ -62,7 +62,21 @@ sq39|Glow Ghost|ghost|mint||e|glow
 sq40|Peep|chick|yellow||c
 sq41|Melon Slice|melon|red||c
 sq42|Prickles|cactus|lime||r
-sq43|Nelly Narwhal|narwhal|sky||l|glitter`,
+sq43|Nelly Narwhal|narwhal|sky||l|glitter
+sq44|Cheesy Slice|pizza|yellow||c
+sq45|Sushi Roll|sushi|white|orange|r
+sq46|Buzzy Bee|bee|yellow||c
+sq47|Dotty Ladybug|ladybug|red||c
+sq48|Shelly Turtle|turtle|lime||r
+sq49|Oinky|pig|pink||c
+sq50|Sleepy Moon|moon|yellow||r
+sq51|Sunny Smiles|sun|yellow||c
+sq52|Ringo Planet|planet|lilac|gold|e
+sq53|Galaxy Planet|planet|grape|sky|l|galaxy
+sq54|Pumpkin Pal|pumpkin|orange||r
+sq55|Frosty|snowman|white||e
+sq56|Cherry Twins|cherry|red||r
+sq57|Golden Piggy|pig|gold||l|glitter`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -87,7 +101,15 @@ fi20|Smiley Squeeze|squeeze|yellow||c
 fi21|Galaxy Squeeze|squeeze|grape||e|galaxy
 fi22|Snap Track|track|pink||r|rainbow
 fi23|Heart Popper|popheart|red||r
-fi24|Rainbow Heart Popper|popheart|pink||e|rainbow`,
+fi24|Rainbow Heart Popper|popheart|pink||e|rainbow
+fi25|Simple Dimple|dimple|sky||c
+fi26|Candy Dimple|dimple|pink||r|rainbow
+fi27|Zippy Yo-Yo|yoyo|red|yellow|c
+fi28|Galaxy Yo-Yo|yoyo|grape|sky|e|galaxy
+fi29|Spiky Ring|ring|lime||c
+fi30|Party Pinwheel|pinwheel|pink||r|rainbow
+fi31|Golden Pinwheel|pinwheel|gold|yellow|l|glitter
+fi32|Ocean Ring|ring|teal||r`,
   slime: `
 sl01|Strawberry Slime|glossy|pink||c
 sl02|Ocean Slime|glossy|blue||c
@@ -108,7 +130,12 @@ sl16|Bubblegum Butter|butter|pink||c
 sl17|Snow Cloud|cloud|white||r
 sl18|Fishbowl Slime|crunchy|sky||r
 sl19|Lava Slime|glossy|orange||e|glow
-sl20|Mermaid Slime|clear|teal||e|glitter`,
+sl20|Mermaid Slime|clear|teal||e|glitter
+sl21|Watermelon Crunch|crunchy|red||c
+sl22|Midnight Cloud|cloud|navy||r
+sl23|Honey Butter|butter|gold||c
+sl24|Rainbow Clear|clear|pink||e|rainbow
+sl25|Bubble Tea Slime|clear|tan||r`,
   putty: `
 pu01|Bubblegum Putty|swirl|pink|white|c
 pu02|Ocean Swirl|swirl|blue|teal|c
@@ -125,7 +152,11 @@ pu12|Gold Rush|metal|gold||l|glitter
 pu13|Cotton Candy Swirl|swirl|pink|sky|c
 pu14|Lava Putty|swirl|red|orange|r
 pu15|Glow Pink|glow|pink||r
-pu16|Mermaid Shine|metal|teal||e|glitter`,
+pu16|Mermaid Shine|metal|teal||e|glitter
+pu17|Minty Fresh Putty|swirl|mint|white|c
+pu18|Storm Cloud Putty|metal|navy||r
+pu19|Glow Sunshine|glow|yellow||e
+pu20|Peachy Putty|swirl|peach|pink|c`,
   dough: `
 do01|Red Dough|ball|red||c
 do02|Blue Dough|ball|blue||c
@@ -144,7 +175,12 @@ do14|Teal Dough|ball|teal||c
 do15|Orange Swirl|swirl|orange||c
 do16|Candy Snake|snake|red||r
 do17|Galaxy Dough|ball|grape||e|galaxy
-do18|Rainbow Heart Dough|heart|pink||e|rainbow`,
+do18|Rainbow Heart Dough|heart|pink||e|rainbow
+do19|Lime Dough|ball|lime||c
+do20|Pink Star|star|pink||c
+do21|Blueberry Swirl|swirl|blue||r
+do22|Golden Heart Dough|heart|gold||l|glitter
+do23|Rainbow Dough|ball|pink||e|rainbow`,
   springy: `
 sp01|Classic Springy|arc|gray||c
 sp02|Pink Springy|arc|pink||c
@@ -162,7 +198,11 @@ sp13|Sunset Springy|stack|orange|yellow|c
 sp14|Grape Springy|arc|grape||c
 sp15|Mint Stack|stack|mint|white|c
 sp16|Silver Stack|stack|gray||r
-sp17|Rainbow Stack|stack|pink||e|rainbow`,
+sp17|Rainbow Stack|stack|pink||e|rainbow
+sp18|Berry Springy|arc|red||c
+sp19|Zebra Stack|stack|white|navy|r
+sp20|Unicorn Springy|arc|pink|lilac|e|glitter
+sp21|Sunshine Springy|arc|yellow||c`,
   plushie: `
 pl01|Buttons the Bear|bear|tan|cream|r
 pl02|Clover the Bunny|bunny|white|pink|r
@@ -181,7 +221,11 @@ pl14|Kiki the Koala|koala|gray|white|r
 pl15|Hopper the Frog|frog|lime|cream|r
 pl16|Sunny the Lion|lion|yellow|orange|e
 pl17|Mint the Dino|dino|mint|teal|r
-pl18|Cocoa the Bear|bear|choc|tan|r`,
+pl18|Cocoa the Bear|bear|choc|tan|r
+pl19|Hoot the Owl|owl|choc|cream|e
+pl20|Truffle the Pig|pig|pink|rose|r
+pl21|Ellie the Elephant|elephant|gray|pink|e
+pl22|Coco the Monkey|monkey|choc|tan|r`,
 };
 
 export const TOYS = {};
@@ -234,6 +278,10 @@ export const QUESTS = [
   { id: 'copy8', text: 'Copy 8 patterns in Copy Cat', ev: 'copy', goal: 8, coins: 30 },
   { id: 'odd10', text: 'Spot 10 odd toys in Odd One Out', ev: 'odd', goal: 10, coins: 30 },
   { id: 'step10', text: 'Land 10 steps in Springy Stairs', ev: 'step', goal: 10, coins: 30 },
+  { id: 'shadow10', text: 'Guess 10 shadows in Shadow Match', ev: 'shadow', goal: 10, coins: 30 },
+  { id: 'judge8', text: 'Judge 8 trades right in Fair or Not', ev: 'judge', goal: 8, coins: 30 },
+  { id: 'shuffle4', text: 'Find the toy 4 times in Bag Shuffle', ev: 'shuffle', goal: 4, coins: 30 },
+  { id: 'count8', text: 'Count right 8 times in Quick Count', ev: 'count', goal: 8, coins: 30 },
 ];
 
 // Big goals. kind: unique (toys collected), set (finish a family), stat (lifetime counter)
@@ -243,6 +291,7 @@ export const GOALS = [
   { id: 'u50', text: 'Collect 50 different toys', kind: 'unique', goal: 50, coins: 200 },
   { id: 'u80', text: 'Collect 80 different toys', kind: 'unique', goal: 80, coins: 350 },
   { id: 'u120', text: 'Collect 120 different toys', kind: 'unique', goal: 120, coins: 500 },
+  { id: 'u160', text: 'Collect 160 different toys', kind: 'unique', goal: 160, coins: 700 },
   { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: TOY_LIST.length, coins: 1000 },
   { id: 't1', text: 'Make your first trade', kind: 'stat', ev: 'trade', goal: 1, coins: 20 },
   { id: 't10', text: 'Make 10 trades', kind: 'stat', ev: 'trade', goal: 10, coins: 80 },

@@ -13,6 +13,10 @@ const GAMES = [
   { id: 'sort', name: 'Toy Sorter', art: 'sq36', how: 'Which shelf does the toy belong on? Sort as many as you can.', unit: 'toys sorted' },
   { id: 'stairs', name: 'Springy Stairs', art: 'sp07', how: 'Tap when the dot is in the green to walk the springy down the stairs.', unit: 'steps' },
   { id: 'odd', name: 'Odd One Out', art: 'sq32', how: 'One toy is different from the rest. Find it fast!', unit: 'found' },
+  { id: 'shadow', name: 'Shadow Match', art: 'sq50', how: 'Whose shadow is it? Pick the toy that matches.', unit: 'shadows' },
+  { id: 'judge', name: 'Fair or Not?', art: 'sq23', how: 'Add up what each side is worth. Is the trade fair?', unit: 'right calls' },
+  { id: 'shuffle', name: 'Bag Shuffle', art: 'sq12', how: 'Watch the bag with the toy as they swap around. Where did it go?', unit: 'finds' },
+  { id: 'count', name: 'Quick Count', art: 'sq46', how: 'Count the toys before the time runs out.', unit: 'right counts' },
 ];
 const view = () => $('#view');
 const best = (id) => P().stats['best_' + id] || 0;
@@ -59,7 +63,7 @@ function finish(g, score, won, line) {
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
+actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
 
 // ---------- Pop Party ----------
 function pop(g) {
@@ -282,4 +286,127 @@ function odd(g) {
   };
   next();
   countdown(40, () => { track('odd', score); finish(g, score, Math.min(45, score * 3), score >= 12 ? 'Eagle eyes!' : 'Sharp spotting!'); });
+}
+
+const rnd = (n) => Math.floor(Math.random() * n);
+const mixUp = (a) => [...a].sort(() => Math.random() - 0.5);
+
+// ---------- Shadow Match ----------
+function shadow(g) {
+  let score = 0;
+  frame(g, `<section class="card shadow-card"><div class="shadow-toy" id="shadow-toy"></div><p class="game-say" id="say">Whose shadow is this?</p><div class="shadow-opts" id="opts"></div></section>`);
+  const next = () => {
+    const first = TOY_LIST[rnd(TOY_LIST.length)];
+    const pool = score >= 4 ? TOY_LIST.filter((t) => t.cat === first.cat) : TOY_LIST;
+    const seen = new Set(), opts = [first];
+    seen.add(first.cat + first.v);
+    mixUp(pool).forEach((t) => { if (opts.length < 4 && !seen.has(t.cat + t.v)) { seen.add(t.cat + t.v); opts.push(t); } });
+    mixUp(TOY_LIST).forEach((t) => { if (opts.length < 4 && !seen.has(t.cat + t.v)) { seen.add(t.cat + t.v); opts.push(t); } });
+    $('#shadow-toy').innerHTML = toySVG(first.id);
+    $('#opts').innerHTML = mixUp(opts).map((t) => `<button class="odd-cell" data-act="shadowPick" data-hit="${t.id === first.id ? 1 : 0}" aria-label="${t.name}">${toySVG(t.id)}</button>`).join('');
+  };
+  actions.shadowPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); next(); }
+    else { sfx.no(); b.classList.add('wrong'); b.disabled = true; }
+  };
+  next();
+  countdown(35, () => { track('shadow', score); finish(g, score, Math.min(45, score * 3), score >= 12 ? 'Shadow master!' : 'Good guessing!'); });
+}
+
+// ---------- Fair or Not? ----------
+const MARK = { yes: '<path d="M5 13l5 6L20 5"/>', no: '<path d="M5 5l14 14M19 5L5 19"/>' };
+function judge(g) {
+  let score = 0, fair = true, busy = false;
+  const byR = (r) => TOY_LIST.filter((t) => t.r === r);
+  const side = (toys) => `<div class="judge-side">${toys.map((t) => `<div class="judge-toy">${toySVG(t.id)}<b>${t.value}</b></div>`).join('')}</div>`;
+  frame(g, `<section class="card judge"><p class="game-say" id="say">Add up each side. Is it a fair trade?</p><div class="judge-row" id="judge-row"></div>
+    <div class="judge-keys"><button class="key key-yes" data-act="judgeIt" data-v="1" aria-label="Fair"><svg viewBox="0 0 24 24" aria-hidden="true">${MARK.yes}</svg><span>Fair</span></button><button class="key key-no" data-act="judgeIt" data-v="0" aria-label="Not fair"><svg viewBox="0 0 24 24" aria-hidden="true">${MARK.no}</svg><span>Not fair</span></button></div></section>`);
+  const next = () => {
+    busy = false;
+    const rs = score < 4 ? ['c', 'r'] : ['c', 'r', 'e'];
+    const n = score < 3 ? 1 + rnd(2) : 2 + rnd(2);
+    const left = Array.from({ length: n }, () => rs[rnd(rs.length)]);
+    let right = mixUp(left);
+    fair = Math.random() < 0.5;
+    if (!fair) { const i = rnd(n), others = rs.filter((r) => r !== right[i]); right[i] = others[rnd(others.length)]; }
+    const pick = (r) => { const pool = byR(r); return pool[rnd(pool.length)]; };
+    const L = left.map(pick), R = right.map(pick);
+    $('#judge-row').dataset.l = L.reduce((a, t) => a + t.value, 0); $('#judge-row').dataset.r = R.reduce((a, t) => a + t.value, 0);
+    $('#judge-row').innerHTML = `${side(L)}<span class="swap" aria-hidden="true">${icon('trade')}</span>${side(R)}`;
+    $('#say').textContent = 'Add up each side. Is it a fair trade?';
+  };
+  actions.judgeIt = (b) => {
+    if (busy) return;
+    busy = true;
+    const row = $('#judge-row'), right = (b.dataset.v === '1') === fair;
+    if (right) { score++; sfx.pop(); setScore(score); }
+    else sfx.no();
+    $('#say').textContent = `${right ? 'Yes!' : 'Not quite.'} ${row.dataset.l} and ${row.dataset.r}: ${fair ? 'fair' : 'not fair'}.`;
+    later(next, right ? 700 : 1500);
+  };
+  next();
+  countdown(45, () => { track('judge', score); finish(g, score, Math.min(45, score * 3), score >= 10 ? 'Fairest judge ever!' : 'Good judging!'); });
+}
+
+// ---------- Bag Shuffle ----------
+const bagArt = `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M20 30L26 20L32 30L38 20L44 30L50 20L56 30L62 20L68 30L74 20L80 30L84 88Q84 94 78 94L22 94Q16 94 16 88Z" fill="#C9A8FF" stroke="#2A1846" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="62" r="15" fill="#fff"/></svg>`;
+function shuffle(g) {
+  let score = 0, lives = 2, slots = [0, 1, 2], prize = 0, open = false, round = 0;
+  const X = [17, 50, 83];
+  frame(g, `<p class="game-say" id="say" aria-live="polite">Watch the toy!</p><div class="cups" id="cups">${[0, 1, 2].map((i) => `<button class="cup" data-act="cup" data-i="${i}" aria-label="Bag ${i + 1}"><span class="cup-toy"></span>${bagArt}</button>`).join('')}</div><p class="game-say">Tries left: <span id="lives">2</span></p>`);
+  const cups = [...document.querySelectorAll('.cup')];
+  const place = () => cups.forEach((c, i) => { c.style.left = X[slots[i]] + '%'; });
+  const start = () => {
+    open = false; round++;
+    cups.forEach((c) => c.classList.remove('peek', 'miss'));
+    prize = rnd(3);
+    const toy = TOY_LIST[rnd(TOY_LIST.length)];
+    cups.forEach((c, i) => { c.querySelector('.cup-toy').innerHTML = i === prize ? toySVG(toy.id) : ''; });
+    $('#say').textContent = 'Watch the toy!';
+    cups[prize].classList.add('peek');
+    const swaps = 3 + Math.min(6, round), d = Math.max(230, 520 - round * 40);
+    cups.forEach((c) => { c.style.transitionDuration = d + 'ms'; });
+    later(() => cups[prize].classList.remove('peek'), 1000);
+    for (let k = 0; k < swaps; k++) later(() => {
+      const a = rnd(3), b = (a + 1 + rnd(2)) % 3;
+      [slots[a], slots[b]] = [slots[b], slots[a]]; place(); sfx.tap();
+    }, 1400 + k * (d + 60));
+    later(() => { open = true; $('#say').textContent = 'Which bag has the toy?'; }, 1400 + swaps * (d + 60));
+  };
+  actions.cup = (c) => {
+    if (!open) return;
+    open = false;
+    cups[prize].classList.add('peek');
+    if (+c.dataset.i === prize) { score++; sfx.win(); setScore(score); $('#say').textContent = 'You found it!'; later(start, 1100); }
+    else {
+      lives--; sfx.no(); c.classList.add('miss'); $('#lives').textContent = lives; $('#say').textContent = 'Oops! It was in the other bag.';
+      later(() => { if (lives > 0) start(); else { track('shuffle', score); finish(g, score, Math.min(45, 5 + score * 5), score >= 6 ? 'Eagle-eyed!' : 'Nice watching!'); } }, 1300);
+    }
+  };
+  place(); start();
+}
+
+// ---------- Quick Count ----------
+function count(g) {
+  let score = 0;
+  frame(g, `<section class="card counter"><div class="count-box" id="count-box"></div><p class="game-say" id="say"></p><div class="count-opts" id="opts"></div></section>`);
+  const next = () => {
+    const kinds = mixUp(TOY_LIST).slice(0, score < 3 ? 2 : 3);
+    const nums = kinds.map(() => 2 + rnd(score < 5 ? 4 : 6));
+    const cells = mixUp(Array.from({ length: 24 }, (_, i) => i));
+    let html = '', k = 0;
+    kinds.forEach((t, i) => { for (let j = 0; j < nums[i]; j++) { const c = cells[k++]; html += `<span style="left:${(c % 6) * 16.6 + rnd(4)}%;top:${Math.floor(c / 6) * 25 + rnd(4)}%;transform:rotate(${rnd(30) - 15}deg)">${toySVG(t.id)}</span>`; } });
+    $('#count-box').innerHTML = html;
+    const ask = rnd(kinds.length), right = nums[ask];
+    const opts = new Set([right]);
+    while (opts.size < 3) { const v = right + rnd(5) - 2; if (v > 0) opts.add(v); }
+    $('#say').innerHTML = `How many <b>${kinds[ask].name}</b> toys?`;
+    $('#opts').innerHTML = [...opts].sort((a, b) => a - b).map((v) => `<button class="btn big" data-act="countPick" data-hit="${v === right ? 1 : 0}">${v}</button>`).join('');
+  };
+  actions.countPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); next(); }
+    else { sfx.no(); b.disabled = true; }
+  };
+  next();
+  countdown(45, () => { track('count', score); finish(g, score, Math.min(45, score * 4), score >= 8 ? 'Counting champion!' : 'Good counting!'); });
 }
