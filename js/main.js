@@ -61,7 +61,7 @@ function welcome(adding = false) {
   view.innerHTML = `<section class="welcome">
     <div class="welcome-toys" aria-hidden="true">${['sq12', 'pl02', 'fi01', 'sl05', 'sp07'].map((id, i) => `<span style="--i:${i}">${toySVG(id)}</span>`).join('')}</div>
     <div class="lang-row" role="group" aria-label="Language" translate="no"><button class="chip" data-act="lang" data-v="en" aria-pressed="${lang() === 'en'}">English</button><button class="chip" data-act="lang" data-v="es" aria-pressed="${lang() === 'es'}">Espa\u00f1ol</button></div>
-    <h1 class="big-title"><small translate="no">Grace Emilia's</small><span translate="no">Squishy Trading</span></h1>
+    <h1 class="big-title"><small translate="no">Grace Emilia's</small><span translate="no">Squishy Trades</span></h1>
     <p class="lead">Collect squishies, slimes, fidgets and more. Trade with friends. Win coins. Squish everything.</p>
     <form class="card welcome-form" data-form="start">
       <label for="nm">What is your name?</label>
