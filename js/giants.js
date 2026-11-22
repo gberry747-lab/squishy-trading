@@ -144,7 +144,7 @@ const GAMES = {
   hide: { name: 'Hide and Seek', how: 'Your giant is hiding. Tap the wall it is behind!', art: block(14, 52, '#8E7BE0'), total: 5 },
 };
 const gameArt = (k) => `<svg viewBox="0 140 80 70" aria-hidden="true">${GAMES[k].art}</svg>`;
-let view = null; // null = the list, { trade, sel } = giving toys, { g, scene } = walking, { game, g, scene } = a game, { parade } = the end
+let view = null; // null = the list, { trade, sel } = giving toys, { g, scene } = walking, { pick } = one giant and its games, { game, g, scene } = a game, { parade } = the end
 let run = null; // the game that is running right now
 function stopGame() { if (run) { cancelAnimationFrame(run.raf); clearTimeout(run.t); run = null; } }
 export function giantsScreen() {
@@ -154,12 +154,12 @@ export function giantsScreen() {
   if (view && view.game) return gameHTML(p);
   if (view && view.parade) return paradeHTML(p);
   if (view && view.g) return walkHTML(p);
+  if (view && view.pick) return pickHTML(byId(view.pick));
   const nx = nextGiant(p), sp = canGive(p).length, f = fav(p);
   return `<button class="btn back" data-act="go" data-to="home">${icon('back')} Home</button><h1>Giant squishies</h1>
     <section class="card goal-banner"><p class="goal-big">Your big goal</p><p class="goal-say">Wake up all ${GIANTS.length} giants for the Giant Parade.</p>${road(p)}
       ${nx ? '' : `<div class="row center"><button class="btn primary big" data-act="gParade">${p.champ ? 'Watch the Giant Parade' : 'Start the Giant Parade!'}</button></div>`}</section>
-    <section class="card"><h2>Play with ${gName(f)}</h2><p class="muted">Pick a game. Every game wins coins.</p>
-      <div class="gg-list">${Object.keys(GAMES).map((k) => `<button class="gg-pick" data-act="gGame" data-v="${k}">${gameArt(k)}<b>${GAMES[k].name}</b><small>${GAMES[k].how}</small></button>`).join('')}</div></section>
+    <section class="card"><h2>Play with ${gName(f)}</h2>${gameList()}</section>
     <h2>Your giants</h2>
     <div class="giant-grid">${GIANTS.map((g) => {
     const has = own[g.id], isNext = nx && g.id === nx.id, ok = isNext && sp >= g.need;
@@ -168,6 +168,15 @@ export function giantsScreen() {
     : isNext ? `<span class="pill">${needText(g.need)}</span><button class="btn${ok ? ' primary' : ''}" data-act="gTrade" data-id="${g.id}">${ok ? 'Wake it up' : 'How to wake it up'}</button>`
       : '<span class="pill">Sleeping</span>'}</section>`;
   }).join('')}</div>`;
+}
+function gameList() {
+  return `<p class="muted">Pick a game. Every game wins coins.</p>
+      <div class="gg-list">${Object.keys(GAMES).map((k) => `<button class="gg-pick" data-act="gGame" data-v="${k}">${gameArt(k)}<b>${GAMES[k].name}</b><small>${GAMES[k].how}</small></button>`).join('')}</div>`;
+}
+function pickHTML(g) {
+  return `<button class="btn back" data-act="gBack">${icon('back')} Giants</button><h1>Play with ${gName(g)}</h1>
+    <div class="giant-stage">${sceneHTML(g.scene, g.toy, { live: true, stomp: true })}</div>
+    <section class="card">${gameList()}</section>`;
 }
 function tradeHTML(p) {
   const g = byId(view.trade), all = canGive(p), list = all.slice(0, 40), n = g.need, got = view.sel.length;
@@ -236,7 +245,8 @@ actions.gDeal = (el) => {
   startWalk(g);
 };
 actions.gWalk = (el) => { const g = byId(el.dataset.id); if (g && mine()[g.id]) { sfx.tap(); startWalk(g); } };
-actions.gFav = (el) => { const g = byId(el.dataset.id); if (!g || !mine()[g.id]) return; P().gfav = g.id; save(); sfx.pop(); view = null; router.go('giants'); window.scrollTo(0, 0); };
+// "Play with me" on a giant's card opens that giant with its three games, so the tap always goes somewhere.
+actions.gFav = (el) => { const g = byId(el.dataset.id); if (!g || !mine()[g.id]) return; P().gfav = g.id; save(); sfx.pop(); view = { pick: g.id }; router.go('giants'); window.scrollTo(0, 0); };
 actions.gWho = (el) => {
   const g = byId(el.dataset.id);
   if (!g || !mine()[g.id] || !view || !view.g) return;

@@ -46,15 +46,16 @@ function show(text, step, btns, key) {
   el().hidden = false; document.body.classList.add('guiding');
   if (!store.mute) talk(true);
 }
-// Mochi's lines are recorded in English. Other languages use the device's own voice, and only when asked.
+// Mochi's lines are recorded in English and Spanish. The device's own voice is only the backup.
 function stopTalk() { if (clip) { clip.pause(); clip = null; } if ('speechSynthesis' in window) speechSynthesis.cancel(); if (el()) el().classList.remove('talking'); }
 function deviceTalk() {
   if (!('speechSynthesis' in window)) return;
   const u = new SpeechSynthesisUtterance($('#guide-text').textContent); u.rate = 0.9; u.pitch = 1.15; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u);
 }
 function talk(auto) {
-  if (lang() !== 'en' || !cur) { if (!auto) deviceTalk(); return; }
-  const a = new Audio(`audio/guide/${cur}.mp3`), fail = () => { if (clip !== a) return; stopTalk(); if (!auto) deviceTalk(); };
+  const dir = { en: '', es: 'es/' }[lang()];
+  if (dir === undefined || !cur) { if (!auto) deviceTalk(); return; }
+  const a = new Audio(`audio/guide/${dir}${cur}.mp3`), fail = () => { if (clip !== a) return; stopTalk(); if (!auto) deviceTalk(); };
   clip = a; el().classList.add('talking');
   a.onended = () => { if (clip === a) stopTalk(); }; a.onerror = fail;
   a.play().catch(fail);

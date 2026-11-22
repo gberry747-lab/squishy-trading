@@ -1021,6 +1021,7 @@ export default {
 "Max's Zoom Spinner will not spin. It just goes clunk. \"It is broken forever,\" Max sniffs. {name} has an idea: open a Fidget Fix-It Shop!": "El Spinner Veloz de Max no gira. Solo hace clonc. \"Se rompió para siempre\", dice Max sorbiendo la nariz. {name} tiene una idea: ¡abrir una tienda de arreglar fidgets!",
 "Mayor Mochi": "La alcaldesa Mochi",
 "Medium pen": "Lápiz mediano",
+"Meet the giant squishies! Play games with them to win coins. Wake up all 12 giants for the Giant Parade. That is your big goal!": "¡Conoce a los squishies gigantes! Juega con ellos para ganar monedas. Despierta a los 12 gigantes para el Desfile de Gigantes. ¡Esa es tu gran meta!",
 "Meet the giant squishies! Play games with them to win coins. Wake up all {n1} giants for the Giant Parade. That is your big goal!": "¡Conoce a los squishies gigantes! Juega con ellos para ganar monedas. Despierta a los {n1} gigantes para el Desfile de Gigantes. ¡Esa es tu gran meta!",
 "Mega Memory Match": "Mega Memoria",
 "Mega Rainbow Bag": "Bolsa sorpresa Mega Arcoíris",
