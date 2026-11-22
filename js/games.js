@@ -384,14 +384,15 @@ function shadow(g) {
 const MARK = { yes: '<path d="M5 13l5 6L20 5"/>', no: '<path d="M5 5l14 14M19 5L5 19"/>' };
 function judge(g) {
   let score = 0, fair = true, busy = false;
-  const byR = (r) => TOY_LIST.filter((t) => t.r === r);
+  // Only toys worth 10 or 25, so each side adds up to 100 or less.
+  const byR = (r) => TOY_LIST.filter((t) => t.r === r && (r === 'c' || t.value === 25));
   const side = (toys) => `<div class="judge-side">${toys.map((t) => `<div class="judge-toy">${toySVG(t.id)}<b>${t.value}</b></div>`).join('')}</div>`;
   frame(g, `<section class="card judge"><p class="game-say" id="say">Add up each side. Is it a fair trade?</p><div class="judge-row" id="judge-row"></div>
     <div class="judge-keys"><button class="key key-yes" data-act="judgeIt" data-v="1" aria-label="Fair"><svg viewBox="0 0 24 24" aria-hidden="true">${MARK.yes}</svg><span>Fair</span></button><button class="key key-no" data-act="judgeIt" data-v="0" aria-label="Not fair"><svg viewBox="0 0 24 24" aria-hidden="true">${MARK.no}</svg><span>Not fair</span></button></div></section>`);
   const next = () => {
     busy = false;
-    const rs = score < 4 ? ['c', 'r'] : ['c', 'r', 'e'];
-    const n = score < 3 ? 1 + rnd(2) : 2 + rnd(2);
+    const rs = ['c', 'r'];
+    const n = score < 3 ? 1 + rnd(2) : score < 8 ? 2 + rnd(2) : 3 + rnd(2);
     const left = Array.from({ length: n }, () => rs[rnd(rs.length)]);
     let right = mixUp(left);
     fair = Math.random() < 0.5;
@@ -853,15 +854,17 @@ function quick(g, two) {
 function math(g) {
   let score = 0;
   frame(g, `<section class="card missing"><div class="math-art" id="math-art"></div><p class="game-say" id="say"></p><div class="count-opts" id="opts"></div></section>`);
-  const toy = () => TOY_LIST[rnd(TOY_LIST.length)];
+  // Numbers stay friendly for ages 6 to 8: sums up to 100, change in tens, and counting by tens.
+  const pool = TOY_LIST.filter((t) => [10, 25, 60].includes(t.value)), tens = TOY_LIST.filter((t) => t.value === 10);
+  const toy = () => pool[rnd(pool.length)];
   const next = () => {
     const kind = rnd(score < 3 ? 2 : 3);
     let art = '', q = '', right = 0;
-    if (kind === 0) { const x = toy(), y = toy(); right = x.value + y.value; art = toySVG(x.id) + toySVG(y.id); q = `<b>${x.name}</b> is worth ${x.value} coins and <b>${y.name}</b> is worth ${y.value}. How much together?`; }
-    else if (kind === 1) { const cost = [40, 40, 50, 90, 120, 150][rnd(6)], have = cost + 10 * (1 + rnd(12)); right = have - cost; art = toySVG('sq01'); q = `You have ${have} coins. A mystery bag costs ${cost}. How many coins are left?`; }
-    else { const x = toy(), n = 2 + rnd(3); right = x.value * n; art = Array.from({ length: n }, () => toySVG(x.id)).join(''); q = `You have ${n} of <b>${x.name}</b>. Each is worth ${x.value} coins. How much for all ${n}?`; }
+    if (kind === 0) { let x = toy(), y = toy(); while (x.value + y.value > 100) y = toy(); right = x.value + y.value; art = toySVG(x.id) + toySVG(y.id); q = `<b>${x.name}</b> is worth ${x.value} coins and <b>${y.name}</b> is worth ${y.value}. How much together?`; }
+    else if (kind === 1) { const cost = [20, 30, 40, 40, 50][rnd(5)], have = cost + 10 * (1 + rnd(5)); right = have - cost; art = toySVG('sq01'); q = `You have ${have} coins. A mystery bag costs ${cost}. How many coins are left?`; }
+    else { const x = tens[rnd(tens.length)], n = 2 + rnd(4); right = x.value * n; art = Array.from({ length: n }, () => toySVG(x.id)).join(''); q = `You have ${n} of <b>${x.name}</b>. Each is worth ${x.value} coins. How much for all ${n}?`; }
     const opts = new Set([right]);
-    while (opts.size < 3) { const v = right + (rnd(2) ? 1 : -1) * [5, 10, 15, 20][rnd(4)]; if (v > 0) opts.add(v); }
+    while (opts.size < 3) { const v = right + (rnd(2) ? 1 : -1) * [5, 10, 10, 20][rnd(4)]; if (v > 0) opts.add(v); }
     $('#math-art').innerHTML = art; $('#say').innerHTML = q;
     $('#opts').innerHTML = [...opts].sort((m, n) => m - n).map((v) => `<button class="btn big" data-act="mathPick" data-hit="${v === right ? 1 : 0}">${v}</button>`).join('');
   };
@@ -1011,23 +1014,23 @@ const dots = (rows, cols) => `<div class="dot-rows">${Array.from({ length: rows 
 
 function times(g) {
   quiz(g, 60, 'times', (score) => {
-    const tables = score < 4 ? [2, 5, 10] : score < 9 ? [2, 3, 4, 5, 10] : [3, 4, 6, 7, 8, 9];
-    const a = tables[rnd(tables.length)], b = 1 + rnd(score < 4 ? 5 : 10);
+    const tables = score < 9 ? [2, 5, 10] : [2, 3, 4, 5, 10];
+    const a = tables[rnd(tables.length)], b = 1 + rnd(score < 4 ? 5 : a === 3 || a === 4 ? 5 : 10);
     return { q: `${b} &times; ${a} = ?`, right: a * b, art: b <= 6 && a <= 10 ? dots(b, a) : '', near: [a, a * 2, 1, 2], hint: `Count ${b} groups of ${a}.` };
   }, 'Times table champion!');
 }
 function skip(g) {
   quiz(g, 60, 'skip', (score) => {
-    const steps = score < 4 ? [2, 5, 10] : score < 9 ? [2, 3, 4, 5, 10] : [3, 4, 6, 7, 9, 25], step = steps[rnd(steps.length)];
-    const down = score >= 6 && rnd(3) === 0, start = step * (1 + rnd(8)) + (down ? step * 5 : 0), hole = 1 + rnd(4);
+    const steps = score < 6 ? [2, 5, 10] : [2, 3, 4, 5, 10], step = steps[rnd(steps.length)];
+    const down = score >= 6 && [2, 5, 10].includes(step) && rnd(3) === 0, start = step * (1 + rnd(8)) + (down ? step * 5 : 0), hole = 1 + rnd(4);
     const seq = Array.from({ length: 5 }, (_, i) => start + (down ? -1 : 1) * step * i), right = seq[hole];
     return { q: seq.map((v, i) => (i === hole ? '<span class="blank">?</span>' : v)).join('<span class="comma">,</span> '), right, near: [step, 1, 2], hint: `The numbers go ${down ? 'down' : 'up'} by ${step} each time.` };
   }, 'Skip counting star!');
 }
 function bonds(g) {
   quiz(g, 60, 'bonds', (score) => {
-    const total = score < 4 ? 10 : score < 9 ? 20 : 100, a = total === 100 ? 5 * (1 + rnd(19)) : rnd(total + 1), left = rnd(2);
-    return { q: left ? `<span class="blank">?</span> + ${a} = ${total}` : `${a} + <span class="blank">?</span> = ${total}`, right: total - a, near: total === 100 ? [5, 10] : [1, 2, 3], hint: `Start at ${a} and count up to ${total}.` };
+    const total = score < 4 ? 10 : score < 9 ? 20 : 100, a = total === 100 ? 10 * (1 + rnd(9)) : rnd(total + 1), left = rnd(2);
+    return { q: left ? `<span class="blank">?</span> + ${a} = ${total}` : `${a} + <span class="blank">?</span> = ${total}`, right: total - a, near: total === 100 ? [10, 20] : [1, 2, 3], hint: total === 100 ? `Count up in tens from ${a} to ${total}.` : `Start at ${a} and count up to ${total}.` };
   }, 'Number wizard!');
 }
 function clock(g) {
@@ -1082,7 +1085,7 @@ function build(g) {
 function fraction(g) {
   const pie = (n, k) => { let s = ''; for (let i = 0; i < n; i++) { const a0 = (i / n) * 6.2832 - 1.5708, a1 = ((i + 1) / n) * 6.2832 - 1.5708; s += `<path d="M50 50L${(50 + 44 * Math.cos(a0)).toFixed(1)} ${(50 + 44 * Math.sin(a0)).toFixed(1)}A44 44 0 0 1 ${(50 + 44 * Math.cos(a1)).toFixed(1)} ${(50 + 44 * Math.sin(a1)).toFixed(1)}Z" fill="${i < k ? '#FFD84A' : '#FFF4E4'}" stroke="#2A1846" stroke-width="2.5" stroke-linejoin="round"/>${i < k ? `<circle cx="${(50 + 26 * Math.cos((a0 + a1) / 2)).toFixed(1)}" cy="${(50 + 26 * Math.sin((a0 + a1) / 2)).toFixed(1)}" r="5" fill="#E2483F"/>` : ''}`; } return `<svg class="clock" viewBox="0 0 100 100" role="img" aria-label="A pizza cut into ${n} slices with ${k} left">${s}</svg>`; };
   quiz(g, 60, 'fraction', (score) => {
-    const ns = score < 4 ? [2, 3, 4] : score < 9 ? [3, 4, 5, 6] : [5, 6, 8, 10], n = ns[rnd(ns.length)], k = 1 + rnd(n - 1), right = `${k}/${n}`;
+    const ns = score < 4 ? [2, 3, 4] : score < 9 ? [2, 3, 4, 6] : [3, 4, 6, 8], n = ns[rnd(ns.length)], k = 1 + rnd(n - 1), right = `${k}/${n}`;
     const wrong = [`${n - k}/${n}`, `${k}/${n + 1}`, `${Math.min(n, k + 1)}/${n}`, `${n}/${k}`].filter((w) => w !== right);
     return { q: 'How much pizza is left?', right, opts: mixUp([...new Set(wrong)]).slice(0, 2), near: [], art: pie(n, k), hint: `Count the slices that are left, then count all ${n} slices.` };
   }, 'Fraction whiz!');
@@ -1090,22 +1093,26 @@ function fraction(g) {
 function cents(g) {
   const COIN = [[25, '#DCE1EA', 22], [10, '#DCE1EA', 14], [5, '#C9CFDA', 18], [1, '#E0A070', 16]];
   quiz(g, 70, 'cents', (score) => {
-    const kinds = score < 3 ? [3, 2] : score < 7 ? [1, 2, 3] : [0, 1, 2, 3], n = 2 + rnd(score < 3 ? 3 : 5);
-    const picked = Array.from({ length: n }, () => COIN[kinds[rnd(kinds.length)]]).sort((a, b) => b[0] - a[0]), right = picked.reduce((a, c) => a + c[0], 0);
+    const kinds = score < 3 ? [3, 2] : score < 7 ? [1, 2, 3] : [0, 1, 2, 3], n = 2 + rnd(score < 3 ? 3 : 4);
+    let picked, right;
+    do { picked = Array.from({ length: n }, () => COIN[kinds[rnd(kinds.length)]]).sort((a, b) => b[0] - a[0]); right = picked.reduce((a, c) => a + c[0], 0); } while (right > 100); // never more than a dollar
     return { q: 'How many cents?', right, near: [1, 5, 10], art: `<div class="coin-row2">${picked.map(([v, c, r]) => `<span class="cent" style="width:${r * 2 + 8}px;height:${r * 2 + 8}px;background:${c}">${v}&cent;</span>`).join('')}</div>`, hint: 'Start with the biggest coin and count on.' };
   }, 'Coin counter!');
 }
 function addsub(g) {
   quiz(g, 60, 'addsub', (score) => {
-    const top = score < 3 ? 10 : score < 7 ? 20 : score < 12 ? 100 : 500, minus = rnd(2) && score >= 2;
-    let a = 1 + rnd(top), b = 1 + rnd(top); if (minus && b > a) [a, b] = [b, a];
+    // Within 10, then within 20, then two-digit numbers with ones or tens. Nothing goes past 100.
+    const top = score < 3 ? 10 : score < 7 ? 20 : 100, minus = rnd(2) && score >= 2, small = () => (score >= 12 || top < 100 ? 0 : rnd(2) ? 1 + rnd(9) : 10 * (1 + rnd(5)));
+    let a, b;
+    if (minus) { a = 2 + rnd(top - 1); b = Math.min(a - 1, small() || 1 + rnd(a - 1)) || 1; }
+    else { a = 1 + rnd(top - 1); b = Math.min(top - a, small() || 1 + rnd(top - a)) || 1; }
     return { q: `${a} ${minus ? '&minus;' : '+'} ${b} = ?`, right: minus ? a - b : a + b, near: top > 20 ? [1, 2, 10] : [1, 2, 3], hint: minus ? `Start at ${a} and count back ${b}.` : `Start at ${a} and count on ${b}.` };
   }, 'Adding ace!');
 }
 function bigger(g) {
   quiz(g, 60, 'bigger', (score) => {
-    const top = score < 4 ? 20 : score < 9 ? 100 : 1000; let a = 1 + rnd(top), b = rnd(6) === 0 ? a : 1 + rnd(top);
-    if (score >= 9 && rnd(2)) b = Number(String(a).split('').reverse().join('')) || b; // 47 against 74
+    const top = score < 4 ? 20 : score < 12 ? 100 : 1000; let a = 1 + rnd(top), b = rnd(6) === 0 ? a : 1 + rnd(top);
+    if (score >= 12 && rnd(2)) b = Number(String(a).split('').reverse().join('')) || b; // 47 against 74
     const right = a > b ? '>' : a < b ? '<' : '=';
     return { q: `${a} <span class="blank">?</span> ${b}`, right, opts: ['<', '>', '='].filter((x) => x !== right), near: [], hint: 'The open mouth of the sign always eats the bigger number.' };
   }, 'Number detective!');

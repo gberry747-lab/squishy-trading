@@ -382,6 +382,7 @@ export default {
 "Count by 2s, 5s, 10s and more. Find the missing number.": "Cuenta de 2 en 2, de 5 en 5, de 10 en 10 y más. Encuentra el número que falta.",
 "Count right 8 times in Quick Count": "Cuenta bien 8 veces en Quick Count",
 "Count the Coins": "Cuenta las monedas",
+"Count up in tens from {n1} to {n2}.": "Cuenta de diez en diez desde {n1} hasta {n2}.",
 "Count the slices that are left, then count all {n1} slices.": "Cuenta las rebanadas que quedan y luego las {n1} en total.",
 "Count the toys before the time runs out.": "Cuenta los juguetes antes de que se acabe el tiempo.",
 "Count {n1} groups of {n2}.": "Cuenta {n1} grupos de {n2}.",
