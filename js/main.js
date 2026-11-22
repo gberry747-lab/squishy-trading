@@ -144,7 +144,7 @@ function home() {
       ${allClaimed ? (d.chest ? '<p class="muted">All done. New challenges tomorrow!</p>' : `<button class="btn primary" data-act="chest">Open the bonus chest</button>`) : '<p class="muted">Finish all three to open the bonus chest.</p>'}</section>
     <section class="card"><h2>Big goals</h2><ul class="quests">${goals.map(goalRow).join('') || '<li>You finished every goal. Amazing!</li>'}</ul>
       <button class="btn" data-act="allGoals">See all goals</button></section>
-    <section class="stats"><div><b>${uniqueCount()}</b><span>of ${TOY_LIST.length} toys found</span></div><div><b>${p.stats.trade || 0}</b><span>trades made</span></div><div><b>${Object.keys(p.stories).length}</b><span>of 5 stories read</span></div></section>`;
+    <section class="stats"><div><b>${uniqueCount()}</b><span>of ${TOY_LIST.length} toys found</span></div><div><b>${p.stats.trade || 0}</b><span>trades made</span></div><div><b>${Object.keys(p.stories).length}</b><span>of ${STORIES.length} stories read</span></div></section>`;
 }
 const squishText = (n) => (n > 0 ? `Press your buddy! ${n} coin squish${n === 1 ? '' : 'es'} left today.` : 'No coin squishes left today. You can still squish for fun!');
 actions.heroSquish = (el) => {

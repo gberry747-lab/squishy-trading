@@ -268,6 +268,35 @@ input { font: 800 1.15rem var(--body); color: var(--ink); min-height: 52px; padd
 .odd-cell { aspect-ratio: 1; background: var(--surface); border: 3px solid var(--ink); border-radius: 16px; padding: 6%; min-width: 0; }
 .odd-cell.wrong { opacity: .3; }
 
+/* Grace's trading board */
+h2 small { font: 800 .85rem var(--body); margin-left: 6px; }
+.board { display: grid; grid-template-columns: 1fr; background: var(--surface); border: 3px solid var(--ink); border-radius: 22px; box-shadow: var(--pop); overflow: hidden; margin: 16px 0 8px; }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); }
+.key { display: grid; justify-items: center; align-content: center; gap: 0; min-height: 84px; padding: 8px 4px; background: var(--surface); border: 0; border-left: 3px solid var(--ink); font: 700 .9rem var(--display); color: var(--ink); }
+.key:first-child { border-left: 0; }
+.key svg { width: 44px; height: 44px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+button.key:active:not(:disabled) svg { transform: scale(.85); }
+button.key:disabled { color: #B9AECB; }
+.key.lamp { color: #B9AECB; }
+.key-yes.on { background: #BDEFD9; color: var(--ink); } .key-add.on { background: #FFE9A8; color: var(--ink); } .key-no.on { background: #FFC9C9; color: var(--ink); }
+.key.on svg { stroke-width: 3.4; }
+.keys-theirs { border-bottom: 3px solid var(--ink); } .keys-mine { border-top: 3px solid var(--ink); }
+.half { padding: 12px 14px 14px; min-width: 0; min-height: 150px; }
+.half h3 small { font: 800 .8rem var(--body); margin-left: 4px; }
+.half-mine { border-top: 3px solid var(--ink); }
+.board-help { text-align: center; font-size: .95rem; } .board-help b { font: 800 1.2rem var(--display); color: var(--ink); }
+.picker .pick-grid { margin: 12px 0 16px; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+.modal-card.still { animation: none; }
+.picker .btn.big { width: 100%; position: sticky; bottom: 0; }
+@media (min-width: 700px) {
+  .board { grid-template-columns: 104px 1fr 1fr 104px; }
+  .keys { grid-template-columns: 1fr; }
+  .key { border-left: 0; border-top: 3px solid var(--ink); min-height: 96px; }
+  .key:first-child { border-top: 0; }
+  .keys-theirs { border-bottom: 0; border-right: 3px solid var(--ink); } .keys-mine { border-top: 0; border-left: 3px solid var(--ink); }
+  .half { min-height: 300px; } .half-mine { border-top: 0; border-left: 3px solid var(--ink); }
+}
+
 @media (min-width: 860px) {
   body { padding-bottom: 0; }
   .top { padding-inline: max(16px, calc((100vw - 980px) / 2 + 16px)); border-bottom: 0; height: 64px; }

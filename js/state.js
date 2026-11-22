@@ -65,7 +65,11 @@ export function botInventory(bot, seed) {
 export function ensureDaily(p = P()) {
   if (!p) return;
   const d = today();
-  if (p.daily && p.daily.date === d) return;
+  if (p.daily && p.daily.date === d) {
+    // Friends added in a game update get their toys for today too.
+    FRIENDS.forEach((b) => { if (!p.daily.bots[b.id]) p.daily.bots[b.id] = botInventory(b, d + p.id); });
+    return;
+  }
   const r = rng(d + p.id);
   const pool = [...QUESTS];
   const quests = [];
@@ -109,6 +113,7 @@ export function goalProgress(g, p = P()) {
   if (g.kind === 'unique') return [Math.min(uniqueCount(p), g.goal), g.goal];
   if (g.kind === 'stat') return [Math.min(p.stats[g.ev] || 0, g.goal), g.goal];
   if (g.kind === 'stories') return [Object.keys(p.stories).length, STORIES.length];
+  if (g.kind === 'storiesN') return [Math.min(Object.keys(p.stories).length, g.goal), g.goal];
   const set = byCat(g.cat);
   return [set.filter((t) => p.seen[t.id]).length, set.length];
 }

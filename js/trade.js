@@ -74,47 +74,86 @@ function botHint() {
   return 'Try asking for fewer of my toys.';
 }
 
+// Grace's trading board: two halves with a line down the middle. Each trader has
+// three buttons: check = accept, plus = add to the offer, X = decline.
+const SYM = {
+  yes: '<path d="M5 13l5 6L20 5"/>',
+  add: '<path d="M12 4v16M4 12h16"/>',
+  no: '<path d="M5 5l14 14M19 5L5 19"/>',
+};
+const WORD = { yes: 'Accept', add: 'Add', no: 'Decline' };
+function key(kind, o = {}) {
+  const inner = `<svg viewBox="0 0 24 24" aria-hidden="true">${SYM[kind]}</svg><span>${WORD[kind]}</span>`;
+  const cls = `key key-${kind}${o.on ? ' on' : ''}`;
+  if (!o.act) return `<span class="${cls} lamp" role="img" aria-label="${esc(o.label || WORD[kind])}${o.on ? ' (lit)' : ''}">${inner}</span>`;
+  return `<button class="${cls}" data-act="${o.act}" ${o.extra || ''} aria-label="${esc(o.label || WORD[kind])}" ${o.on !== undefined ? `aria-pressed="${!!o.on}"` : ''} ${o.disabled ? 'disabled' : ''}>${inner}</button>`;
+}
+
 function draw() {
   const p = P();
-  let who, theirShelf, actionsHTML, theirCoinsRow = '', say = '', mood = 'idle';
+  let who, theirShelf = '', say = '', mood = 'idle', mine, theirs, extra = '';
+  const ready = T.mine.length + T.theirs.length + T.myCoins + T.theirCoins > 0;
   if (T.mode === 'bot') {
     const v = botView(); say = v.say; mood = v.mood;
     who = { name: T.bot.name, art: T.bot.avatar };
-    theirShelf = shelfHTML(T.inv, T.theirs, 'theirs', true);
-    actionsHTML = `<button class="btn primary big" data-act="tOffer" ${T.theirs.length && (T.mine.length || T.myCoins) ? '' : 'disabled'}>Offer this trade</button>`;
+    theirShelf = `<h2>${esc(who.name)}'s toys <small>Tap the ones you want</small></h2><div class="shelf">${shelfHTML(T.inv, T.theirs, 'theirs', true)}</div>`;
+    mine = key('no', { act: 'tDecline', label: 'Decline and clear the board', disabled: !ready }) + key('add', { act: 'tAdd', extra: 'data-side="mine"', label: 'Add your toys or coins to the offer' }) + key('yes', { act: 'tOffer', label: 'Accept and offer this trade', disabled: !(T.theirs.length && (T.mine.length || T.myCoins)) });
+    theirs = key('yes', { on: mood === 'happy' || mood === 'love', label: `${who.name} would accept` }) + key('add', { on: mood === 'hmm', label: `${who.name} wants you to add more` }) + key('no', { on: mood === 'sad', label: `${who.name} would decline` });
   } else if (T.mode === 'local') {
     who = { name: T.other.name, art: T.other.buddy };
-    say = 'Pick toys from both shelves. Then you both press your button.';
-    theirShelf = shelfHTML(T.other.inv, T.theirs, 'theirs', true);
-    theirCoinsRow = coinRow('theirs', T.other.coins - T.theirCoins);
-    const ready = T.mine.length + T.theirs.length + T.myCoins + T.theirCoins > 0;
-    actionsHTML = `<div class="row center"><button class="btn big agree ${T.agreeA ? 'on' : ''}" data-act="tAgree" data-who="A" aria-pressed="${T.agreeA}" ${ready ? '' : 'disabled'}>${esc(p.name)} ${T.agreeA ? 'agrees!' : 'agrees?'}</button>
-      <button class="btn big agree ${T.agreeB ? 'on' : ''}" data-act="tAgree" data-who="B" aria-pressed="${T.agreeB}" ${ready ? '' : 'disabled'}>${esc(T.other.name)} ${T.agreeB ? 'agrees!' : 'agrees?'}</button></div>`;
+    say = 'Press + to add toys. When you both press the check, it is a deal!';
+    mine = key('no', { act: 'tDecline', label: `${p.name} declines`, disabled: !ready }) + key('add', { act: 'tAdd', extra: 'data-side="mine"', label: `${p.name} adds to the offer` }) + key('yes', { act: 'tAgree', extra: 'data-who="A"', on: T.agreeA, label: `${p.name} accepts`, disabled: !ready });
+    theirs = key('yes', { act: 'tAgree', extra: 'data-who="B"', on: T.agreeB, label: `${T.other.name} accepts`, disabled: !ready }) + key('add', { act: 'tAdd', extra: 'data-side="theirs"', label: `${T.other.name} adds to the offer` }) + key('no', { act: 'tDecline', label: `${T.other.name} declines`, disabled: !ready });
   } else {
     who = { name: T.name, art: T.avatar };
-    say = T.said || (T.theirLock ? 'I am ready to deal!' : 'Tap my toys to tell me what you would like.');
+    say = T.said || (T.theirLock ? 'I pressed the check. I am ready to deal!' : 'Tap my toys to tell me what you would like.');
     mood = T.theirLock ? 'happy' : 'idle';
-    theirShelf = shelfHTML(T.theirInv, T.theirs, 'theirs', false);
-    const ready = T.mine.length + T.theirs.length + T.myCoins + T.theirCoins > 0;
-    actionsHTML = `<button class="btn big agree ${T.myLock ? 'on' : 'primary'}" data-act="tDeal" aria-pressed="${T.myLock}" ${ready ? '' : 'disabled'}>${T.myLock ? 'Waiting for ' + esc(T.name) + '... (tap to change)' : 'Deal!'}</button>
-      <div class="phrases">${PHRASES.map((ph, i) => `<button class="chip" data-act="tSay" data-i="${i}">${ph}</button>`).join('')}</div>`;
+    theirShelf = `<h2>${esc(who.name)}'s toys <small>Tap to ask for one</small></h2><div class="shelf">${shelfHTML(T.theirInv, T.theirs, 'theirs', false)}</div>`;
+    mine = key('no', { act: 'tDecline', label: 'Decline and clear the board', disabled: !ready }) + key('add', { act: 'tAdd', extra: 'data-side="mine"', label: 'Add your toys or coins to the offer' }) + key('yes', { act: 'tDeal', on: T.myLock, label: T.myLock ? 'You accepted. Tap to change your mind' : 'Accept this trade', disabled: !ready });
+    theirs = key('yes', { on: T.theirLock, label: `${who.name} accepted` }) + key('add', { on: T.said === PHRASES[2], label: `${who.name} asks you to add more` }) + key('no', { on: T.said === PHRASES[3], label: `${who.name} said no thanks` });
+    extra = `<div class="phrases">${PHRASES.map((ph, i) => `<button class="chip" data-act="tSay" data-i="${i}">${ph}</button>`).join('')}</div>`;
   }
   const worthMine = value(T.mine) + T.myCoins, worthTheirs = value(T.theirs) + T.theirCoins;
   const keep = [...document.querySelectorAll('.v-table .shelf')].map((el) => el.scrollLeft);
   view().className = 'view v-table';
   view().innerHTML = `<button class="btn back" data-act="tBack">${icon('back')} ${T.mode === 'online' ? 'Room' : 'Trading post'}</button>
     <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish>${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b>${esc(who.name)}:</b> ${esc(say)}</p></section>
-    <h2>${esc(who.name)}'s toys</h2><div class="shelf">${theirShelf}</div>${theirCoinsRow}
-    <section class="table">
-      <div class="tray"><h3>You get <small>worth ${worthTheirs}</small></h3><div class="tray-items">${trayHTML(T.theirs, T.theirCoins, 'theirs', T.mode !== 'online')}</div></div>
-      <span class="swap" aria-hidden="true">${icon('trade')}</span>
-      <div class="tray"><h3>You give <small>worth ${worthMine}</small></h3><div class="tray-items">${trayHTML(T.mine, T.myCoins, 'mine', true)}</div></div>
+    ${theirShelf}
+    <section class="board" aria-label="Trading board">
+      <div class="keys keys-theirs" role="group" aria-label="${esc(who.name)}'s buttons">${theirs}</div>
+      <div class="half half-theirs"><h3>${esc(who.name)} gives <small>worth ${worthTheirs}</small></h3><div class="tray-items">${trayHTML(T.theirs, T.theirCoins, 'theirs', T.mode !== 'online')}</div></div>
+      <div class="half half-mine"><h3>${T.mode === 'local' ? esc(p.name) + ' gives' : 'You give'} <small>worth ${worthMine}</small></h3><div class="tray-items">${trayHTML(T.mine, T.myCoins, 'mine', true)}</div></div>
+      <div class="keys keys-mine" role="group" aria-label="Your buttons">${mine}</div>
     </section>
-    ${T.mode === 'bot' ? `<div class="meter mood-${mood}" role="img" aria-label="${esc(say)}"><i style="width:${Math.min(100, (botView().ratio / (T.bot.thr * 1.4)) * 100)}%"></i><span>Not enough</span><span>Fair</span><span>Super kind</span></div>` : ''}
-    <div class="table-actions">${actionsHTML}</div>
-    <h2>Your toys</h2>${coinRow('mine', p.coins - T.myCoins)}<div class="shelf">${shelfHTML(p.inv, T.mine, 'mine', true)}</div>`;
+    <p class="board-help muted"><b>&check;</b> accept &nbsp; <b>+</b> add to the offer &nbsp; <b>&times;</b> decline. Tap a toy on the board to take it off.</p>${extra}`;
   document.querySelectorAll('.v-table .shelf').forEach((el, i) => { el.scrollLeft = keep[i] || 0; });
+  if (T.pick && !$('#modal').hidden) picker(T.pick);
 }
+
+// The "+" button opens this: pick toys and coins to put on the board.
+function picker(side) {
+  const p = P(), mineSide = side === 'mine';
+  const owner = mineSide ? p : T.other;
+  const sel = mineSide ? T.mine : T.theirs, coinN = mineSide ? T.myCoins : T.theirCoins;
+  const top = $('#modal .modal-card') ? $('#modal .modal-card').scrollTop : 0;
+  const again = !$('#modal').hidden && T.pick === side;
+  T.pick = side;
+  modal(`<h2>${T.mode === 'local' ? esc(owner.name) + ' adds to the offer' : 'Add to your offer'}</h2>
+    <p class="muted">Tap a toy to put it on the board. ${sel.length} of ${MAX} toys added${coinN ? `, plus ${coinN} coins` : ''}.</p>
+    ${coinRow(side, owner.coins - coinN)}
+    <div class="grid pick-grid">${shelfHTML(owner.inv, sel, side, true)}</div>
+    <button class="btn primary big" data-act="closeModal">Done</button>`, { cls: 'wide picker' + (again ? ' still' : ''), label: 'Add to the offer', onClose: () => { if (T) T.pick = null; } });
+  $('#modal .modal-card').scrollTop = top;
+}
+actions.tAdd = (el) => { sfx.tap(); picker(el.dataset.side); };
+actions.tDecline = () => {
+  sfx.no();
+  if (T.mode === 'online') room.send(T.pid, { t: 'decline' });
+  Object.assign(T, { mine: [], theirs: T.mode === 'online' ? T.theirs : [], myCoins: 0, theirCoins: T.mode === 'online' ? T.theirCoins : 0, pick: null });
+  closeModal();
+  changedOffer();
+  toast(T.mode === 'bot' ? 'No deal. The board is clear.' : 'Declined. The board is clear.');
+};
 
 function changedOffer() {
   if (T.mode === 'local') T.agreeA = T.agreeB = false;
@@ -301,5 +340,6 @@ function onMsg(from, m) {
     if (sigOf(give, gc, get, tc) === T.voted) { T.voted = ''; finishOnline(give, gc, get, tc); }
   } else if (m.t === 'say' && PHRASES[m.i]) { T.said = PHRASES[m.i]; sfx.pop(); draw(); }
   else if (m.t === 'wish' && TOYS[m.id]) { T.said = `I would love your ${TOYS[m.id].name}!`; sfx.pop(); draw(); }
+  else if (m.t === 'decline') { T.mine = []; T.myCoins = 0; T.said = PHRASES[3]; sfx.no(); closeModal(); sendOffer(); draw(); toast(`${esc(pl.name)} declined. The board is clear.`); }
   else if (m.t === 'bye') { T = null; toast(`${esc(pl.name)} left the trade.`); lobby(); }
 }
