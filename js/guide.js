@@ -1,25 +1,25 @@
 // Mochi the guide. A friendly helper that walks a new player around the game, one small step at a time.
 // It never blocks the screen: the player can tap anything while Mochi talks.
 import { $, actions, sfx, closeModal } from './ui.js';
-import { P, save } from './state.js';
+import { P, save, store } from './state.js';
 import { toySVG, icon } from './art.js';
 import { lang } from './i18n.js';
 
 const STEPS = [
-  { tab: 'home', sel: '.hero-toy', t: 'Hi! I am Mochi. I will show you around. This is your buddy. Squish your buddy to win coins. Try it now!' },
-  { tab: 'home', sel: '#coins', t: 'Your coins are up here. You win coins by squishing, playing games, reading stories and finishing challenges.' },
-  { tab: 'home', sel: '.quests', t: 'Every day there are three challenges. Finish all three to open a bonus chest. You can spin the prize wheel once a day too.' },
-  { tab: 'toys', sel: '.toy-card, .toy', t: 'All your toys live here. Tap a toy to squish it and hear it. You can pick any toy to be your buddy.' },
-  { tab: 'shop', sel: '.bag, .shop-card, .card', t: 'This is the shop. Spend coins on mystery bags to get new toys. What will be inside?' },
-  { tab: 'trade', sel: '.modes, .card', t: 'Here you trade toys. Play with a computer friend, a friend on this screen, or a friend online. The check means yes, the plus adds a toy, and the X means no thanks.' },
-  { tab: 'games', sel: '.card', t: 'Games win you coins! There are reading games, math games, memory games, fidget games and calm games for bedtime.' },
-  { tab: 'stories', sel: '.story-card', t: 'In every story, you choose what happens next. Tap any word to hear it. Each story has many endings to find.' },
-  { tab: 'studio', sel: '.pad, .card', t: 'This is the Squishy Studio. Draw your very own squishy, then keep it, squish it and trade it!' },
-  { tab: 'room', sel: '.room-stage', t: 'This is your very own room. Buy furniture and wallpaper with coins, put your toys in it, and drag things where you want them.' },
-  { tab: 'album', sel: '.sticker.ready, .stickers', t: 'This is your sticker album. You win stickers for collecting, trading, reading and playing. Tap a new sticker to stick it in and win coins.' },
-  { tab: 'home', sel: '[data-act=tour]', t: 'That is everything! If you forget, tap Show me around and I will come back. Have fun!' },
+  { tab: 'home', sel: '.hero-toy', a: 's1', t: 'Hi! I am Mochi, and I love squishies! This is your buddy. Give your buddy a big squish to win coins. Go on, try it!' },
+  { tab: 'home', sel: '#coins', a: 's2', t: 'Ka-ching! Your coins live up here. Squish, play games, read stories and finish challenges to win more.' },
+  { tab: 'home', sel: '.quests', a: 's3', t: 'Every day you get three challenges. Finish all three and a bonus chest pops open! You can spin the prize wheel once a day too.' },
+  { tab: 'toys', sel: '.toy-card, .toy', a: 's4', t: 'Ta-da! All your toys live here. Tap a toy to squish it and hear it. Pick any toy you like to be your buddy.' },
+  { tab: 'shop', sel: '.bag, .shop-card, .card', a: 's5', t: 'Ooh, the shop! Spend coins on mystery bags to get new toys. What is hiding inside?' },
+  { tab: 'trade', sel: '.modes, .card', a: 's6', t: 'Time to trade! Play with a computer friend, a friend on this screen, or a friend online. The check means yes, the plus adds a toy, and the X means no thanks.' },
+  { tab: 'games', sel: '.card', a: 's7', t: 'Games, games, games! Reading games, math games, memory games, fidget games, and calm games for bedtime. They all win you coins!' },
+  { tab: 'stories', sel: '.story-card', a: 's8', t: 'Story time! You choose what happens next. Tap any word to hear it. Every story has lots of endings to find.' },
+  { tab: 'studio', sel: '.pad, .card', a: 's9', t: 'This is the Squishy Studio. Draw your very own squishy. Then keep it, squish it and trade it!' },
+  { tab: 'room', sel: '.room-stage', a: 's10', t: 'Welcome to your very own room! Buy furniture and wallpaper with coins, put your toys in it, and drag things where you want them.' },
+  { tab: 'album', sel: '.sticker.ready, .stickers', a: 's11', t: 'Stickers! You win them for collecting, trading, reading and playing. Tap a new sticker to stick it in and win coins.' },
+  { tab: 'home', sel: '[data-act=tour]', a: 's12', t: 'And that is everything! If you forget, tap Show me around and I will pop right back. Now go squish something!' },
 ];
-let go = null, at = -1, mode = '', glow = [];
+let go = null, at = -1, mode = '', glow = [], clip = null, cur = '';
 const el = () => $('#guide');
 function build() {
   if (el()) return;
@@ -38,20 +38,33 @@ function light(sel, tab) {
   if (t && !t.closest('.top')) t.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 const hear = `<button class="btn sm" data-act="guideHear" aria-label="Read it to me">${icon('sound')}</button>`;
-function show(text, step, btns) {
-  build(); stopTalk();
+function show(text, step, btns, key) {
+  build(); stopTalk(); cur = key || '';
   $('#guide-text').textContent = text; $('#guide-step').textContent = step; $('#guide-step').hidden = !step;
   $('#guide-btns').innerHTML = hear + btns;
   el().hidden = false; document.body.classList.add('guiding');
+  if (!store.mute) talk(true);
 }
-function stopTalk() { if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+// Mochi's lines are recorded in English. Other languages use the device's own voice, and only when asked.
+function stopTalk() { if (clip) { clip.pause(); clip = null; } if ('speechSynthesis' in window) speechSynthesis.cancel(); if (el()) el().classList.remove('talking'); }
+function deviceTalk() {
+  if (!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance($('#guide-text').textContent); u.rate = 0.9; u.pitch = 1.15; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u);
+}
+function talk(auto) {
+  if (lang() !== 'en' || !cur) { if (!auto) deviceTalk(); return; }
+  const a = new Audio(`audio/guide/${cur}.mp3`), fail = () => { if (clip !== a) return; stopTalk(); if (!auto) deviceTalk(); };
+  clip = a; el().classList.add('talking');
+  a.onended = () => { if (clip === a) stopTalk(); }; a.onerror = fail;
+  a.play().catch(fail);
+}
 function hide() { unglow(); stopTalk(); if (el()) el().hidden = true; document.body.classList.remove('guiding'); mode = ''; at = -1; }
 function step(i) {
   at = i; mode = 'tour';
   const s = STEPS[i];
   closeModal();
   go(s.tab);
-  show(s.t, `Step ${i + 1} of ${STEPS.length}`, `${i ? '<button class="btn sm" data-act="guideBack">Back</button>' : ''}<button class="btn primary" data-act="guideNext">${i === STEPS.length - 1 ? 'All done!' : 'Next'}</button>`);
+  show(s.t, `Step ${i + 1} of ${STEPS.length}`, `${i ? '<button class="btn sm" data-act="guideBack">Back</button>' : ''}<button class="btn primary" data-act="guideNext">${i === STEPS.length - 1 ? 'All done!' : 'Next'}</button>`, s.a);
   setTimeout(() => light(s.sel, s.tab), 120);
 }
 function done(p) { p.guide.asked = 1; STEPS.forEach((s) => (p.guide.tips[s.tab] = 1)); save(); }
@@ -60,9 +73,8 @@ actions.guideNext = () => { sfx.tap(); if (mode !== 'tour' || at >= STEPS.length
 actions.guideBack = () => { sfx.tap(); if (mode === 'tour' && at > 0) step(at - 1); };
 actions.guideEnd = () => { const p = P(); if (p && mode === 'ask') { p.guide.asked = 1; p.guide.tips.home = 1; save(); } hide(); };
 actions.guideHear = () => {
-  if (!('speechSynthesis' in window)) return;
-  if (speechSynthesis.speaking) return speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance($('#guide-text').textContent); u.rate = 0.9; u.pitch = 1.15; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u);
+  if (clip || ('speechSynthesis' in window && speechSynthesis.speaking)) return stopTalk();
+  talk(false);
 };
 export function initGuide(goFn) { go = goFn; }
 // Called every time a screen opens. The first time on each screen, Mochi pops up with one tip.
@@ -73,11 +85,11 @@ export function guideVisit(tab) {
   if (!p.guide.asked) {
     if (tab !== 'home') return hide();
     mode = 'ask';
-    return show('Hi! I am Mochi. Do you want me to show you around?', '', '<button class="btn primary" data-act="tour">Yes, show me!</button><button class="btn sm" data-act="guideEnd">No thanks</button>');
+    return show('Hi! I am Mochi. Do you want me to show you around?', '', '<button class="btn primary" data-act="tour">Yes, show me!</button><button class="btn sm" data-act="guideEnd">No thanks</button>', 'ask');
   }
   const s = STEPS.find((x) => x.tab === tab && x.tab !== 'home');
   if (!s || p.guide.tips[tab]) return hide();
   p.guide.tips[tab] = 1; save(); mode = 'tip';
-  show(s.t, '', '<button class="btn primary" data-act="guideEnd">Got it!</button>');
+  show(s.t, '', '<button class="btn primary" data-act="guideEnd">Got it!</button>', s.a);
   setTimeout(() => light(s.sel, s.tab), 120);
 }

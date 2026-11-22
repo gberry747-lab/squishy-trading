@@ -503,13 +503,13 @@ body.easy .ask-q, body.easy .read-clue { line-height: 1.6; font-weight: 600; } b
 /* Mochi the guide */
 .guide { position: fixed; left: 8px; right: 8px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 40; display: flex; gap: 10px; align-items: flex-end; max-width: 620px; margin: 0 auto; background: #fff; border: 4px solid var(--ink); border-radius: 24px; padding: 12px 40px 12px 10px; box-shadow: 0 8px 0 rgba(42, 24, 70, .25); animation: drop-in .5s cubic-bezier(.3, 1.5, .5, 1) both; }
 .guide[hidden] { display: none; }
-.guide-art { width: 76px; flex: none; background: var(--soft); border-radius: 50%; padding: 4px; animation: tag-bob 2s ease-in-out infinite; } .guide-body { min-width: 0; flex: 1; }
+.guide-art { width: 76px; flex: none; background: var(--soft); border-radius: 50%; padding: 4px; animation: tag-bob 2s ease-in-out infinite; } .guide.talking .guide-art { animation: guide-talk .42s ease-in-out infinite; } @keyframes guide-talk { 50% { transform: translateY(-5px) scale(1.07, .95); } } .guide-body { min-width: 0; flex: 1; }
 .guide-text { margin: 0 0 8px; font: 400 1.08rem/1.5 'Lexend', var(--body); letter-spacing: .02em; } .guide-step { font-size: .8rem; margin: 0 0 4px; }
 .guide .row { gap: 8px; margin: 0; } .guide-x { position: absolute; top: 6px; right: 8px; width: 32px; height: 32px; border: 0; background: none; font: 800 1.5rem var(--display); color: var(--muted); }
 .guide-glow { outline: 5px solid #FFD84A !important; outline-offset: 3px; border-radius: 18px; animation: glow-pulse 1s ease-in-out infinite; }
 @keyframes glow-pulse { 50% { outline-color: var(--accent); } }
 body.guiding .view { padding-bottom: 260px; }
-@media (prefers-reduced-motion: reduce) { .squish-tag, .hero-toy.pay::after, .guide-art, .guide-glow { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .squish-tag, .hero-toy.pay::after, .guide-art, .guide.talking .guide-art, .guide-glow { animation: none; } }
 /* sticker album */
 .stickers { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
 .sticker { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; background: none; border: 3px dashed var(--line); border-radius: 18px; text-align: center; color: var(--ink); }
