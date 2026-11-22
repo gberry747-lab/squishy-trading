@@ -24,7 +24,7 @@ button:disabled { cursor: not-allowed; }
 .flip .ico { transform: scaleX(-1); }
 
 /* header + nav */
-.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px; background: var(--bg); border-bottom: 3px solid var(--ink); }
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px; background: var(--bg); border-bottom: 3px solid var(--ink); }
 .brand { background: none; border: 0; padding: 0; text-align: left; line-height: 1; display: grid; }
 .brand small { font: 800 .8rem var(--body); color: var(--accent); letter-spacing: .02em; }
 .brand span { font-size: 1.35rem; font-weight: 800; }
