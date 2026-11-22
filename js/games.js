@@ -883,7 +883,21 @@ const RHYMES_ES = [['gato', 'pato'], ['luna', 'cuna'], ['sol', 'caracol'], ['ran
 const SENT_ES = [['El squishy es muy ___.', 'suave', ['ruidoso', 'alto']], ['Pongo mis juguetes en la ___.', 'repisa', ['nube', 'cuchara']], ['El slime se siente frío y ___.', 'pegajoso', ['enojado', 'dormido']], ['Hicimos un ___ justo en el recreo.', 'intercambio', ['pan', 'trueno']], ['El resorte bajó por las ___.', 'escaleras', ['nubes', 'sopas']], ['Le dio a su amiga un gran ___.', 'abrazo', ['zapato', 'árbol']], ['Conté mis monedas antes de ir a la ___.', 'tienda', ['luna', 'bañera']], ['La brillantina hizo ___ el cuarto.', 'brillar', ['susurrar', 'galopar']], ['Una empanada es algo que puedes ___.', 'comer', ['vestir', 'montar']], ['El peluche tenía sueño y se fue a ___.', 'dormir', ['correr', 'cocinar']], ['Empezó a llover, así que entramos a la ___.', 'casa', ['piscina', 'playa']], ['Por favor ___ antes de tomar mi juguete.', 'pregunta', ['corre', 'salta']], ['Si un intercambio no es justo, puedes decir ___.', 'no, gracias', ['hurra', 'buenas noches']], ['Al capibara le encanta sentarse en agua ___.', 'tibia', ['cuadrada', 'ruidosa']], ['Estaba tan feliz que empecé a ___.', 'sonreír', ['llorar', 'estornudar']]];
 const OPP_ES = [['caliente', 'frío'], ['grande', 'pequeño'], ['arriba', 'abajo'], ['feliz', 'triste'], ['rápido', 'lento'], ['día', 'noche'], ['abierto', 'cerrado'], ['mojado', 'seco'], ['suave', 'duro'], ['lleno', 'vacío'], ['ruidoso', 'silencioso'], ['temprano', 'tarde'], ['ligero', 'pesado'], ['limpio', 'sucio'], ['cerca', 'lejos'], ['primero', 'último'], ['dar', 'quitar'], ['empujar', 'jalar'], ['alto', 'bajo'], ['dentro', 'fuera'], ['recordar', 'olvidar'], ['justo', 'injusto']];
 const SENTENCES_ES = ['El gato es muy suave.', 'Me gusta intercambiar mis juguetes.', 'Mi slime es frío y pegajoso.', 'Leemos un cuento antes de dormir.', 'La rana saltó al estanque.', 'Hoy dibujé un squishy rosa.', 'Un trato justo hace amigos felices.', 'El conejo se escondió bajo mi cama.', 'Por favor comparte tus juguetes conmigo.', 'Conté diez monedas doradas y brillantes.', 'El fantasmita era muy tímido.', 'Ella reventó todas las burbujas rápido.'];
-const speak = (text) => { try { if ('speechSynthesis' in window) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.85; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u); } } catch { /* no voice on this device */ } };
+// Words and clues are spoken by a recorded voice. One player is reused so a tablet lets it talk after a timer.
+// Anything without a clip, or a clip that will not load, falls back to the device's own voice.
+const deviceSay = (text) => { try { if ('speechSynthesis' in window) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.85; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u); } } catch { /* no voice on this device */ } };
+let voicer = null;
+const speak = (text, file) => {
+  const src = file || (/^[a-z]+$/.test(text) ? `audio/words/${ES() ? 'es' : 'en'}/${text}.mp3` : '');
+  if (!src) return deviceSay(text);
+  try {
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    voicer = voicer || new Audio();
+    const a = voicer, fail = () => { if (a.dataset.src === src) { a.dataset.src = ''; deviceSay(text); } };
+    a.pause(); a.dataset.src = src; a.onerror = fail; a.src = src;
+    a.play().catch(fail);
+  } catch { deviceSay(text); }
+};
 const WORDS = [['cat', 'sq04'], ['pig', 'sq49'], ['bee', 'sq46'], ['sun', 'sq51'], ['bear', 'sq06'], ['frog', 'sq10'], ['star', 'sq13'], ['duck', 'sq118'], ['moon', 'sq50'], ['milk', 'sq123'], ['cloud', 'sq11'], ['heart', 'sq15'], ['donut', 'sq16'], ['whale', 'sq35'], ['ghost', 'sq38'], ['pizza', 'sq44'], ['apple', 'sq139'], ['candy', 'sq136'], ['bunny', 'sq08'], ['taco', 'sq79'],
   ['turtle', 'sq48'], ['pickle', 'sq75'], ['cookie', 'sq82'], ['banana', 'sq84'], ['cactus', 'sq42'], ['burger', 'sq78'], ['penguin', 'sq119'], ['unicorn', 'sq23'], ['rainbow', 'sq138'], ['pumpkin', 'sq54'], ['snowman', 'sq55'], ['dumpling', 'sq20'], ['popsicle', 'sq133'], ['capybara', 'sq117'], ['butterfly', 'sq121']];
 
@@ -939,10 +953,10 @@ function readfind(g) {
   frame(g, `<section class="card missing"><p class="read-clue" id="clue"></p><button class="btn sm" data-act="clueHear">${icon('sound')} Help me read it</button><div class="shadow-opts" id="opts"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
   const next = () => {
     const set = mixUp(CLUES.filter(([id]) => id !== last)).slice(0, 4), [id, clue] = set[0]; last = id;
-    $('#clue').textContent = clue; $('#say').textContent = '';
+    $('#clue').textContent = clue; $('#clue').dataset.id = id; $('#say').textContent = '';
     $('#opts').innerHTML = mixUp(set).map(([tid]) => `<button class="odd-cell" data-act="cluePick" data-hit="${tid === id ? 1 : 0}" aria-label="${TOYS[tid].name}">${toySVG(tid)}</button>`).join('');
   };
-  actions.clueHear = () => speak($('#clue').textContent);
+  actions.clueHear = () => speak($('#clue').textContent, `audio/clues/${ES() ? 'es' : 'en'}/${$('#clue').dataset.id}.mp3`);
   actions.cluePick = (b) => {
     if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); next(); }
     else { sfx.no(); b.classList.add('wrong'); b.disabled = true; $('#say').textContent = 'Read the clue one more time.'; }

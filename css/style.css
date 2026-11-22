@@ -662,3 +662,49 @@ button.key:disabled { color: #B9AECB; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- room between words ---------- */
+/* The heading font sets its words close together, so every label gets a little more air. */
+body { word-spacing: .08em; }
+h1, h2, h3, .btn, .brand, .pill, .chip, .toy-name, .hello, legend, label, b, strong, .goal-say, .goal-count { word-spacing: .16em; }
+.giant-link { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; text-align: left; }
+.card + h2, .goal-banner + .card { margin-top: 18px; }
+
+/* ---------- the trading table fits on one screen ---------- */
+body:has(.view.v-table) { padding-bottom: 0; }
+.view.v-table { height: var(--table-h, auto); display: flex; flex-direction: column; gap: 8px; padding-block: 10px; overflow: hidden; }
+.view.v-table > * { margin: 0; flex: none; }
+.table-top { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
+.table-top .who-row { margin: 0; grid-template-columns: 64px 1fr; } .table-top .friend-art { width: 64px; height: 64px; }
+.table-top .bubble { padding: 6px 12px; }
+.v-table > h2 { font-size: 1.1rem; }
+.v-table .shelf { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(72px, 1fr); gap: 6px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; margin: 0; padding: 2px 0; }
+.v-table .shelf .toy { width: auto; padding: 2px; }
+.v-table .shelf .toy-art { max-width: min(96px, 11vh); }
+.v-table .shelf .toy-name { font-size: .8rem; }
+.v-table .board { flex: 1 1 0; min-height: 0; margin: 0; grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto; }
+.v-table .half { min-height: 0; overflow-y: auto; padding: 6px 10px; }
+.v-table .key { min-height: 60px; padding-block: 2px; } .v-table .key svg { width: 36px; height: 36px; }
+.v-table .tray-items { min-height: 0; gap: 4px; padding-top: 2px; } .v-table .toy.mini { width: 72px; }
+.table-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 14px; }
+.table-foot .board-help { margin: 0; font-size: .88rem; }
+.v-table .phrases { gap: 6px; }
+@media (min-width: 700px) {
+  .v-table .board { grid-template-rows: minmax(0, 1fr); }
+  .v-table .keys { grid-template-rows: repeat(3, minmax(0, 1fr)); min-height: 0; }
+  .v-table .key { min-height: 0; }
+}
+@media (max-width: 560px) {
+  .table-top { grid-template-columns: 1fr; gap: 6px; } .table-top .btn.back { justify-self: start; min-height: 40px; }
+  .v-table .shelf { grid-auto-flow: row; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); overflow-y: auto; max-height: 26vh; }
+  .v-table .shelf .toy-rar, .table-foot .board-help { display: none; }
+  .v-table .shelf .toy-name { font-size: .7rem; min-height: 0; }
+}
+@media (max-height: 720px) { .table-foot .board-help { display: none; } .v-table .shelf .toy-rar { display: none; } }
+/* A phone is too small to hold the whole table, so there the page scrolls as before. */
+@media (max-width: 699px) {
+  body:has(.view.v-table) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .view.v-table { height: auto; overflow: visible; }
+  .v-table .board { flex: none; } .v-table .half { overflow: visible; min-height: 96px; }
+  .v-table .shelf { max-height: none; }
+}

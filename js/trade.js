@@ -149,6 +149,15 @@ function key(kind, o = {}) {
   return `<button class="${cls}" data-act="${o.act}" ${o.extra || ''} aria-label="${esc(o.label || WORD[kind])}" ${o.on !== undefined ? `aria-pressed="${!!o.on}"` : ''} ${o.disabled ? 'disabled' : ''}>${inner}</button>`;
 }
 
+// The trading table always fits on one screen, so nothing has to be scrolled to read it.
+function fitTable() {
+  const v = view();
+  if (!v || !v.classList.contains('v-table')) return;
+  window.scrollTo(0, 0);
+  const nav = $('#nav'), under = nav && getComputedStyle(nav).position === 'fixed' ? nav.offsetHeight : 0;
+  document.documentElement.style.setProperty('--table-h', Math.max(430, window.innerHeight - v.getBoundingClientRect().top - under) + 'px');
+}
+window.addEventListener('resize', fitTable);
 function draw() {
   const p = P();
   let who, theirShelf = '', say = '', mood = 'idle', mine, theirs, extra = '';
@@ -176,8 +185,8 @@ function draw() {
   const worthMine = value(T.mine) + T.myCoins, worthTheirs = value(T.theirs) + T.theirCoins;
   const keep = [...document.querySelectorAll('.v-table .shelf')].map((el) => el.scrollLeft);
   view().className = 'view v-table';
-  view().innerHTML = `<button class="btn back" data-act="tBack">${icon('back')} ${T.mode === 'online' ? 'Room' : 'Trading post'}</button>
-    <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish data-toy="${who.art}">${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b translate="no">${esc(who.name)}:</b> ${esc(say)}</p></section>
+  view().innerHTML = `<div class="table-top"><button class="btn back" data-act="tBack">${icon('back')} ${T.mode === 'online' ? 'Room' : 'Trading post'}</button>
+    <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish data-toy="${who.art}">${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b translate="no">${esc(who.name)}:</b> ${esc(say)}</p></section></div>
     ${theirShelf}
     <section class="board" aria-label="Trading board">
       <div class="keys keys-theirs" role="group" aria-label="${esc(who.name)}'s buttons">${theirs}</div>
@@ -185,8 +194,9 @@ function draw() {
       <div class="half half-mine"><h3>${T.mode === 'local' ? esc(p.name) + ' gives' : 'You give'} <small>worth ${worthMine}</small></h3><div class="tray-items">${trayHTML(T.mine, T.myCoins, 'mine', true)}</div></div>
       <div class="keys keys-mine" role="group" aria-label="Your buttons">${mine}</div>
     </section>
-    <p class="board-help muted"><b>&check;</b> accept &nbsp; <b>+</b> add to the offer &nbsp; <b>&times;</b> decline. Tap a toy on the board to take it off.</p>
-    <div class="row center"><button class="btn" data-act="tBomb">Throw a glitter bomb</button></div>${extra}`;
+    <div class="table-foot"><p class="board-help muted"><b>&check;</b> accept &nbsp; <b>+</b> add to the offer &nbsp; <b>&times;</b> decline. Tap a toy on the board to take it off.</p>
+    <button class="btn sm" data-act="tBomb">Throw a glitter bomb</button></div>${extra}`;
+  fitTable();
   document.querySelectorAll('.v-table .shelf').forEach((el, i) => { el.scrollLeft = keep[i] || 0; });
   if (T.pick && !$('#modal').hidden) picker(T.pick);
 }

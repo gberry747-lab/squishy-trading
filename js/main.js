@@ -370,7 +370,7 @@ function stopVoice() { if (voice) { voice.pause(); voice = null; } if ('speechSy
 actions.readAloud = (btn) => {
   if (voice || ('speechSynthesis' in window && speechSynthesis.speaking)) return stopVoice();
   const { s, at } = reading, raw = s.nodes[at].t;
-  if (!s.mine && lang() === 'en' && (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia')) {
+  if (!s.mine && lang() === 'en' && !raw.includes('{buddy}') && (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia')) {
     const a = new Audio(`audio/stories/${s.id}_${at}.mp3`);
     voice = a; btn.setAttribute('aria-pressed', 'true');
     a.onended = () => { if (voice === a) stopVoice(); };
@@ -520,15 +520,19 @@ function quest() {
   return `${top}<article class="card reader"><p class="pill">Chapter ${q.ch + 1} of ${n}</p><h2>${c.title}</h2><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${c.art}">${toySVG(c.art)}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy, p.style)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
     <p id="story-text" class="story-text" translate="no">${wordsHTML(say(c.t))}</p><p class="muted tap-hint">Tap any word to hear it.</p>${q.step === 'read' ? `<button class="btn sm" data-act="questRead" id="read-btn" aria-pressed="false">${icon('sound')} Read it to me</button>` : ''}${body}</article>`;
 }
-actions.questRead = () => {
-  if (!('speechSynthesis' in window)) return toast('This device cannot read aloud.');
-  if (speechSynthesis.speaking) return speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance($('#story-text').textContent); u.rate = 0.9; u.pitch = 1.1; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u);
+// Story Mode chapters are read by the same recorded narrator as the stories.
+actions.questRead = (btn) => {
+  if (voice || ('speechSynthesis' in window && speechSynthesis.speaking)) return stopVoice();
+  if (lang() !== 'en') return deviceVoice();
+  const a = new Audio(`audio/quest/c${qState(P()).ch + 1}.mp3`), fail = () => { if (voice === a) { voice = null; deviceVoice(); } };
+  voice = a; btn.setAttribute('aria-pressed', 'true'); router.cleanup = stopVoice;
+  a.onended = () => { if (voice === a) stopVoice(); }; a.onerror = fail;
+  a.play().catch(fail);
 };
 actions.questAsk = (el) => {
   if (el.dataset.hit !== '1') return wrongAsk(el);
   const p = P(), q = qState(p), c = QUEST[q.ch];
-  window.speechSynthesis?.cancel(); sfx.win();
+  stopVoice(); sfx.win();
   if (q.step === 'read') q.step = 'math';
   else { q.step = 'mission'; q.base = p.stats[c.ev] || 0; if (c.grant) addCoins(c.grant); }
   save(); go('quest');
