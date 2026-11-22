@@ -17,6 +17,7 @@ const STEPS = [
   { tab: 'studio', sel: '.pad, .card', a: 's9', t: 'This is the Squishy Studio. Draw your very own squishy. Then keep it, squish it and trade it!' },
   { tab: 'room', sel: '.room-stage', a: 's10', t: 'Welcome to your very own room! Buy furniture and wallpaper with coins, put your toys in it, and drag things where you want them.' },
   { tab: 'album', sel: '.sticker.ready, .stickers', a: 's11', t: 'Stickers! You win them for collecting, trading, reading and playing. Tap a new sticker to stick it in and win coins.' },
+  { tab: 'giants', sel: '.goal-banner', a: 's13', t: 'Meet the giant squishies! Play games with them to win coins. Wake up all 12 giants for the Giant Parade. That is your big goal!' },
   { tab: 'home', sel: '[data-act=tour]', a: 's12', t: 'And that is everything! If you forget, tap Show me around and I will pop right back. Now go squish something!' },
 ];
 let go = null, at = -1, mode = '', glow = [], clip = null, cur = '';
@@ -33,7 +34,7 @@ function build() {
 function unglow() { glow.forEach((x) => x.classList.remove('guide-glow')); glow = []; }
 function light(sel, tab) {
   unglow();
-  const nav = document.querySelector(`#nav [data-to="${tab === 'studio' ? 'toys' : tab === 'room' || tab === 'album' ? 'home' : tab}"]`), t = sel && document.querySelector('#view ' + sel.split(', ').join(', #view ')) || (sel && document.querySelector(sel));
+  const nav = document.querySelector(`#nav [data-to="${tab === 'studio' ? 'toys' : tab === 'room' || tab === 'album' || tab === 'giants' ? 'home' : tab}"]`), t = sel && document.querySelector('#view ' + sel.split(', ').join(', #view ')) || (sel && document.querySelector(sel));
   [nav, t].forEach((x) => { if (x) { x.classList.add('guide-glow'); glow.push(x); } });
   if (t && !t.closest('.top')) t.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }

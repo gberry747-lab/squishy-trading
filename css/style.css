@@ -568,6 +568,41 @@ body.guiding .view { padding-bottom: 260px; }
 .gsnow { position: absolute; inset: -40% 0 0; z-index: 4; pointer-events: none; background: radial-gradient(#fff 2.5px, transparent 3.5px) 0 0/54px 60px, radial-gradient(#fff 2px, transparent 3px) 26px 30px/54px 60px; animation: gfall 5s linear infinite; }
 .giant-chip { width: 64px; height: 64px; padding: 2px; background: var(--surface); border: 3px solid var(--ink); border-radius: 16px; } .giant-chip[aria-pressed="true"] { background: #FFC2DF; }
 .giant-go { margin-top: 14px; } .giant-link { margin-top: 16px; }
+/* the big goal and what to do next */
+.goal-card { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: center; border-color: var(--accent); background: linear-gradient(#FFF7D6, #fff 62%); margin-bottom: 18px; }
+.goal-art { position: relative; width: clamp(96px, 24vw, 150px); aspect-ratio: 1; background: #FFE27A; border: 3px solid var(--ink); border-radius: 50%; padding: 8px; animation: tag-bob 2.4s ease-in-out infinite; }
+.goal-art.sleep .toy-svg { filter: brightness(0) opacity(.3); } .goal-art .crown, .champ .crown { position: absolute; top: -18px; left: 50%; width: 46%; translate: -50% 0; z-index: 1; }
+.goal-main { min-width: 0; } .goal-main h2 { margin: 0 0 4px; font-size: clamp(1.4rem, 4.4vw, 2rem); line-height: 1.15; } .goal-main p { margin: 0 0 12px; font-size: 1.1rem; }
+.goal-kicker { display: inline-block; background: var(--accent); color: #fff; font: 800 .95rem var(--display); padding: 3px 12px; border-radius: 999px; margin: 0 0 6px !important; }
+.goal-main .btn.big { min-height: 64px; font-size: 1.35rem; padding: 12px 28px; box-shadow: 0 6px 0 rgba(42, 24, 70, .25); animation: goal-pulse 1.8s ease-in-out infinite; }
+.goal-foot { grid-column: 1 / -1; border-top: 2px dashed var(--line); padding-top: 10px; margin-top: 6px; }
+.goal-big { font: 800 .9rem var(--display); color: var(--accent); margin: 0; text-transform: uppercase; letter-spacing: .04em; } .goal-say { font: 700 1.1rem var(--display); margin: 0 0 8px; }
+.goal-road { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; max-width: 620px; } .goal-road i { aspect-ratio: 1; border-radius: 50%; background: var(--soft); border: 2px solid var(--line); padding: 2px; display: block; }
+.goal-road i .toy-svg { filter: brightness(0) opacity(.22); } .goal-road i.got { background: #FFE27A; border-color: var(--ink); } .goal-road i.got .toy-svg { filter: none; }
+.goal-count { margin: 6px 0 0; font-weight: 700; } .goal-banner { background: linear-gradient(#FFF7D6, #fff 70%); }
+@keyframes goal-pulse { 50% { transform: scale(1.04); } }
+@media (max-width: 520px) { .goal-road { grid-template-columns: repeat(6, 1fr); } .goal-card { gap: 6px 10px; } }
+/* giant games */
+.gg-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.gg-pick { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 14px 10px; background: #FFF7D6; border: 3px solid var(--ink); border-radius: 20px; box-shadow: 0 5px 0 rgba(42, 24, 70, .2); font: inherit; color: inherit; }
+.gg-pick svg { width: 84px; height: 72px; } .gg-pick b { font: 800 1.25rem var(--display); } .gg-pick small { color: var(--muted); font-size: .95rem; } .gg-pick:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(42, 24, 70, .2); }
+.giant-card.picked { border-color: var(--accent); background: #FFF7D6; }
+.gg-how { font: 700 1.2rem var(--display); margin: 0 0 10px; min-height: 1.5em; } .gg-stage { position: relative; } .gg-hud { position: absolute; top: 10px; left: 10px; z-index: 6; }
+.gg-start { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 6; min-height: 72px; font-size: 1.6rem; padding: 14px 40px; animation: goal-pulse 1.4s ease-in-out infinite; } .gg-start[hidden] { display: none; }
+.gg-btn { min-width: 120px; min-height: 68px; font-size: 1.5rem; } .gg-btn.flip svg { transform: scaleX(-1); } .center { text-align: center; }
+.gscene.play { touch-action: manipulation; } .gscene.play .giant { height: 50%; left: var(--gx, 50%); bottom: var(--gy, 8%); transition: left .14s linear; }
+.gscene.g-jump { --gx: 26%; cursor: pointer; } .gscene.g-jump .giant { height: 46%; } .gscene.g-stars { touch-action: none; }
+.gscene.play.up .giant { animation: ggjump .8s cubic-bezier(.3, 0, .4, 1); } .gscene.play.bonk .giant { animation: ggbonk .42s; }
+.gob { position: absolute; bottom: 9%; left: 108%; width: 15%; translate: -50% 0; z-index: 3; transform-origin: 50% 100%; transition: transform .12s; pointer-events: none; } .gob svg { display: block; width: 100%; } .gob.flat { transform: scale(1.25, .25); }
+.gstar { position: absolute; top: -12%; width: 9%; translate: -50% 0; z-index: 3; pointer-events: none; animation: gspin 2.4s linear infinite; } .gstar svg { display: block; width: 100%; }
+.gscene.g-hide .giant { height: 48%; transition: bottom .28s cubic-bezier(.3, 1.4, .5, 1); } .gscene.g-hide.found .giant { z-index: 5; }
+.gwall { position: absolute; bottom: 0; width: 25%; height: 46%; z-index: 4; border: 3px solid var(--ink); border-bottom: 0; border-radius: 14px 14px 0 0; padding: 0; background-image: radial-gradient(#fff9 7px, transparent 8px); background-size: 34px 34px; cursor: pointer; }
+.gwall.nope { animation: gshake .15s 3; }
+.gscene.parade .gparade { position: absolute; left: 0; right: 0; bottom: 6%; height: 42%; z-index: 2; display: flex; justify-content: space-around; align-items: flex-end; padding: 0 1%; }
+.gparade span { flex: 0 0 15%; margin: 0 -3.4%; min-width: 0; animation: gwalk .9s ease-in-out infinite; transform-origin: 50% 92%; } .champ { text-align: center; position: relative; padding-top: 46px; } .champ .crown { top: 8px; width: 74px; }
+@keyframes ggjump { 0% { transform: scale(1.1, .86); } 40%, 55% { transform: translateY(-78%) scale(.95, 1.06); } 88% { transform: translateY(0) scale(1.16, .8); } 100% { transform: none; } }
+@keyframes ggbonk { 40% { transform: scale(1.25, .7); } } @keyframes gspin { to { rotate: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .goal-art, .goal-main .btn.big, .gg-start, .gstar, .gparade span { animation: none; } }
 @keyframes gscroll { to { transform: translateX(-50%); } }
 @keyframes gwalk { 0%, 100% { transform: translateY(0) rotate(-3deg); } 25% { transform: translateY(-3%) rotate(0deg); } 50% { transform: translateY(0) rotate(3deg); } 75% { transform: translateY(-3%) rotate(0deg); } }
 @keyframes gjump { 0% { transform: scale(1.08, .88); } 35% { transform: translateY(-22%) scale(.94, 1.08); } 60% { transform: translateY(0) scale(1.2, .76); } 100% { transform: none; } }

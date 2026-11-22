@@ -1,8 +1,8 @@
-// Giant squishies: the ultimate trade. Give some toys to wake up a giant, then watch it walk
-// through a tiny world. Every giant you wake up also opens its place for all your giants.
+// Giant squishies: the big goal of the game. Play games with your giants to win coins, give toys to wake
+// the next giant up, and when all of them are awake, hold the Giant Parade.
 import { TOYS, RARITY } from './data.js';
-import { P, save, count, removeToy, addCoins, today } from './state.js';
-import { esc, actions, sfx, toast, confetti, router } from './ui.js';
+import { P, save, count, removeToy, addCoins, today, track } from './state.js';
+import { esc, actions, sfx, toast, confetti, router, prize, coins } from './ui.js';
 import { toySVG, icon } from './art.js';
 
 // ---------- tiny scenery, drawn in 400 x 200 tiles that repeat ----------
@@ -71,77 +71,143 @@ const SCENES = {
     near: bld(0, 70, 130, '#5B3A9E', '#FFF3B0') + bld(82, 58, 185, '#2F5FC0', '#FFF3B0') + bld(152, 74, 110, '#A8327A', '#FFF3B0') + bld(238, 52, 160, '#1F7F86', '#FFF3B0') + bld(302, 86, 125, '#6A4BC0', '#FFF3B0'), front: car(60, '#F0706E') + car(260, '#FFD84A') },
 };
 
-// need: [how many toys, the lowest rarity that counts]
+// need: how many toys to give to wake the giant up. The first giant is awake from the start,
+// and the giants wake up in order, so there is always one clear giant to work on.
 const GIANTS = [
-  { id: 'g1', toy: 'sq04', scene: 'city', need: [3, 'c'] }, { id: 'g2', toy: 'sq155', scene: 'farm', need: [4, 'c'] }, { id: 'g3', toy: 'sq01', scene: 'candy', need: [5, 'c'] },
-  { id: 'g4', toy: 'pl02', scene: 'toytown', need: [2, 'r'] }, { id: 'g5', toy: 'pl05', scene: 'snow', need: [3, 'r'] }, { id: 'g6', toy: 'pl24', scene: 'sea', need: [4, 'r'] },
-  { id: 'g7', toy: 'pl16', scene: 'jungle', need: [1, 'e'] }, { id: 'g8', toy: 'sq117', scene: 'desert', need: [2, 'e'] }, { id: 'g9', toy: 'pl04', scene: 'mountains', need: [3, 'e'] },
-  { id: 'g10', toy: 'pl12', scene: 'castle', need: [4, 'e'] }, { id: 'g11', toy: 'sq190', scene: 'space', need: [1, 'l'] }, { id: 'g12', toy: 'sq23', scene: 'night', need: [2, 'l'] },
+  { id: 'g1', toy: 'sq04', scene: 'city', need: 0 }, { id: 'g2', toy: 'sq155', scene: 'farm', need: 3 }, { id: 'g3', toy: 'sq01', scene: 'candy', need: 3 },
+  { id: 'g4', toy: 'pl02', scene: 'toytown', need: 4 }, { id: 'g5', toy: 'pl05', scene: 'snow', need: 4 }, { id: 'g6', toy: 'pl24', scene: 'sea', need: 5 },
+  { id: 'g7', toy: 'pl16', scene: 'jungle', need: 5 }, { id: 'g8', toy: 'sq117', scene: 'desert', need: 6 }, { id: 'g9', toy: 'pl04', scene: 'mountains', need: 6 },
+  { id: 'g10', toy: 'pl12', scene: 'castle', need: 7 }, { id: 'g11', toy: 'sq190', scene: 'space', need: 8 }, { id: 'g12', toy: 'sq23', scene: 'night', need: 8 },
 ].filter((g) => TOYS[g.toy]);
-const RANK = { c: 0, r: 1, e: 2, l: 3 };
-const WALK_BONUS = 20;
-const mine = (p = P()) => (p.giants = p.giants || {});
+const WALK_BONUS = 20, CHAMP_COINS = 500, BAG = 40;
+function mine(p = P()) { const m = (p.giants = p.giants || {}); GIANTS.forEach((g) => { if (!g.need) m[g.id] = 1; }); return m; }
 const byId = (id) => GIANTS.find((g) => g.id === id);
 const gName = (g) => `Giant ${esc(TOYS[g.toy].name)}`;
-const needText = ([n, r]) => (n === 1 ? `Give 1 ${RARITY[r].name} toy or better` : `Give ${n} ${RARITY[r].name} toys or better`);
+const awake = (p = P()) => GIANTS.filter((g) => mine(p)[g.id]);
+const nextGiant = (p = P()) => GIANTS.find((g) => !mine(p)[g.id]);
+const fav = (p = P()) => { const a = awake(p); return a.find((g) => g.id === p.gfav) || a[a.length - 1]; };
+const needText = (n) => (n === 1 ? 'Give 1 toy' : `Give ${n} toys`);
 // Every copy she could give, one card each. Her buddy's last copy and her own drawings stay safe.
-function canGive(g, p = P()) {
+function canGive(p = P()) {
   const out = [];
   Object.keys(p.inv).forEach((id) => {
     const t = TOYS[id];
-    if (!t || t.custom || !(t.r in RANK) || RANK[t.r] < RANK[g.need[1]]) return;
-    for (let i = 0, n = Math.min(count(id, p) - (p.buddy === id ? 1 : 0), g.need[0]); i < n; i++) out.push(id);
+    if (!t || t.custom) return;
+    for (let i = 0, n = count(id, p) - (p.buddy === id ? 1 : 0); i < n; i++) out.push(id);
   });
   return out.sort((a, b) => TOYS[a].value - TOYS[b].value || a.localeCompare(b));
 }
-export const giantsReady = (p = P()) => GIANTS.filter((g) => !mine(p)[g.id] && canGive(g, p).length >= g.need[0]).length;
+export const giantsReady = (p = P()) => { const g = nextGiant(p); return g && canGive(p).length >= g.need ? 1 : 0; };
 
 function sceneHTML(key, toy, o = {}) {
   const s = SCENES[key], n = o.live ? 8 : 4, row = (svg) => tile(svg).repeat(n);
-  return `<div class="gscene${o.live ? ' live' : ''}${o.locked ? ' locked' : ''}" style="background:${s.sky}">
+  return `<div class="gscene${o.live ? ' live' : ''}${o.locked ? ' locked' : ''}${o.cls ? ' ' + o.cls : ''}"${o.id ? ` id="${o.id}"` : ''}${o.act ? ` data-act="${o.act}"` : ''} style="background:${s.sky}">
     <div class="glayer g-air"><div class="gtrack">${row(s.air || '')}</div></div>
     <div class="gground" style="background:${s.ground}"></div>
     <div class="glayer g-far"><div class="gtrack">${row(s.far)}</div></div>
     <div class="glayer g-near"><div class="gtrack">${row(s.near)}</div></div>
-    ${o.live ? `<button class="giant" data-act="gStomp" aria-label="Stomp">${toySVG(toy)}</button>` : `<span class="giant">${toySVG(toy)}</span>`}
-    ${s.front ? `<div class="glayer g-front"><div class="gtrack">${row(s.front)}</div></div>` : ''}
+    ${o.noGiant ? '' : o.stomp ? `<button class="giant" data-act="gStomp" aria-label="Stomp">${toySVG(toy)}</button>` : `<span class="giant">${toySVG(toy)}</span>`}
+    ${o.extra || ''}
+    ${s.front && !o.noFront ? `<div class="glayer g-front"><div class="gtrack">${row(s.front)}</div></div>` : ''}
     ${s.fall && o.live ? '<div class="gsnow"></div>' : ''}</div>`;
 }
 
-let view = null; // null = the list, { trade, sel } = picking toys, { g, scene } = walking
+// ---------- the big goal ----------
+const CROWN = '<svg class="crown" viewBox="0 0 48 34" aria-hidden="true"><path d="M4 30L2 8l12 9L24 3l10 14 12-9-2 22z" fill="#FFD84A" stroke="#2A1846" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="21" r="4" fill="#FF5FA8" stroke="#2A1846" stroke-width="2"/></svg>';
+function road(p) {
+  const own = mine(p), n = awake(p).length;
+  return `<div class="goal-road" role="img" aria-label="${n} of ${GIANTS.length} giants awake">${GIANTS.map((g) => `<i class="${own[g.id] ? 'got' : ''}">${toySVG(g.toy)}</i>`).join('')}</div><p class="goal-count">${n} of ${GIANTS.length} giants awake</p>`;
+}
+function nextStep(p) {
+  const nx = nextGiant(p), f = fav(p), sp = canGive(p).length, play = 'data-to="giants"';
+  if (p.champ) return { toy: f.toy, title: 'You are the Squishy Champion!', text: 'You woke up every giant. Now play any game you like.', btn: 'Play with my giants', act: 'go', attrs: play };
+  if (!nx) return { toy: f.toy, title: 'Start the Giant Parade!', text: 'Every giant is awake. It is time for the big parade.', btn: 'Start the parade', act: 'gParade', attrs: '' };
+  if (!p.stats.ggame) return { toy: f.toy, title: 'Play with your giant', text: `${gName(f)} is awake and wants to play a game with you.`, btn: 'Play now', act: 'go', attrs: play };
+  if (sp >= nx.need) return { toy: nx.toy, sleep: 1, title: 'Wake up a giant!', text: `You have enough toys to wake up ${gName(nx)}.`, btn: 'Wake it up', act: 'gTrade', attrs: `data-id="${nx.id}"` };
+  const more = nx.need - sp;
+  if (p.coins >= BAG) return { toy: nx.toy, sleep: 1, title: 'Open a mystery bag', text: `${more === 1 ? 'You need 1 more toy' : `You need ${more} more toys`} to wake up ${gName(nx)}. Mystery bags have toys inside.`, btn: 'Go to the shop', act: 'go', attrs: 'data-to="shop"' };
+  return { toy: f.toy, title: 'Win some coins', text: 'Play a giant game to win coins. Then you can buy a mystery bag.', btn: 'Play a giant game', act: 'go', attrs: play };
+}
+// The card at the top of the home screen: one thing to do next, and how far along the big goal is.
+export function goalCard(p = P()) {
+  const s = nextStep(p);
+  return `<section class="card goal-card"><div class="goal-art${s.sleep ? ' sleep' : ''}">${p.champ ? CROWN : ''}${toySVG(s.toy)}</div>
+    <div class="goal-main"><p class="goal-kicker">Do this next</p><h2>${s.title}</h2><p>${s.text}</p>
+    <button class="btn primary big" data-act="${s.act}" ${s.attrs}>${s.btn}</button></div>
+    <div class="goal-foot"><p class="goal-big">Your big goal</p><p class="goal-say">Wake up all ${GIANTS.length} giants for the Giant Parade.</p>${road(p)}</div></section>`;
+}
+
+// ---------- screens ----------
+const GAMES = {
+  jump: { name: 'Giant Jump', how: 'Cars are coming! Tap Jump to hop over them.', art: car(8, '#FFD84A'), total: 10 },
+  stars: { name: 'Star Catch', how: 'Stars are falling! Move your giant to catch them.', art: '<path d="M40 150l8 18 20 2-15 13 5 19-18-10-18 10 5-19-15-13 20-2z" fill="#FFD84A" stroke="#2A1846" stroke-width="2" stroke-linejoin="round"/>', total: 15 },
+  hide: { name: 'Hide and Seek', how: 'Your giant is hiding. Tap the wall it is behind!', art: block(14, 52, '#8E7BE0'), total: 5 },
+};
+const gameArt = (k) => `<svg viewBox="0 140 80 70" aria-hidden="true">${GAMES[k].art}</svg>`;
+let view = null; // null = the list, { trade, sel } = giving toys, { g, scene } = walking, { game, g, scene } = a game, { parade } = the end
+let run = null; // the game that is running right now
+function stopGame() { if (run) { cancelAnimationFrame(run.raf); clearTimeout(run.t); run = null; } }
 export function giantsScreen() {
   const p = P(), own = mine(p);
+  router.cleanup = stopGame;
   if (view && view.trade) return tradeHTML(p);
+  if (view && view.game) return gameHTML(p);
+  if (view && view.parade) return paradeHTML(p);
   if (view && view.g) return walkHTML(p);
-  const n = GIANTS.filter((g) => own[g.id]).length;
+  const nx = nextGiant(p), sp = canGive(p).length, f = fav(p);
   return `<button class="btn back" data-act="go" data-to="home">${icon('back')} Home</button><h1>Giant squishies</h1>
-    <p class="muted">This is the ultimate trade! Give some of your toys to wake up a giant. Then watch it walk through a tiny world.</p>
-    <p><span class="pill big">${n} of ${GIANTS.length} giants</span></p>
+    <section class="card goal-banner"><p class="goal-big">Your big goal</p><p class="goal-say">Wake up all ${GIANTS.length} giants for the Giant Parade.</p>${road(p)}
+      ${nx ? '' : `<div class="row center"><button class="btn primary big" data-act="gParade">${p.champ ? 'Watch the Giant Parade' : 'Start the Giant Parade!'}</button></div>`}</section>
+    <section class="card"><h2>Play with ${gName(f)}</h2><p class="muted">Pick a game. Every game wins coins.</p>
+      <div class="gg-list">${Object.keys(GAMES).map((k) => `<button class="gg-pick" data-act="gGame" data-v="${k}">${gameArt(k)}<b>${GAMES[k].name}</b><small>${GAMES[k].how}</small></button>`).join('')}</div></section>
+    <h2>Your giants</h2>
     <div class="giant-grid">${GIANTS.map((g) => {
-    const has = own[g.id], ok = !has && canGive(g, p).length >= g.need[0];
-    return `<section class="card giant-card${ok ? ' ready' : ''}">${sceneHTML(g.scene, g.toy, { locked: !has })}<h2>${gName(g)}</h2><small>${SCENES[g.scene].name}</small>
-      ${has ? `<button class="btn primary" data-act="gWalk" data-id="${g.id}">Watch it walk</button>` : `<span class="pill r-${g.need[1]}">${needText(g.need)}</span><button class="btn${ok ? ' primary' : ''}" data-act="gTrade" data-id="${g.id}">${ok ? 'Make the trade' : 'See the trade'}</button>`}</section>`;
+    const has = own[g.id], isNext = nx && g.id === nx.id, ok = isNext && sp >= g.need;
+    return `<section class="card giant-card${ok ? ' ready' : ''}${has && g.id === f.id ? ' picked' : ''}">${sceneHTML(g.scene, g.toy, { locked: !has })}<h2>${gName(g)}</h2><small>${SCENES[g.scene].name}</small>
+      ${has ? `<div class="row center"><button class="btn primary" data-act="gFav" data-id="${g.id}">Play with me</button><button class="btn" data-act="gWalk" data-id="${g.id}">Watch me walk</button></div>`
+    : isNext ? `<span class="pill">${needText(g.need)}</span><button class="btn${ok ? ' primary' : ''}" data-act="gTrade" data-id="${g.id}">${ok ? 'Wake it up' : 'How to wake it up'}</button>`
+      : '<span class="pill">Sleeping</span>'}</section>`;
   }).join('')}</div>`;
 }
 function tradeHTML(p) {
-  const g = byId(view.trade), list = canGive(g, p), [n] = g.need, got = view.sel.length;
-  return `<button class="btn back" data-act="gBack">${icon('back')} Giants</button><h1>${gName(g)}</h1>
+  const g = byId(view.trade), all = canGive(p), list = all.slice(0, 40), n = g.need, got = view.sel.length;
+  return `<button class="btn back" data-act="gBack">${icon('back')} Giants</button><h1>Wake up ${gName(g)}</h1>
     <div class="giant-stage">${sceneHTML(g.scene, g.toy, { locked: true })}</div>
-    <section class="card"><h2>${needText(g.need)}</h2>
-    ${list.length >= n ? `<p class="muted">Tap the toys you want to give. You will not get them back, so pick ones you have extra of.</p><p><span class="pill big">${got} of ${n} picked</span></p>
+    <section class="card"><h2>${needText(n)}</h2>
+    ${all.length >= n ? `<p class="muted">The giant keeps the toys you give. Tap the toys to give, or let me pick for you.</p><p><span class="pill big">${got} of ${n} picked</span></p>
+      <div class="row"><button class="btn" data-act="gAuto">Pick for me</button></div>
       <div class="grid">${list.map((id, i) => `<button class="toy r-${TOYS[id].r}${view.sel.includes(i) ? ' sel' : ''}" data-act="gPick" data-i="${i}" aria-pressed="${view.sel.includes(i)}" aria-label="${esc(TOYS[id].name)}"><span class="toy-art">${toySVG(id)}</span><span class="toy-name">${esc(TOYS[id].name)}</span><span class="toy-rar">${RARITY[TOYS[id].r].name}</span></button>`).join('')}</div>
-      <div class="row center giant-go"><button class="btn primary big" data-act="gDeal" ${got === n ? '' : 'disabled'}>Make the ultimate trade</button></div>`
-    : `<p class="muted">You do not have enough of these toys yet. Open mystery bags, play games and trade with friends to find more.</p><p><span class="pill big">You have ${list.length} of ${n}</span></p>
-      <div class="row"><button class="btn primary" data-act="go" data-to="shop">Go to the shop</button><button class="btn" data-act="go" data-to="trade">Go trading</button></div>`}</section>`;
+      <div class="row center giant-go"><button class="btn primary big" data-act="gDeal" ${got === n ? '' : 'disabled'}>Wake up the giant!</button></div>`
+    : `<p class="muted">You do not have enough toys yet. Play giant games to win coins. Then open mystery bags to get more toys.</p><p><span class="pill big">You have ${all.length} of ${n}</span></p>
+      <div class="row"><button class="btn primary" data-act="gBack">Play a giant game</button><button class="btn" data-act="go" data-to="shop">Go to the shop</button></div>`}</section>`;
 }
+const chips = (p, g) => { const own = awake(p); return own.length > 1 ? `<section class="card"><h2>Pick a giant</h2><div class="row">${own.map((x) => `<button class="giant-chip" data-act="gWho" data-id="${x.id}" aria-pressed="${x.id === g.id}" aria-label="${esc(TOYS[x.toy].name)}">${toySVG(x.toy)}</button>`).join('')}</div>` : ''; };
 function walkHTML(p) {
-  const own = GIANTS.filter((g) => mine(p)[g.id]), g = byId(view.g);
+  const own = awake(p), g = byId(view.g);
   return `<button class="btn back" data-act="gBack">${icon('back')} Giants</button><h1>${gName(g)}</h1><p class="muted">${SCENES[view.scene].name}</p>
-    <div class="giant-stage">${sceneHTML(view.scene, g.toy, { live: true })}</div>
-    <div class="row center"><button class="btn primary big" data-act="gStomp">Stomp!</button></div>
-    ${own.length > 1 ? `<section class="card"><h2>Pick a giant</h2><div class="row">${own.map((x) => `<button class="giant-chip" data-act="gWho" data-id="${x.id}" aria-pressed="${x.id === g.id}" aria-label="${esc(TOYS[x.toy].name)}">${toySVG(x.toy)}</button>`).join('')}</div>
-      <h2>Pick a place</h2><div class="row">${own.map((x) => `<button class="chip" data-act="gWhere" data-v="${x.scene}" aria-pressed="${x.scene === view.scene}">${SCENES[x.scene].name}</button>`).join('')}</div></section>`
+    <div class="giant-stage">${sceneHTML(view.scene, g.toy, { live: true, stomp: true })}</div>
+    <div class="row center"><button class="btn primary big" data-act="gStomp">Stomp!</button><button class="btn big" data-act="gBack">Play a game</button></div>
+    ${own.length > 1 ? `${chips(p, g)}<h2>Pick a place</h2><div class="row">${own.map((x) => `<button class="chip" data-act="gWhere" data-v="${x.scene}" aria-pressed="${x.scene === view.scene}">${SCENES[x.scene].name}</button>`).join('')}</div></section>`
     : '<p class="muted">Wake up more giants to open more places to walk.</p>'}`;
+}
+const WALLS = ['#FF8FC0', '#8E7BE0', '#FFB65C', '#56C3B6'];
+function gameHTML(p) {
+  const g = byId(view.g), k = view.game, G = GAMES[k], own = awake(p);
+  const extra = k === 'hide' ? WALLS.map((c, i) => `<button class="gwall" data-act="ggSpot" data-i="${i}" style="left:${i * 25}%;background-color:${c}" aria-label="Wall ${i + 1}"></button>`).join('') : '';
+  return `<button class="btn back" data-act="gBack">${icon('back')} Giants</button><h1>${G.name}</h1><p class="gg-how" id="gg-how">${G.how}</p>
+    <div class="giant-stage gg-stage"><div class="gg-hud"><span class="pill big" id="gg-score">0 of ${G.total}</span></div>
+      ${sceneHTML(view.scene, g.toy, { live: k === 'jump', cls: 'play g-' + k, id: 'gg-scene', act: k === 'jump' ? 'ggJump' : '', extra, noFront: true })}
+      <button class="btn primary big gg-start" id="gg-start" data-act="ggStart">${view.played ? 'Play again' : 'Start!'}</button></div>
+    ${k === 'jump' ? '<div class="row center"><button class="btn primary big gg-btn" data-act="ggJump">Jump!</button></div>' : ''}
+    ${k === 'stars' ? `<div class="row center"><button class="btn primary big gg-btn" data-act="ggMove" data-v="-1" aria-label="Move left">${icon('back')}</button><button class="btn primary big gg-btn flip" data-act="ggMove" data-v="1" aria-label="Move right">${icon('back')}</button></div><p class="muted center">Or slide your finger on the picture.</p>` : ''}
+    ${own.length > 1 ? `${chips(p, g)}</section>` : ''}`;
+}
+function paradeHTML(p) {
+  const marchers = `<div class="gparade">${GIANTS.map((g, i) => `<span style="animation-delay:${(-i * 0.17).toFixed(2)}s">${toySVG(g.toy)}</span>`).join('')}</div>`;
+  return `<button class="btn back" data-act="gBack">${icon('back')} Giants</button><h1>The Giant Parade</h1>
+    <div class="giant-stage">${sceneHTML('castle', '', { live: true, noGiant: true, cls: 'parade', extra: marchers })}</div>
+    <section class="card champ">${CROWN}<h2>You are the Squishy Champion!</h2><p>You woke up every giant. They are all marching for you, ${esc(p.name)}!</p>
+    <div class="row center"><button class="btn primary big" data-act="gBack">Play with my giants</button><button class="btn" data-act="go" data-to="home">Home</button></div></section>`;
 }
 const show = () => { const y = window.scrollY; router.go('giants'); window.scrollTo(0, y); };
 function startWalk(g) {
@@ -149,32 +215,142 @@ function startWalk(g) {
   view = { g: g.id, scene: g.scene }; router.go('giants'); window.scrollTo(0, 0);
   if (p.gwalk !== today()) { p.gwalk = today(); addCoins(WALK_BONUS); save(); sfx.coin(); toast(`Giant parade bonus! +${WALK_BONUS} coins`); }
 }
-actions.gTrade = (el) => { if (!byId(el.dataset.id)) return; view = { trade: el.dataset.id, sel: [] }; sfx.tap(); router.go('giants'); window.scrollTo(0, 0); };
+actions.gTrade = (el) => { const g = byId(el.dataset.id); if (!g || mine()[g.id]) return; view = { trade: g.id, sel: [] }; sfx.tap(); router.go('giants'); window.scrollTo(0, 0); };
 actions.gBack = () => { view = null; sfx.tap(); router.go('giants'); };
 actions.gPick = (el) => {
   if (!view || !view.trade) return;
-  const i = +el.dataset.i, at = view.sel.indexOf(i), n = byId(view.trade).need[0];
+  const i = +el.dataset.i, at = view.sel.indexOf(i), n = byId(view.trade).need;
   if (at >= 0) view.sel.splice(at, 1); else if (view.sel.length < n) view.sel.push(i); else { sfx.no(); return toast(`You only need ${n}. Tap one to take it back.`); }
   sfx.pop(); show();
 };
+actions.gAuto = () => { if (!view || !view.trade) return; view.sel = Array.from({ length: byId(view.trade).need }, (_, i) => i); sfx.pop(); show(); };
 actions.gDeal = (el) => {
   if (!view || !view.trade) return;
-  const p = P(), g = byId(view.trade), list = canGive(g, p);
-  if (view.sel.length !== g.need[0] || mine(p)[g.id]) return;
-  if (el.dataset.sure !== '1') { el.dataset.sure = '1'; el.textContent = 'Tap again to trade'; return; }
+  const p = P(), g = byId(view.trade), list = canGive(p);
+  if (view.sel.length !== g.need || mine(p)[g.id]) return;
+  if (el.dataset.sure !== '1') { el.dataset.sure = '1'; el.textContent = 'Tap again to give the toys'; return; }
   view.sel.forEach((i) => removeToy(list[i], 1, p));
-  mine(p)[g.id] = 1; p.stats.giant = (p.stats.giant || 0) + 1; save();
+  mine(p)[g.id] = 1; p.gfav = g.id; p.stats.giant = (p.stats.giant || 0) + 1; save();
   confetti(60); sfx.win(); setTimeout(sfx.bomb, 350);
   toast('You woke up a giant! A new place is open.', 3600);
   startWalk(g);
 };
 actions.gWalk = (el) => { const g = byId(el.dataset.id); if (g && mine()[g.id]) { sfx.tap(); startWalk(g); } };
-actions.gWho = (el) => { const g = byId(el.dataset.id); if (g && mine()[g.id] && view && view.g) { view.g = g.id; sfx.pop(); show(); } };
+actions.gFav = (el) => { const g = byId(el.dataset.id); if (!g || !mine()[g.id]) return; P().gfav = g.id; save(); sfx.pop(); view = null; router.go('giants'); window.scrollTo(0, 0); };
+actions.gWho = (el) => {
+  const g = byId(el.dataset.id);
+  if (!g || !mine()[g.id] || !view || !view.g) return;
+  view.g = g.id; if (view.game) { view.scene = g.scene; P().gfav = g.id; save(); }
+  sfx.pop(); show();
+};
 actions.gWhere = (el) => { if (SCENES[el.dataset.v] && view && view.g) { view.scene = el.dataset.v; sfx.whoosh(); show(); } };
 actions.gStomp = () => {
   const sc = document.querySelector('.gscene.live');
   if (!sc || sc.classList.contains('stomp')) return;
   sc.classList.add('stomp'); sfx.boing(); setTimeout(sfx.squelch, 330);
   setTimeout(() => sc.classList.remove('stomp'), 720);
+};
+actions.gParade = () => {
+  const p = P();
+  if (nextGiant(p)) return;
+  view = { parade: 1 }; router.go('giants'); window.scrollTo(0, 0); confetti(90); sfx.win();
+  if (!p.champ) { p.champ = today(); addCoins(CHAMP_COINS); save(); prize('Squishy Champion!', `<p>You woke up every giant and finished the big goal. You win the champion crown and ${coins(CHAMP_COINS)}!</p>`); }
+};
+
+// ---------- giant games ----------
+actions.gGame = (el) => { const k = el.dataset.v, g = fav(); if (!GAMES[k]) return; view = { game: k, g: g.id, scene: g.scene }; sfx.tap(); router.go('giants'); window.scrollTo(0, 0); };
+const scn = () => document.getElementById('gg-scene');
+const setScore = () => { const e = document.getElementById('gg-score'); if (e && run) e.textContent = `${run.hit} of ${run.total}`; };
+const tell = (t) => { const e = document.getElementById('gg-how'); if (e) e.textContent = t; };
+function finish() {
+  const r = run, p = P();
+  if (!r) return;
+  stopGame(); if (view) view.played = 1;
+  const won = r.kind === 'jump' ? 10 + r.hit * 2 : r.kind === 'stars' ? 8 + Math.round(r.hit * 1.5) : 10 + r.hit * 4;
+  addCoins(won); track('game'); p.stats.ggame = (p.stats.ggame || 0) + 1; save();
+  sfx.win(); confetti(30); show();
+  const line = r.kind === 'jump' ? `You jumped over ${r.hit} of ${r.total} cars.` : r.kind === 'stars' ? `You caught ${r.hit} of ${r.total} stars.` : `You found your giant ${r.hit} of ${r.total} times on the first try.`;
+  prize(r.hit >= r.total ? 'Perfect game!' : 'Great game!', `<p>${line} You win ${coins(won)}.</p>`);
+}
+actions.ggStart = () => {
+  const sc = scn(), k = view && view.game;
+  if (!sc || !k || run) return;
+  document.getElementById('gg-start').hidden = true; sfx.whoosh();
+  run = { kind: k, total: GAMES[k].total, hit: 0, n: 0, last: performance.now() };
+  setScore();
+  if (k === 'jump') { run.jumpAt = -9999; loop(jumpFrame); }
+  if (k === 'stars') {
+    run.gx = 50; run.stars = []; run.next = 0;
+    sc.onpointerdown = sc.onpointermove = (e) => { if (!run || (e.type === 'pointermove' && e.pointerType === 'mouse' && !e.buttons)) return; const b = sc.getBoundingClientRect(); moveTo(((e.clientX - b.left) / b.width) * 100); };
+    loop(starFrame);
+  }
+  if (k === 'hide') { run.round = 0; hideRound(); }
+};
+function loop(frame) {
+  const step = (t) => { if (!run || !scn()) return stopGame(); const dt = Math.min(0.05, (t - run.last) / 1000); run.last = t; frame(dt, t); if (run) run.raf = requestAnimationFrame(step); };
+  run.raf = requestAnimationFrame(step);
+}
+// Giant Jump: one car at a time. In the air when it arrives = jumped it. On the ground = squished it flat.
+function jumpFrame(dt, t) {
+  const sc = scn();
+  if (!run.ob) {
+    if (run.n >= run.total) return finish();
+    const el = document.createElement('span');
+    el.className = 'gob'; el.innerHTML = `<svg viewBox="0 150 72 50" aria-hidden="true">${car(4, ['#FFD84A', '#4C8DF5', '#F0706E', '#56C3B6'][run.n % 4])}</svg>`;
+    sc.append(el); run.ob = { el, x: 108, done: false }; run.n++;
+  }
+  const o = run.ob;
+  o.x -= (46 + run.n * 2.5) * dt; o.el.style.left = o.x + '%';
+  if (!o.done && o.x <= 26) {
+    o.done = true;
+    const air = t - run.jumpAt;
+    if (air > 60 && air < 760) { run.hit++; setScore(); sfx.pop(); tell('Nice jump!'); }
+    else { o.el.classList.add('flat'); sc.classList.add('bonk'); setTimeout(() => sc.classList.remove('bonk'), 420); sfx.squelch(); tell('Squish! Jump a little sooner.'); }
+  }
+  if (o.x < -16) { o.el.remove(); run.ob = null; }
+}
+actions.ggJump = () => {
+  const sc = scn(), t = performance.now();
+  if (!run || run.kind !== 'jump' || !sc || t - run.jumpAt < 820) return;
+  run.jumpAt = t; sc.classList.add('up'); sfx.boing(); setTimeout(() => sc.classList.remove('up'), 800);
+};
+// Star Catch: nothing to lose. Stars that land just fade away.
+function moveTo(x) { if (!run || run.kind !== 'stars') return; run.gx = Math.max(14, Math.min(86, x)); scn().style.setProperty('--gx', run.gx + '%'); }
+actions.ggMove = (el) => { if (run && run.kind === 'stars') moveTo(run.gx + 14 * +el.dataset.v); };
+function starFrame(dt, t) {
+  const sc = scn();
+  if (run.n < run.total && t >= run.next) {
+    const el = document.createElement('span');
+    el.className = 'gstar'; el.innerHTML = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#FFD84A" stroke="#2A1846" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+    const s = { el, x: 12 + Math.random() * 76, y: -12, v: 34 + run.n * 1.4 };
+    el.style.left = s.x + '%'; sc.append(el); run.stars.push(s); run.n++; run.next = t + 1050 - run.n * 20;
+  }
+  run.stars = run.stars.filter((s) => {
+    s.y += s.v * dt; s.el.style.top = s.y + '%';
+    if (s.y > 38 && s.y < 66 && Math.abs(s.x - run.gx) < 15) { s.el.remove(); run.hit++; setScore(); sfx.coin(); return false; }
+    if (s.y > 84) { s.el.remove(); return false; }
+    return true;
+  });
+  if (run.n >= run.total && !run.stars.length) finish();
+}
+// Hide and Seek: the giant is too big to hide well, so its ears stick up over one wall.
+function hideRound() {
+  const sc = scn();
+  if (!run || !sc) return;
+  if (run.round >= run.total) return finish();
+  const peek = [20, 17, 14, 11, 9][run.round];
+  let spot = Math.floor(Math.random() * 4);
+  if (spot === run.spot) spot = (spot + 1) % 4;
+  run.spot = spot; run.tried = false; run.open = false;
+  sc.classList.remove('found'); sc.style.setProperty('--gy', '-70%'); tell('Where is your giant hiding?');
+  run.t = setTimeout(() => { if (!run) return; sc.style.setProperty('--gx', spot * 25 + 12.5 + '%'); run.t = setTimeout(() => { if (!run) return; sc.style.setProperty('--gy', peek - 2 + '%'); run.open = true; }, 260); }, 420);
+}
+actions.ggSpot = (el) => {
+  const sc = scn();
+  if (!run || run.kind !== 'hide' || !run.open || !sc) return;
+  if (+el.dataset.i !== run.spot) { run.tried = true; sfx.no(); el.classList.add('nope'); setTimeout(() => el.classList.remove('nope'), 450); return tell('Not there. Look over the walls!'); }
+  run.open = false; if (!run.tried) run.hit++;
+  run.round++; setScore(); sfx.boing(); sc.classList.add('found'); sc.style.setProperty('--gy', '34%'); tell('You found me!');
+  run.t = setTimeout(hideRound, 1100);
 };
 export const giantsHome = () => { view = null; };

@@ -94,7 +94,7 @@ actions.hatch = () => {
 export function homeExtras() {
   const p = P(), ready = stickersReady(p), big = giantsReady(p);
   return `${giftCard(p)}${eggCard(p)}<section class="card"><h2>More fun</h2><div class="modes">
-    <button class="mode" data-act="go" data-to="giants"><b>Giant squishies${big ? ` <span class="pill">${big} ready</span>` : ''}</b><small>The ultimate trade: wake up a giant</small></button>
+    <button class="mode" data-act="go" data-to="giants"><b>Giant squishies${big ? ` <span class="pill">${big} ready</span>` : ''}</b><small>Play games with giants and wake them all up</small></button>
     <button class="mode" data-act="go" data-to="room"><b>My room</b><small>Decorate it with your coins and toys</small></button>
     <button class="mode" data-act="go" data-to="album"><b>Sticker album${ready ? ` <span class="pill">${ready} new</span>` : ''}</b><small>Win stickers for everything you do</small></button>
     <button class="mode" data-act="go" data-to="mystory"><b>Story maker</b><small>Write your own choose-your-path story</small></button></div></section>`;

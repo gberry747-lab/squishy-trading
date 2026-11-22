@@ -74,6 +74,7 @@ export function gamesScreen() {
       <div><h3>${g.name}</h3><p class="muted">${g.how}</p>${best(g.id) ? `<p class="pill">Best: ${best(g.id)} ${g.unit}</p>` : ''}</div>
       <button class="btn primary" data-act="play" data-id="${g.id}">Play</button></article>`;
   return `<h1>Mini-games</h1><p class="muted">Every game pays coins. Play as many times as you like.</p>
+    <button class="card giant-link" data-act="go" data-to="giants"><b>Giant games</b><small>Jump, catch stars and play hide and seek with your giant squishies</small></button>
     <div class="chips" role="group" aria-label="Jump to a kind of game">${SECTIONS.map(([k, t]) => `<button class="chip" data-act="gameSec" data-v="${k}">${t.replace(' games', '')}</button>`).join('')}</div>
     ${SECTIONS.map(([k, t, sub]) => `<section id="sec-${k}"><h2>${t}</h2><p class="muted">${sub}</p><div class="game-list">${GAMES.filter((g) => secOf(g) === k).map(card).join('')}</div></section>`).join('')}`;
 }

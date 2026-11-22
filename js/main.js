@@ -10,7 +10,7 @@ import { initLang, lang, setLang, say } from './i18n.js';
 import { guideVisit, initGuide } from './guide.js';
 import { albumScreen, roomScreen, homeExtras } from './extras.js';
 import { myStoryScreen, initMyStory } from './mystory.js';
-import { giantsScreen } from './giants.js';
+import { giantsScreen, goalCard } from './giants.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -37,7 +37,7 @@ function go(to = tab, arg) {
   if (!P()) return welcome();
   ensureDaily();
   tab = to;
-  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' || to === 'mystory' ? 'stories' : to === 'album' || to === 'room' ? 'home' : to) ? 'page' : 'false'));
+  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' || to === 'mystory' ? 'stories' : to === 'album' || to === 'room' || to === 'giants' ? 'home' : to) ? 'page' : 'false'));
   view.className = 'view v-' + to;
   view.innerHTML = SCREENS[to](arg);
   header();
@@ -151,11 +151,11 @@ function home() {
     const pa = goalProgress(a), pb = goalProgress(b);
     return pb[0] / pb[1] - pa[0] / pa[1];
   }).slice(0, 4);
-  return `<section class="hero">
+  return `${goalCard(p)}<section class="hero">
       <div class="hero-text"><p class="hello">Hi, ${esc(p.name)}!${p.streak > 1 ? ` <span class="pill">${p.streak} days in a row</span>` : ''}</p>
         <h1>Squish ${esc(TOYS[p.buddy].name)} for coins</h1>
         <div class="squish-cta" id="squish-left">${squishText(d.squish)}</div><p class="pill" id="squish-hint" hidden>3D buddy: drag to spin, press to squish</p>
-        <div class="row"><button class="btn primary big" data-act="go" data-to="trade">Start trading</button>
+        <div class="row"><button class="btn big" data-act="go" data-to="trade">Start trading</button>
         ${d.spun ? '' : '<button class="btn big" data-act="wheel">Spin the prize wheel</button>'}<button class="btn" data-act="tour">Show me around</button></div></div>
       <button class="hero-toy squish ${d.squish > 0 ? 'pay' : ''}" data-squish data-toy="${p.buddy}" data-act="heroSquish" aria-label="Squish ${esc(TOYS[p.buddy].name)}"><span class="squish-tag" aria-hidden="true">Squish me!</span>${toySVG(p.buddy, p.style)}</button>
     </section>
