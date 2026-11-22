@@ -11,6 +11,7 @@ import { guideVisit, initGuide } from './guide.js';
 import { albumScreen, roomScreen, homeExtras } from './extras.js';
 import { myStoryScreen, initMyStory } from './mystory.js';
 import { giantsScreen, goalCard } from './giants.js';
+import { basketHTML, likeScreen, pretendScreen, hideScreen } from './play.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -31,13 +32,13 @@ function header() {
 }
 onChange(header);
 
-const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest, album: albumScreen, room: roomScreen, mystory: myStoryScreen, giants: giantsScreen };
+const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest, album: albumScreen, room: roomScreen, mystory: myStoryScreen, giants: giantsScreen, like: likeScreen, pretend: pretendScreen, hide: hideScreen };
 function go(to = tab, arg) {
   if (router.cleanup) { router.cleanup(); router.cleanup = null; }
   if (!P()) return welcome();
   ensureDaily();
   tab = to;
-  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' || to === 'mystory' ? 'stories' : to === 'album' || to === 'room' || to === 'giants' ? 'home' : to) ? 'page' : 'false'));
+  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' || to === 'mystory' ? 'stories' : to === 'like' || to === 'pretend' || to === 'hide' ? 'games' : to === 'album' || to === 'room' || to === 'giants' ? 'home' : to) ? 'page' : 'false'));
   view.className = 'view v-' + to;
   view.innerHTML = SCREENS[to](arg);
   header();
@@ -243,7 +244,7 @@ actions.spin = (el) => {
 // ---------- my toys ----------
 function toys() {
   const p = P();
-  const chips = [['mine', `My toys (${Object.values(p.inv).reduce((a, b) => a + b, 0)})`], ...Object.keys(CATS).map((c) => [c, `${CATS[c].name} ${byCat(c).filter((t) => p.seen[t.id]).length}/${byCat(c).length}`])];
+  const chips = [['mine', `My basket (${Object.values(p.inv).reduce((a, b) => a + b, 0)})`], ...Object.keys(CATS).map((c) => [c, `${CATS[c].name} ${byCat(c).filter((t) => p.seen[t.id]).length}/${byCat(c).length}`])];
   let grid;
   if (shelf === 'mine') {
     const mine = ownedList();
@@ -251,7 +252,7 @@ function toys() {
   } else {
     grid = byCat(shelf).map((t) => p.seen[t.id] ? toyCard(t.id, { act: 'toy', count: count(t.id), cls: count(t.id) ? '' : 'gone', tag: count(t.id) ? '' : 'Traded' }) : toyCard(t.id, { locked: true, disabled: true })).join('');
   }
-  return `<h1>${shelf === 'mine' ? 'My toys' : CATS[shelf].name + ' shelf'}</h1>
+  return `<h1>${shelf === 'mine' ? `${esc(p.name)}'s Squishy Basket` : CATS[shelf].name + ' shelf'}</h1>${shelf === 'mine' ? basketHTML(p) : ''}
     <p class="muted">${shelf === 'mine' ? 'Tap a toy to squish it, sell extras or make it your buddy.' : shelf === 'plushie' ? 'Plushies are bonus prizes. Win them from stories, goals, the prize wheel and Mega bags.' : 'Find every toy on this shelf to win a bonus plushie.'}</p>
     <div class="row"><button class="btn primary" data-act="newDraw">Draw your own squishy</button>${myDrawings().length ? `<span class="pill">${myDrawings().length} handmade</span>` : ''}</div>
     <div class="chips" role="tablist">${chips.map(([k, l]) => `<button class="chip" role="tab" aria-selected="${k === shelf}" data-act="shelf" data-id="${k}">${l}</button>`).join('')}</div>
@@ -598,7 +599,7 @@ document.addEventListener('pointermove', (e) => {
   held = null;
 }, true));
 
-$('#nav').innerHTML = [['home', 'Home'], ['toys', 'My toys'], ['trade', 'Trade'], ['games', 'Games'], ['stories', 'Stories'], ['shop', 'Shop']]
+$('#nav').innerHTML = [['home', 'Home'], ['toys', 'My basket'], ['trade', 'Trade'], ['games', 'Games'], ['stories', 'Stories'], ['shop', 'Shop']]
   .map(([k, l]) => `<button data-act="go" data-to="${k}">${icon(k)}<span>${l}</span></button>`).join('');
 await initLang();
 if (P()) ensureDaily();

@@ -7,6 +7,7 @@ import { TOY_LIST } from './data.js';
 import { store, save, P, addToy, removeToy, addCoins, track } from './state.js';
 import { $, esc, router, actions, sfx, toyCard, coins, toast, modal, closeModal, prize, glitterBurst } from './ui.js';
 import { Room, cleanToys, cleanCoins, cleanInv } from './online.js';
+import { hsOnline, hsMsg, hsStop } from './play.js';
 
 const MAX = 6;
 let T = null;      // the trade table that is open
@@ -321,12 +322,13 @@ actions.tAgree = (el) => {
 
 // ---------- online ----------
 const info = () => ({ name: P().name, avatar: P().buddy });
-function leaveRoom() { if (room) { room.leave(); room = null; } T = null; VS = null; hooks.finish = null; }
+function leaveRoom() { if (room) { room.leave(); room = null; } T = null; VS = null; HS = null; hsStop(); hooks.finish = null; }
 function wire() {
   room.on('players', () => {
     if (T && T.mode === 'online' && !room.players.some((x) => x.id === T.pid)) { closeModal(); T = null; toast('Your friend left the room.'); }
     if (VS && !room.players.some((x) => x.id === VS.pid)) { toast('Your friend left the room.'); if (VS.theirs == null) VS.theirs = -1; if (VS.mine != null) showVs(); }
-    if (!T && !VS) lobby();
+    if (HS && !room.players.some((x) => x.id === HS.pid)) { toast('Your friend left the room.'); hsStop(); HS = null; }
+    if (!T && !VS && !HS) lobby();
   });
   room.on('closed', () => { leaveRoom(); router.go('trade'); toast('The room closed.'); });
   room.on('error', () => toast('The connection had a hiccup.'));
@@ -365,13 +367,14 @@ actions.tInvite = (el) => { closeModal(); room.send(el.dataset.id, { t: 'invite'
 // ---------- online: play a game against a friend, or visit their room ----------
 const VS_GAMES = ['pop', 'letters', 'stopgo', 'addsub', 'bigger', 'firstsound', 'where'].filter((id) => GAME_LIST.some((g) => g.id === id));
 const gameName = (id) => (GAME_LIST.find((g) => g.id === id) || {}).name || '';
-let VS = null, askedGame = null, askedRoom = '';
+let VS = null, askedGame = null, askedRoom = '', HS = null, askedHide = '';
 actions.tMenu = (el) => {
   const pl = room && room.players.find((x) => x.id === el.dataset.id); if (!pl) return;
   const id = esc(pl.id);
   modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2 translate="no">${esc(pl.name)}</h2>
     <div class="modes"><button class="mode" data-act="tInvite" data-id="${id}"><b>Trade</b><small>Swap toys on the trading board</small></button>
     <button class="mode" data-act="tGamePick" data-id="${id}"><b>Play a game</b><small>Same game, same time. Who gets the best score?</small></button>
+    <button class="mode" data-act="tHideAsk" data-id="${id}"><b>Hide and seek</b><small>Hide squishies for your friend to find</small></button>
     <button class="mode" data-act="tVisit" data-id="${id}"><b>Visit their room</b><small>See how they decorated it</small></button></div></div>`, { label: 'What do you want to do?' });
 };
 actions.tGamePick = (el) => {
@@ -380,6 +383,16 @@ actions.tGamePick = (el) => {
 actions.tGameAsk = (el) => { closeModal(); askedGame = { pid: el.dataset.id, g: el.dataset.g }; room.send(el.dataset.id, { t: 'game?', g: el.dataset.g }); toast('Asking them to play...'); };
 actions.tGameYes = (el) => { room.send(el.dataset.id, { t: 'game!', g: el.dataset.g }); startVs(el.dataset.id, el.dataset.g); };
 actions.tVisit = (el) => { closeModal(); askedRoom = el.dataset.id; room.send(el.dataset.id, { t: 'room?' }); toast('Knocking on their door...'); };
+// ---------- online: hide and seek ----------
+actions.tHideAsk = (el) => { closeModal(); askedHide = el.dataset.id; room.send(el.dataset.id, { t: 'hs?' }); toast('Asking them to play...'); };
+actions.tHideYes = (el) => { if (!room) return; room.send(el.dataset.id, { t: 'hs!' }); startHs(el.dataset.id, 'them'); };
+function startHs(pid, first) {
+  const pl = room.players.find((x) => x.id === pid); if (!pl) return;
+  closeModal(); askedHide = '';
+  HS = { pid };
+  router.cleanup = leaveRoom; // walking away from the game leaves the room
+  hsOnline({ first, name: pl.name, send: (m) => { if (room) room.send(pid, { ...m, t: 'hs' }); }, exit: () => { HS = null; if (room) { router.cleanup = leaveRoom; lobby(); } else router.go('trade'); } });
+}
 function startVs(pid, g) {
   const pl = room.players.find((x) => x.id === pid); if (!pl || !VS_GAMES.includes(g)) return;
   closeModal(); askedGame = null;
@@ -457,15 +470,23 @@ function onMsg(from, m) {
   }
   if (m.t === 'game?') {
     const g = String(m.g || '');
-    if (T || VS || !VS_GAMES.includes(g)) return room.send(from, { t: 'no', busy: true });
+    if (T || VS || HS || !VS_GAMES.includes(g)) return room.send(from, { t: 'no', busy: true });
     sfx.pop();
     return modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2><span translate="no">${esc(pl.name)}</span> <span>wants to play</span> <span>${gameName(g)}</span></h2>
       <div class="row center"><button class="btn primary big" data-act="tGameYes" data-id="${esc(from)}" data-g="${g}">Yes!</button><button class="btn big" data-act="tInviteNo" data-id="${esc(from)}">Not now</button></div></div>`, { label: 'Game invite' });
   }
+  if (m.t === 'hs?') {
+    if (T || VS || HS) return room.send(from, { t: 'no', busy: true });
+    sfx.pop();
+    return modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2><span translate="no">${esc(pl.name)}</span> <span>wants to play</span> <span>Hide and seek</span></h2><p class="muted">They hide the squishies first. You seek.</p>
+      <div class="row center"><button class="btn primary big" data-act="tHideYes" data-id="${esc(from)}">Yes!</button><button class="btn big" data-act="tInviteNo" data-id="${esc(from)}">Not now</button></div></div>`, { label: 'Game invite' });
+  }
+  if (m.t === 'hs!') { if (askedHide === from && !T && !VS && !HS) startHs(from, 'me'); return; }
+  if (m.t === 'hs') { if (HS && HS.pid === from) hsMsg(m); return; }
   if (m.t === 'game!') { if (askedGame && askedGame.pid === from && askedGame.g === m.g && !T && !VS) startVs(from, askedGame.g); return; }
   if (m.t === 'score') { if (VS && VS.pid === from && m.g === VS.g) { VS.theirs = cleanCoins(m.n); if (VS.mine != null) showVs(); } return; }
   if (m.t === 'invite') {
-    if (T || VS) return room.send(from, { t: 'no', busy: true });
+    if (T || VS || HS) return room.send(from, { t: 'no', busy: true });
     sfx.pop();
     return modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2>${esc(pl.name)} wants to trade!</h2>
       <div class="row center"><button class="btn primary big" data-act="tInviteYes" data-id="${esc(from)}">Yes!</button><button class="btn big" data-act="tInviteNo" data-id="${esc(from)}">Not now</button></div></div>`, { label: 'Trade invite' });

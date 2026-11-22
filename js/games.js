@@ -74,6 +74,10 @@ export function gamesScreen() {
       <div><h3>${g.name}</h3><p class="muted">${g.how}</p>${best(g.id) ? `<p class="pill">Best: ${best(g.id)} ${g.unit}</p>` : ''}</div>
       <button class="btn primary" data-act="play" data-id="${g.id}">Play</button></article>`;
   return `<h1>Mini-games</h1><p class="muted">Every game pays coins. Play as many times as you like.</p>
+    <section class="card"><h2>Pretend and play</h2><div class="modes">
+      <button class="mode" data-act="go" data-to="hide"><b>Squishy Hide and Seek</b><small>Hide squishies in a scene for someone to find</small></button>
+      <button class="mode" data-act="go" data-to="pretend"><b>Squishy Play Time</b><small>Make your squishies talk and play in a city, farm, beach, house or Squishyland</small></button>
+      <button class="mode" data-act="go" data-to="like"><b>Which Do You Like?</b><small>Pick your favorite of two squishies</small></button></div></section>
     <button class="card giant-link" data-act="go" data-to="giants"><b>Giant games</b><small>Jump, catch stars and play hide and seek with your giant squishies</small></button>
     <div class="chips" role="group" aria-label="Jump to a kind of game">${SECTIONS.map(([k, t]) => `<button class="chip" data-act="gameSec" data-v="${k}">${t.replace(' games', '')}</button>`).join('')}</div>
     ${SECTIONS.map(([k, t, sub]) => `<section id="sec-${k}"><h2>${t}</h2><p class="muted">${sub}</p><div class="game-list">${GAMES.filter((g) => secOf(g) === k).map(card).join('')}</div></section>`).join('')}`;
@@ -389,7 +393,8 @@ function judge(g) {
   const side = (toys) => `<div class="judge-side">${toys.map((t) => `<div class="judge-toy">${toySVG(t.id)}<b>${t.value}</b></div>`).join('')}</div>`;
   frame(g, `<section class="card judge"><p class="game-say" id="say">Add up each side. Is it a fair trade?</p><div class="judge-row" id="judge-row"></div>
     <div class="judge-keys"><button class="key key-yes" data-act="judgeIt" data-v="1" aria-label="Fair"><svg viewBox="0 0 24 24" aria-hidden="true">${MARK.yes}</svg><span>Fair</span></button><button class="key key-no" data-act="judgeIt" data-v="0" aria-label="Not fair"><svg viewBox="0 0 24 24" aria-hidden="true">${MARK.no}</svg><span>Not fair</span></button></div></section>`);
-  const next = () => {
+  const seen = [];
+  const next = (tries = 0) => {
     busy = false;
     const rs = ['c', 'r'];
     const n = score < 3 ? 1 + rnd(2) : score < 8 ? 2 + rnd(2) : 3 + rnd(2);
@@ -399,6 +404,9 @@ function judge(g) {
     if (!fair) { const i = rnd(n), others = rs.filter((r) => r !== right[i]); right[i] = others[rnd(others.length)]; }
     const pick = (r) => { const pool = byR(r); return pool[rnd(pool.length)]; };
     const L = left.map(pick), R = right.map(pick);
+    const sum = (a) => a.reduce((x, t) => x + t.value, 0), sig = `${sum(L)}|${sum(R)}`;
+    if (seen.includes(sig) && tries < 40) return next(tries + 1); // not the same two totals as the last three
+    seen.push(sig); if (seen.length > 3) seen.shift();
     $('#judge-row').dataset.l = L.reduce((a, t) => a + t.value, 0); $('#judge-row').dataset.r = R.reduce((a, t) => a + t.value, 0);
     fair = $('#judge-row').dataset.l === $('#judge-row').dataset.r; // the real totals decide, not the plan
     $('#judge-row').innerHTML = `${side(L)}<span class="swap" aria-hidden="true">${icon('trade')}</span>${side(R)}`;
@@ -459,7 +467,8 @@ function shuffle(g) {
 function count(g) {
   let score = 0;
   frame(g, `<section class="card counter"><div class="count-box" id="count-box"></div><p class="game-say" id="say"></p><div class="count-opts" id="opts"></div></section>`);
-  const next = () => {
+  let lastCount = 0;
+  const next = (tries = 0) => {
     const kinds = mixUp(TOY_LIST).slice(0, score < 3 ? 2 : 3);
     const nums = kinds.map(() => 2 + rnd(score < 5 ? 4 : 6));
     const cells = mixUp(Array.from({ length: 24 }, (_, i) => i));
@@ -467,6 +476,8 @@ function count(g) {
     kinds.forEach((t, i) => { for (let j = 0; j < nums[i]; j++) { const c = cells[k++]; html += `<span style="left:${(c % 6) * 16.6 + rnd(4)}%;top:${Math.floor(c / 6) * 25 + rnd(4)}%;transform:rotate(${rnd(30) - 15}deg)">${toySVG(t.id)}</span>`; } });
     $('#count-box').innerHTML = html;
     const ask = rnd(kinds.length), right = nums[ask];
+    if (right === lastCount && tries < 20) return next(tries + 1); // not the same count twice in a row
+    lastCount = right;
     const opts = new Set([right]);
     while (opts.size < 3) { const v = right + rnd(5) - 2; if (v > 0) opts.add(v); }
     $('#say').innerHTML = `How many <b>${kinds[ask].name}</b> toys?`;
@@ -857,12 +868,15 @@ function math(g) {
   // Numbers stay friendly for ages 6 to 8: sums up to 100, change in tens, and counting by tens.
   const pool = TOY_LIST.filter((t) => [10, 25, 60].includes(t.value)), tens = TOY_LIST.filter((t) => t.value === 10);
   const toy = () => pool[rnd(pool.length)];
-  const next = () => {
+  const used = [];
+  const next = (tries = 0) => {
     const kind = rnd(score < 3 ? 2 : 3);
     let art = '', q = '', right = 0;
     if (kind === 0) { let x = toy(), y = toy(); while (x.value + y.value > 100) y = toy(); right = x.value + y.value; art = toySVG(x.id) + toySVG(y.id); q = `<b>${x.name}</b> is worth ${x.value} coins and <b>${y.name}</b> is worth ${y.value}. How much together?`; }
     else if (kind === 1) { const cost = [20, 30, 40, 40, 50][rnd(5)], have = cost + 10 * (1 + rnd(5)); right = have - cost; art = toySVG('sq01'); q = `You have ${have} coins. A mystery bag costs ${cost}. How many coins are left?`; }
     else { const x = tens[rnd(tens.length)], n = 2 + rnd(4); right = x.value * n; art = Array.from({ length: n }, () => toySVG(x.id)).join(''); q = `You have ${n} of <b>${x.name}</b>. Each is worth ${x.value} coins. How much for all ${n}?`; }
+    if (used.includes(right) && tries < 40) return next(tries + 1); // not the same answer as the last three
+    used.push(right); if (used.length > 3) used.shift();
     const opts = new Set([right]);
     while (opts.size < 3) { const v = right + (rnd(2) ? 1 : -1) * [5, 10, 10, 20][rnd(4)]; if (v > 0) opts.add(v); }
     $('#math-art').innerHTML = art; $('#say').innerHTML = q;
@@ -993,8 +1007,18 @@ function endings(g) {
 function quiz(g, secs, ev, make, cheer) {
   let score = 0;
   frame(g, `<section class="card missing"><div class="quiz-art" id="quiz-art"></div><p class="big-word sum" id="quiz-q"></p><div class="count-opts" id="opts" translate="no"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  // No repeats: not one of the last five questions, and not the same answer as the last two.
+  const asked = [], answers = [];
+  const fresh = () => {
+    let m, tries = 0;
+    do { m = make(score); m.key = `${m.q}|${m.right}`; tries++; }
+    while (tries < 60 && (asked.includes(m.key) || (tries < 30 && !['<', '>', '='].includes(m.right) && answers.includes(m.right))));
+    asked.push(m.key); if (asked.length > 5) asked.shift();
+    answers.push(m.right); if (answers.length > 2) answers.shift();
+    return m;
+  };
   const next = () => {
-    const { q, right, art = '', near = [1, 2, 3, 10], opts: given, hint = 'Try again. You can do it!' } = make(score);
+    const { q, right, art = '', near = [1, 2, 3, 10], opts: given, hint = 'Try again. You can do it!' } = fresh();
     const set = new Set([right]);
     if (given) given.forEach((v) => set.add(v));
     let guard = 0;
