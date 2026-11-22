@@ -27,12 +27,13 @@ export function rng(seed) {
 }
 export const pick = (arr, r = Math.random) => arr[Math.floor(r() * arr.length)];
 
-export function rollToy(cats, odds, r = Math.random) {
+export function rollToy(cats, odds, r = Math.random, jumbo = false) {
   const roll = r() * 100;
   let acc = 0, rar = 'c';
   ['c', 'r', 'e', 'l'].some((k, i) => { acc += odds[i]; if (roll < acc) { rar = k; return true; } return false; });
-  let pool = TOY_LIST.filter((t) => cats.includes(t.cat) && t.r === rar);
-  if (!pool.length) pool = TOY_LIST.filter((t) => cats.includes(t.cat));
+  const ok = (t) => cats.includes(t.cat) && (!jumbo || t.big);
+  let pool = TOY_LIST.filter((t) => ok(t) && t.r === rar);
+  if (!pool.length) pool = TOY_LIST.filter(ok);
   return pick(pool, r).id;
 }
 

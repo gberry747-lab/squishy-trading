@@ -25,6 +25,19 @@
   </header>
   <nav id="nav" aria-label="Game sections"></nav>
   <main id="view" class="view" tabindex="-1"></main>
+  <!-- Shared lighting for every toy: turns the flat drawing into a puffy, glossy 3D-looking squishy. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+    <filter id="toy-puff" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4.2" result="dome"/>
+      <feDiffuseLighting in="dome" surfaceScale="7" diffuseConstant="1.22" lighting-color="#fff" result="shade"><feDistantLight azimuth="235" elevation="55"/></feDiffuseLighting>
+      <feComposite in="SourceGraphic" in2="shade" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="lit"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="tight"/>
+      <feSpecularLighting in="tight" surfaceScale="6" specularConstant="0.85" specularExponent="26" lighting-color="#fff" result="gloss"><feDistantLight azimuth="235" elevation="50"/></feSpecularLighting>
+      <feComposite in="gloss" in2="SourceAlpha" operator="in" result="glossIn"/>
+      <feComposite in="glossIn" in2="lit" operator="arithmetic" k1="0" k2="0.5" k3="1" k4="0"/>
+    </filter>
+    <filter id="toy-soft" x="-30%" y="-150%" width="160%" height="400%"><feGaussianBlur stdDeviation="2.4"/></filter>
+  </defs></svg>
   <div id="modal" hidden></div>
   <div id="toasts" aria-live="polite"></div>
   <div id="confetti" aria-hidden="true"></div>

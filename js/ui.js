@@ -10,6 +10,20 @@ export const actions = {};
 
 // ---------- sound (made in code, no files) ----------
 let ctx = null;
+// A short burst of hiss. Stacked in quick bursts it sounds like crunching beads.
+function hiss(dur, vol, freq, when = 0, q = 1.2) {
+  if (store.mute) return;
+  try {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    const n = Math.max(1, Math.floor(ctx.sampleRate * dur)), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), t = ctx.currentTime + when;
+    src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(f).connect(g).connect(ctx.destination); src.start(t);
+  } catch { /* no sound available */ }
+}
 function tone(freq, dur, type = 'sine', vol = 0.15, slideTo = null, when = 0) {
   if (store.mute) return;
   try {
@@ -26,12 +40,23 @@ export const sfx = {
   squish: () => { tone(320, 0.12, 'sine', 0.18, 140); tone(180, 0.16, 'triangle', 0.1, 420, 0.1); },
   pop: () => tone(700 + Math.random() * 300, 0.07, 'sine', 0.2, 200),
   tap: () => tone(520, 0.05, 'triangle', 0.1),
+  crunch: () => { for (let i = 0; i < 7; i++) hiss(0.025 + Math.random() * 0.03, 0.3, 1500 + Math.random() * 3200, i * 0.032 + Math.random() * 0.02, 2.5); },
+  squelch: () => { tone(160, 0.22, 'sine', 0.16, 70); hiss(0.18, 0.12, 500, 0.02, 0.8); tone(240, 0.12, 'sine', 0.08, 420, 0.16); },
+  boing: () => { tone(180, 0.38, 'sine', 0.16, 520); tone(360, 0.3, 'triangle', 0.06, 900, 0.03); },
+  whirr: () => { tone(300, 0.6, 'sawtooth', 0.045, 900); hiss(0.5, 0.05, 2400, 0, 0.7); },
+  stretch: () => { tone(260, 0.3, 'sine', 0.13, 150); tone(150, 0.2, 'triangle', 0.08, 300, 0.24); },
+  soft: () => { hiss(0.16, 0.16, 700, 0, 0.6); tone(220, 0.14, 'sine', 0.07, 160); },
+  click: () => { tone(900, 0.03, 'square', 0.08); tone(1300, 0.03, 'square', 0.06, null, 0.07); },
   note: (f) => tone(f, 0.25, 'triangle', 0.16),
   coin: () => { tone(988, 0.08, 'square', 0.06); tone(1319, 0.18, 'square', 0.06, null, 0.08); },
   win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'triangle', 0.14, null, i * 0.1)),
   no: () => tone(220, 0.22, 'sawtooth', 0.07, 150),
   whoosh: () => tone(200, 0.3, 'sine', 0.1, 900),
 };
+// The right sound for playing with each kind of toy.
+export function playSound(style) {
+  ({ crunch: sfx.crunch, pop: sfx.pop, spin: sfx.whirr, boing: sfx.boing, squelch: sfx.squelch, stretch: sfx.stretch, soft: sfx.soft, click: sfx.click }[style] || sfx.squish)();
+}
 export function toggleMute() { store.mute = !store.mute; save(); if (!store.mute) sfx.tap(); }
 
 // ---------- toy cards ----------
@@ -39,10 +64,10 @@ export function toyCard(id, o = {}) {
   const t = TOYS[id];
   const locked = o.locked ? ' locked' : '';
   const label = o.locked ? 'Not found yet' : `${t.name}, ${RARITY[t.r].name} ${CATS[t.cat].one}${o.count > 1 ? ', you have ' + o.count : ''}`;
-  return `<button class="toy r-${t.r}${locked} ${o.cls || ''}" ${o.act ? `data-act="${o.act}"` : ''} data-id="${id}" ${o.extra || ''} aria-label="${esc(label)}" ${o.disabled ? 'disabled' : ''}>
+  return `<button class="toy r-${t.r}${locked}${t.big ? ' jumbo' : ''} ${o.cls || ''}" ${o.act ? `data-act="${o.act}"` : ''} data-id="${id}" ${o.extra || ''} aria-label="${esc(label)}" ${o.disabled ? 'disabled' : ''}>
     <span class="toy-art">${toySVG(id)}</span>
     <span class="toy-name">${o.locked ? '???' : esc(t.name)}</span>
-    ${o.locked ? '' : `<span class="toy-rar">${RARITY[t.r].name}</span>`}
+    ${o.locked ? '' : `<span class="toy-rar">${RARITY[t.r].name}${t.big ? ' &middot; Jumbo' : ''}</span>`}
     ${o.count > 1 ? `<span class="toy-count">x${o.count}</span>` : ''}
     ${o.tag ? `<span class="toy-tag">${o.tag}</span>` : ''}
   </button>`;
@@ -96,6 +121,6 @@ export function confetti(n = 36) {
 
 export function prize(title, body, toyId) {
   sfx.win(); confetti();
-  modal(`<div class="prize"><h2>${title}</h2>${toyId ? `<div class="prize-toy squish" data-squish>${toySVG(toyId)}</div><p class="prize-name">${esc(TOYS[toyId].name)} <span class="pill r-${TOYS[toyId].r}">${RARITY[TOYS[toyId].r].name}</span></p>` : ''}
+  modal(`<div class="prize"><h2>${title}</h2>${toyId ? `<div class="prize-toy squish${TOYS[toyId].big ? ' jumbo' : ''}" data-squish data-toy="${toyId}">${toySVG(toyId)}</div><p class="prize-name">${esc(TOYS[toyId].name)} <span class="pill r-${TOYS[toyId].r}">${RARITY[TOYS[toyId].r].name}</span></p>` : ''}
     <div class="prize-body">${body}</div><button class="btn primary" data-act="closeModal">Yay!</button></div>`, { label: title });
 }

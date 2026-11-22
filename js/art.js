@@ -57,7 +57,7 @@ function face(cx, cy, s = 1, dark = false, wide = 9) {
 }
 const shine = (x, y, rx = 9, ry = 5, rot = -25) =>
   `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity=".4" transform="rotate(${rot} ${x} ${y})"/>`;
-const ground = (rx = 30) => `<ellipse cx="50" cy="92" rx="${rx}" ry="4" fill="${INK}" opacity=".12"/>`;
+const ground = (rx = 30) => `<ellipse cx="50" cy="93" rx="${rx}" ry="5" fill="${INK}" opacity=".26" filter="url(#toy-soft)"/>`;
 
 function squishy(t, P) {
   const f = P.fill, d = P.dark, dk = P.darkFace;
@@ -146,6 +146,38 @@ function squishy(t, P) {
       return `<circle cx="50" cy="70" r="25" fill="${f}" stroke="${d}" stroke-width="1.5"/><circle cx="50" cy="36" r="19" fill="${f}" stroke="${d}" stroke-width="1.5"/><rect x="33" y="50" width="34" height="8" rx="4" fill="#F0524F"/><rect x="58" y="52" width="8" height="18" rx="4" fill="#F0524F"/><rect x="36" y="6" width="28" height="16" rx="3" fill="${INK}"/><rect x="29" y="19" width="42" height="6" rx="3" fill="${INK}"/><circle cx="50" cy="68" r="2.4" fill="${INK}"/><circle cx="50" cy="78" r="2.4" fill="${INK}"/>${face(50, 35, 0.7, false)}<path d="M50 36l10 2.5l-10 2.5Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="1.5" stroke-linejoin="round"/>`;
     case 'cherry':
       return `<path d="M32 50Q36 26 58 14M68 54Q66 30 58 14" fill="none" stroke="#5DBB4A" stroke-width="3.5" stroke-linecap="round"/><path d="M58 14q14 -8 24 2q-12 8 -24 -2Z" fill="#5DBB4A"/><circle cx="32" cy="68" r="20" fill="${f}"/><circle cx="70" cy="72" r="19" fill="${f}"/>${shine(24, 58, 5, 3)}${shine(62, 62, 5, 3)}${face(32, 69, 0.6, dk, 8)}${face(70, 73, 0.6, dk, 8)}`;
+    case 'gooball':
+      return `<circle cx="50" cy="56" r="35" fill="${f}"/>${P.c2 && t.c2 ? `<path d="M24 62q14 -30 30 -8t26 -12" fill="none" stroke="${P.c2}" stroke-width="9" stroke-linecap="round" opacity=".75"/>` : ''}<circle cx="50" cy="60" r="24" fill="#fff" opacity=".14"/><ellipse cx="36" cy="38" rx="12" ry="7" fill="#fff" opacity=".6" transform="rotate(-28 36 38)"/><circle cx="26" cy="54" r="3" fill="#fff" opacity=".55"/>`;
+    case 'goocube':
+      return `<rect x="16" y="24" width="68" height="66" rx="20" fill="${f}"/><rect x="24" y="30" width="52" height="40" rx="14" fill="#fff" opacity=".16"/><ellipse cx="36" cy="38" rx="11" ry="6" fill="#fff" opacity=".6" transform="rotate(-24 36 38)"/><circle cx="26" cy="52" r="2.6" fill="#fff" opacity=".55"/>`;
+    case 'gumdrop':
+      return `<path d="M17 86Q14 22 50 20Q86 22 83 86Q50 95 17 86Z" fill="${f}"/><g fill="#fff" opacity=".8"><circle cx="30" cy="60" r="1.6"/><circle cx="44" cy="44" r="1.6"/><circle cx="62" cy="52" r="1.6"/><circle cx="70" cy="72" r="1.6"/><circle cx="38" cy="78" r="1.6"/><circle cx="56" cy="74" r="1.6"/><circle cx="52" cy="30" r="1.6"/><circle cx="26" cy="76" r="1.6"/><circle cx="72" cy="40" r="1.6"/></g><ellipse cx="36" cy="38" rx="9" ry="5" fill="#fff" opacity=".5" transform="rotate(-30 36 38)"/>`;
+    case 'dumpling':
+      return `<path d="M13 70Q13 42 50 32Q87 42 87 70Q87 89 50 89Q13 89 13 70Z" fill="${f}"/><circle cx="50" cy="29" r="9" fill="${f}"/><path d="M50 22q5 4 0 8q-5 3 -1 7M50 36Q40 40 30 50M50 36Q50 44 50 52M50 36Q60 40 70 50M44 34Q34 36 22 44M56 34Q66 36 78 44" fill="none" stroke="${d}" stroke-width="1.8" stroke-linecap="round" opacity=".7"/>${shine(30, 56, 6, 3.5)}${face(50, 68, 1, dk)}`;
+    case 'pickle':
+      return `<g transform="rotate(9 50 50)"><rect x="29" y="7" width="42" height="86" rx="21" fill="${f}"/><rect x="36" y="14" width="12" height="70" rx="6" fill="#fff" opacity=".2"/><g fill="${d}" opacity=".75"><circle cx="36" cy="24" r="2.6"/><circle cx="62" cy="20" r="2.2"/><circle cx="64" cy="38" r="2.6"/><circle cx="35" cy="66" r="2.4"/><circle cx="63" cy="70" r="2.6"/><circle cx="48" cy="82" r="2.4"/><circle cx="58" cy="54" r="2"/><circle cx="40" cy="42" r="2"/></g></g>${face(51, 48, 0.85, dk)}`;
+    case 'burger':
+      return `<rect x="15" y="68" width="70" height="20" rx="10" fill="${f}"/><rect x="13" y="56" width="74" height="14" rx="7" fill="#7A4A2E"/><path d="M14 56L30 56L22 66ZM58 56L80 56L70 68Z" fill="#FFD84A"/><path d="M11 54q7 -8 13 0t13 0t13 0t13 0t13 0t13 0" fill="none" stroke="#5DBB4A" stroke-width="7" stroke-linecap="round"/><path d="M13 48Q13 16 50 16Q87 16 87 48Z" fill="${f}"/><g fill="#FFF3D6"><ellipse cx="34" cy="26" rx="2.6" ry="1.6"/><ellipse cx="50" cy="21" rx="2.6" ry="1.6"/><ellipse cx="66" cy="27" rx="2.6" ry="1.6"/><ellipse cx="26" cy="36" rx="2.6" ry="1.6"/><ellipse cx="74" cy="37" rx="2.6" ry="1.6"/></g>${face(50, 38, 0.75, false)}`;
+    case 'taco':
+      return `<g><circle cx="28" cy="46" r="10" fill="#5DBB4A"/><circle cx="44" cy="36" r="10" fill="#5DBB4A"/><circle cx="60" cy="36" r="10" fill="#5DBB4A"/><circle cx="74" cy="48" r="9" fill="#5DBB4A"/><circle cx="36" cy="38" r="6" fill="#E2483F"/><circle cx="54" cy="31" r="6" fill="#E2483F"/><circle cx="68" cy="40" r="5" fill="#FFB02E"/></g><path d="M9 80A41 41 0 0 1 91 80Z" fill="${f}"/><g fill="${d}" opacity=".5"><circle cx="26" cy="68" r="1.6"/><circle cx="74" cy="68" r="1.6"/><circle cx="50" cy="48" r="1.6"/><circle cx="36" cy="54" r="1.6"/><circle cx="64" cy="54" r="1.6"/></g>${face(50, 66, 0.85, false)}`;
+    case 'fries':
+      return `<g fill="${f}" stroke="${d}" stroke-width="1.2"><rect x="28" y="20" width="8" height="46" rx="3" transform="rotate(-10 32 43)"/><rect x="38" y="12" width="8" height="52" rx="3" transform="rotate(-3 42 38)"/><rect x="48" y="8" width="8" height="56" rx="3"/><rect x="58" y="14" width="8" height="50" rx="3" transform="rotate(6 62 39)"/><rect x="66" y="24" width="8" height="42" rx="3" transform="rotate(13 70 45)"/></g><path d="M24 50Q50 62 76 50L70 90Q69 94 64 94L36 94Q31 94 30 90Z" fill="#F0524F"/>${face(50, 74, 0.7, false)}`;
+    case 'hotdog':
+      return `<g transform="rotate(-10 50 54)"><rect x="8" y="42" width="84" height="36" rx="18" fill="${f}"/><rect x="3" y="34" width="94" height="24" rx="12" fill="#D9634A"/><path d="M14 46q6 -8 12 0t12 0t12 0t12 0t12 0t12 0" fill="none" stroke="#FFD84A" stroke-width="3.5" stroke-linecap="round"/></g>${face(50, 66, 0.7, false)}`;
+    case 'cookie':
+      return `<circle cx="50" cy="56" r="35" fill="${f}"/><g fill="#6B4027"><circle cx="34" cy="40" r="5"/><circle cx="62" cy="36" r="4.5"/><circle cx="72" cy="58" r="5"/><circle cx="30" cy="70" r="4.5"/><circle cx="56" cy="80" r="4.5"/><circle cx="46" cy="30" r="3"/></g>${face(50, 58, 0.9, false)}`;
+    case 'pancake':
+      return `<ellipse cx="50" cy="80" rx="36" ry="11" fill="${d}"/><ellipse cx="50" cy="76" rx="36" ry="11" fill="${f}"/><ellipse cx="50" cy="66" rx="34" ry="11" fill="${d}"/><ellipse cx="50" cy="62" rx="34" ry="11" fill="${f}"/><ellipse cx="50" cy="52" rx="32" ry="11" fill="${d}"/><ellipse cx="50" cy="48" rx="32" ry="11" fill="${f}"/><path d="M24 46Q50 34 76 46Q78 56 70 54Q68 66 62 54Q50 60 40 54Q36 70 30 54Q22 56 24 46Z" fill="#8A5A3C"/><rect x="42" y="36" width="16" height="10" rx="3" fill="#FFE27A"/>${face(50, 68, 0.7, false)}`;
+    case 'banana':
+      return `<path d="M18 30Q22 78 70 84Q88 84 90 72Q54 68 34 26Q26 20 18 30Z" fill="${f}"/><path d="M18 30Q22 20 30 22L34 26Q26 22 18 30Z" fill="#6B4027"/><circle cx="88" cy="76" r="4" fill="#6B4027"/><path d="M28 36Q36 66 70 76" fill="none" stroke="#fff" stroke-width="3" opacity=".4" stroke-linecap="round"/>${face(52, 66, 0.6, false)}`;
+    case 'loaf':
+      return `<path d="M11 50Q9 28 30 28Q40 17 50 26Q60 17 70 28Q91 28 89 50L87 85Q50 91 13 85Z" fill="${f}"/><path d="M11 50Q9 28 30 28Q40 17 50 26Q60 17 70 28Q91 28 89 50Q50 42 11 50Z" fill="${d}"/><path d="M30 31q-3 6 0 12M50 28q-3 6 0 12M70 31q-3 6 0 12" stroke="#FFF3D6" stroke-width="3" fill="none" stroke-linecap="round"/>${face(50, 66, 1, false)}`;
+    case 'beadball': {
+      let beads = '';
+      const cols = t.c1 === 'white' ? RAINBOW : [P.base, shade(P.base, 0.35), shade(P.base, -0.2), '#fff'];
+      for (let i = 0; i < 30; i++) { const a = i * 2.39996, r = 4 + Math.sqrt(i / 30) * 25; beads += `<circle cx="${(50 + r * Math.cos(a)).toFixed(1)}" cy="${(56 + r * Math.sin(a)).toFixed(1)}" r="4.3" fill="${cols[i % cols.length]}" stroke="${INK}" stroke-opacity=".18" stroke-width=".7"/>`; }
+      return `<circle cx="50" cy="56" r="35" fill="${P.base}" opacity=".28"/>${beads}<circle cx="50" cy="56" r="35" fill="none" stroke="#fff" stroke-width="3" opacity=".75"/><ellipse cx="36" cy="38" rx="11" ry="6" fill="#fff" opacity=".6" transform="rotate(-28 36 38)"/>`;
+    }
     default:
       return `<ellipse cx="50" cy="60" rx="35" ry="29" fill="${f}"/>${shine(34, 44)}${face(50, 61, 1, dk)}`;
   }
@@ -330,7 +362,7 @@ export function toySVG(id) {
   const P = paint(t);
   const glow = t.fx === 'glow' ? sparkles(t) : '';
   const spark = t.fx !== 'glow' ? sparkles(t) : '';
-  return `<svg class="toy-svg" viewBox="0 0 100 100" aria-hidden="true"><defs>${P.defs}</defs>${ground(t.cat === 'springy' ? 34 : 30)}${glow}${DRAW[t.cat](t, P)}${spark}</svg>`;
+  return `<svg class="toy-svg" viewBox="0 0 100 100" aria-hidden="true"><defs>${P.defs}</defs>${ground(t.cat === 'springy' ? 34 : 30)}${glow}<g filter="url(#toy-puff)">${DRAW[t.cat](t, P)}</g>${spark}</svg>`;
 }
 
 export const coinSVG = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#F5B921" stroke="#2A1846" stroke-width="2"/><path d="M12 6.5l1.6 3.4 3.7.4-2.8 2.5.8 3.7L12 14.6l-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="#FFF3B0"/></svg>`;

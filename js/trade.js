@@ -117,7 +117,7 @@ function draw() {
   const keep = [...document.querySelectorAll('.v-table .shelf')].map((el) => el.scrollLeft);
   view().className = 'view v-table';
   view().innerHTML = `<button class="btn back" data-act="tBack">${icon('back')} ${T.mode === 'online' ? 'Room' : 'Trading post'}</button>
-    <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish>${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b>${esc(who.name)}:</b> ${esc(say)}</p></section>
+    <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish data-toy="${who.art}">${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b>${esc(who.name)}:</b> ${esc(say)}</p></section>
     ${theirShelf}
     <section class="board" aria-label="Trading board">
       <div class="keys keys-theirs" role="group" aria-label="${esc(who.name)}'s buttons">${theirs}</div>

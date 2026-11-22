@@ -1,9 +1,10 @@
-import { TOYS, CATS, RARITY, BAGS, QUESTS, GOALS, WHEEL, STORIES, FRIENDS, byCat, TOY_LIST } from './data.js';
+import { TOYS, CATS, RARITY, BAGS, QUESTS, GOALS, WHEEL, STORIES, FRIENDS, byCat, TOY_LIST, playStyle } from './data.js';
 import { toySVG, icon, coinSVG } from './art.js';
 import { store, save, P, ensureDaily, addToy, removeToy, addCoins, count, ownedList, uniqueCount, track, newProfile, onChange, goalProgress, readyGoals, rollToy, rng, pick, today } from './state.js';
-import { $, esc, router, actions, sfx, toggleMute, toyCard, coins, toast, modal, closeModal, confetti, prize } from './ui.js';
+import { $, esc, router, actions, sfx, playSound, toggleMute, toyCard, coins, toast, modal, closeModal, confetti, prize } from './ui.js';
 import { tradeScreen } from './trade.js';
 import { gamesScreen } from './games.js';
+import { can3D, mount3D, dispose3D } from './buddy3d.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -34,6 +35,8 @@ function go(to = tab, arg) {
   view.innerHTML = SCREENS[to](arg);
   header();
   window.scrollTo(0, 0);
+  dispose3D();
+  if (to === 'home' && can3D(P().buddy)) mount3D($('.hero-toy'), P().buddy).then((ok) => { const h = $('#squish-hint'); if (ok && h) h.hidden = false; });
 }
 router.go = go;
 actions.go = (el) => { sfx.tap(); go(el.dataset.to); };
@@ -134,10 +137,10 @@ function home() {
   return `<section class="hero">
       <div class="hero-text"><p class="hello">Hi, ${esc(p.name)}!${p.streak > 1 ? ` <span class="pill">${p.streak} days in a row</span>` : ''}</p>
         <h1>Squish ${esc(TOYS[p.buddy].name)} for coins</h1>
-        <p class="muted" id="squish-left">${squishText(d.squish)}</p>
+        <p class="muted" id="squish-left">${squishText(d.squish)}</p><p class="pill" id="squish-hint" hidden>3D buddy: drag to spin, press to squish</p>
         <div class="row"><button class="btn primary big" data-act="go" data-to="trade">Start trading</button>
         ${d.spun ? '' : '<button class="btn big" data-act="wheel">Spin the prize wheel</button>'}</div></div>
-      <button class="hero-toy squish" data-squish data-act="heroSquish" aria-label="Squish ${esc(TOYS[p.buddy].name)}">${toySVG(p.buddy)}</button>
+      <button class="hero-toy squish" data-squish data-toy="${p.buddy}" data-act="heroSquish" aria-label="Squish ${esc(TOYS[p.buddy].name)}">${toySVG(p.buddy)}</button>
     </section>
     ${offerCard()}
     <section class="card"><h2>Today's challenges</h2><ul class="quests">${d.quests.map(questRow).join('')}</ul>
@@ -225,11 +228,12 @@ actions.shelf = (el) => { shelf = el.dataset.id; sfx.tap(); go('toys'); };
 actions.toy = (el) => {
   const id = el.dataset.id, t = TOYS[id], n = count(id), p = P();
   sfx.squish();
-  modal(`<div class="detail"><div class="detail-toy squish" data-squish>${toySVG(id)}</div>
+  modal(`<div class="detail"><div class="detail-toy squish" data-squish data-toy="${id}">${toySVG(id)}</div>
     <h2>${esc(t.name)}</h2><p><span class="pill r-${t.r}">${RARITY[t.r].name}</span> <span class="pill">${CATS[t.cat].one}</span></p>
-    <p>Worth ${coins(t.value)} &middot; ${n ? `You have ${n}` : 'You traded this one away'}</p><p class="muted">Press and hold to squish!</p>
+    <p>Worth ${coins(t.value)} &middot; ${n ? `You have ${n}` : 'You traded this one away'}</p><p class="muted">${can3D(id) ? 'Drag to spin it around. Press and hold to squish!' : 'Press and hold to squish!'}</p>
     <div class="row center">${n && p.buddy !== id ? `<button class="btn primary" data-act="buddy" data-id="${id}">Make my buddy</button>` : ''}
-    ${n > 1 ? `<button class="btn" data-act="sell" data-id="${id}">Sell 1 extra for ${coins(Math.round(t.value / 2))}</button>` : ''}</div></div>`, { label: t.name });
+    ${n > 1 ? `<button class="btn" data-act="sell" data-id="${id}">Sell 1 extra for ${coins(Math.round(t.value / 2))}</button>` : ''}</div></div>`, { label: t.name, onClose: dispose3D });
+  if (can3D(id)) mount3D($('.detail-toy'), id);
 };
 actions.buddy = (el) => { P().buddy = el.dataset.id; save(); closeModal(); go(tab); toast(`${esc(TOYS[el.dataset.id].name)} is your buddy now!`); };
 actions.sell = (el) => {
@@ -247,7 +251,7 @@ const bagSVG = (i) => {
 function shop() {
   return `<h1>Mystery bag shop</h1><p class="muted">What is inside? Every bag hides one surprise toy. Rare, Epic and Legendary toys are harder to find.</p>
     <div class="bags">${BAGS.map((b, i) => `<article class="card bag"><div class="bag-art">${bagSVG(i)}</div><h2>${b.name}</h2>
-      <p class="muted">${b.cats.length > 2 ? 'Any toy, even plushies. Best luck!' : b.cats.map((c) => CATS[c].name).join(' and ')}</p>
+      <p class="muted">${b.jumbo ? 'Only the big, extra-squishy ones.' : b.cats.length > 2 ? 'Any toy, even plushies. Best luck!' : b.cats.map((c) => CATS[c].name).join(' and ')}</p>
       <button class="btn primary" data-act="buy" data-id="${b.id}">Open for ${coins(b.cost)}</button></article>`).join('')}</div>
     <section class="card"><h2>Need more coins?</h2><p class="muted">Play mini-games, read stories, finish challenges, or sell your extra toys.</p>
       <div class="row"><button class="btn" data-act="go" data-to="games">Play games</button><button class="btn" data-act="go" data-to="stories">Read stories</button></div></section>`;
@@ -256,7 +260,7 @@ actions.buy = (el) => {
   const b = BAGS.find((x) => x.id === el.dataset.id), p = P(), i = BAGS.indexOf(b);
   if (p.coins < b.cost) { sfx.no(); return toast(`You need ${b.cost - p.coins} more coins. Try a mini-game!`); }
   addCoins(-b.cost);
-  const id = rollToy(b.cats, b.odds), isNew = !p.seen[id];
+  const id = rollToy(b.cats, b.odds, Math.random, !!b.jumbo), isNew = !p.seen[id];
   addToy(id); track('bag'); sfx.whoosh();
   modal(`<div class="opening"><h2>Opening...</h2><div class="bag-art shake">${bagSVG(i)}</div></div>`, { sticky: true, label: 'Opening bag' });
   setTimeout(() => {
@@ -298,7 +302,7 @@ function page() {
     if (first) addToy(s.prize);
     sfx.win(); confetti();
     foot = `<div class="ending"><p class="pill big">Ending: ${n.end}</p><p>You win ${coins(c)}${first ? ` and <b>${esc(TOYS[s.prize].name)}</b>!` : newEnd ? ' for finding a new ending.' : '.'}</p>
-      ${first ? `<div class="prize-toy squish" data-squish>${toySVG(s.prize)}</div>` : ''}
+      ${first ? `<div class="prize-toy squish" data-squish data-toy="${s.prize}">${toySVG(s.prize)}</div>` : ''}
       <p class="muted">${Object.keys(rec).length} of ${endings(s)} endings found.</p>
       <div class="row center"><button class="btn primary" data-act="story" data-id="${s.id}">Read again</button><button class="btn" data-act="go" data-to="stories">More stories</button></div></div>`;
   } else {
@@ -306,7 +310,7 @@ function page() {
   }
   view.className = 'view v-reader';
   view.innerHTML = `<button class="btn back" data-act="go" data-to="stories">${icon('back')} Stories</button>
-    <article class="card reader"><h1>${s.title}</h1><div class="reader-art squish" data-squish>${toySVG(n.art)}</div>
+    <article class="card reader"><h1>${s.title}</h1><div class="reader-art squish" data-squish data-toy="${n.art}">${toySVG(n.art)}</div>
     <p id="story-text" class="story-text">${esc(n.t.replaceAll('{name}', p.name))}</p>
     <button class="btn sm" data-act="readAloud">${icon('sound')} Read it to me</button>${foot}</article>`;
   window.scrollTo(0, 0);
@@ -338,15 +342,44 @@ document.addEventListener('click', (e) => {
   if (el && !el.disabled && actions[el.dataset.act]) actions[el.dataset.act](el, e);
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal .modal-back:not([data-act])')) closeModal(); });
-let lastSquish = 0;
-document.addEventListener('pointerdown', (e) => {
-  const el = e.target.closest('[data-squish]');
+// Big toys lean toward your finger, so they feel like something you can hold.
+document.addEventListener('pointermove', (e) => {
+  const el = e.target.closest && e.target.closest('[data-squish]');
+  document.querySelectorAll('[data-squish].tilting').forEach((x) => { if (x !== el) { x.classList.remove('tilting'); x.style.removeProperty('--rx'); x.style.removeProperty('--ry'); } });
   if (!el) return;
-  el.classList.remove('boing'); el.classList.add('down');
-  if (Date.now() - lastSquish > 120) { sfx.squish(); if (P()) track('squish'); lastSquish = Date.now(); }
+  const r = el.getBoundingClientRect();
+  el.classList.add('tilting');
+  el.style.setProperty('--ry', (((e.clientX - r.left) / r.width - 0.5) * 34).toFixed(1) + 'deg');
+  el.style.setProperty('--rx', ((0.5 - (e.clientY - r.top) / r.height) * 26).toFixed(1) + 'deg');
+}, { passive: true });
+// Every toy can be played with: press to squeeze, drag to stretch, let go and it springs back.
+// Each kind of toy has its own sound and move (crunch, pop, spin, boing...).
+let lastSquish = 0, held = null, heldRect = null, hx = 0, hy = 0;
+const toyOf = (el) => { const h = el.closest('[data-toy], [data-id]'); const id = h && (h.dataset.toy || h.dataset.id); return TOYS[id] ? id : null; };
+document.addEventListener('pointerdown', (e) => {
+  const card = e.target.closest('.toy');
+  const el = e.target.closest('[data-squish]') || (card && !card.disabled && !card.classList.contains('locked') && card.querySelector('.toy-art'));
+  if (!el) return;
+  const id = toyOf(el), style = id ? playStyle(id) : 'squish';
+  held = el; heldRect = el.getBoundingClientRect(); hx = e.clientX; hy = e.clientY;
+  el.classList.remove('boing', 'spin', 'sproing'); void el.offsetWidth;
+  el.classList.add('down');
+  if (style === 'spin') el.classList.add('spin');
+  if (Date.now() - lastSquish > 110) { playSound(style); if (P()) track('squish'); lastSquish = Date.now(); }
 });
-['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => document.addEventListener(ev, (e) => {
-  document.querySelectorAll('[data-squish].down').forEach((el) => { el.classList.remove('down'); el.classList.add('boing'); });
+document.addEventListener('pointermove', (e) => {
+  if (!held || held.classList.contains('is3d') || held.classList.contains('spin')) return;
+  const px = Math.max(-1, Math.min(1, (e.clientX - hx) / heldRect.width)), py = Math.max(-1, Math.min(1, (e.clientY - hy) / heldRect.height));
+  const up = Math.max(0, -py), dn = Math.max(0, py);
+  held.style.transform = `skewX(${(-px * 20).toFixed(1)}deg) scale(${(1.2 + Math.abs(px) * 0.22 - up * 0.3 + dn * 0.12).toFixed(3)}, ${(0.72 + up * 0.75 - dn * 0.18).toFixed(3)})`;
+}, { passive: true });
+['pointerup', 'pointercancel'].forEach((ev) => document.addEventListener(ev, () => {
+  if (!held) return;
+  const id = toyOf(held);
+  held.style.transform = '';
+  held.classList.remove('down');
+  held.classList.add(id && playStyle(id) === 'boing' ? 'sproing' : 'boing');
+  held = null;
 }, true));
 
 $('#nav').innerHTML = [['home', 'Home'], ['toys', 'My toys'], ['trade', 'Trade'], ['games', 'Games'], ['stories', 'Stories'], ['shop', 'Shop']]

@@ -23,7 +23,7 @@ const best = (id) => P().stats['best_' + id] || 0;
 
 export function gamesScreen() {
   return `<h1>Mini-games</h1><p class="muted">Every game pays coins. Play as many times as you like.</p>
-    <div class="game-list">${GAMES.map((g) => `<article class="card game-card"><div class="game-art squish" data-squish>${toySVG(g.art)}</div>
+    <div class="game-list">${GAMES.map((g) => `<article class="card game-card"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div>
       <div><h2>${g.name}</h2><p class="muted">${g.how}</p>${best(g.id) ? `<p class="pill">Best: ${best(g.id)} ${g.unit}</p>` : ''}</div>
       <button class="btn primary" data-act="play" data-id="${g.id}">Play</button></article>`).join('')}</div>`;
 }
@@ -57,7 +57,7 @@ function finish(g, score, won, line) {
   if (isBest) p.stats['best_' + g.id] = score;
   addCoins(won); track('game'); save();
   sfx.win(); if (won >= 20) confetti();
-  view().innerHTML = `<section class="card result"><div class="game-art squish" data-squish>${toySVG(g.art)}</div><h1>${line}</h1>
+  view().innerHTML = `<section class="card result"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div><h1>${line}</h1>
     <p class="big-num">${score} ${g.unit}${isBest && score ? ' <span class="pill">New best!</span>' : ''}</p><p>You win ${coins(won)}</p>
     <div class="row center"><button class="btn primary big" data-act="play" data-id="${g.id}">Play again</button><button class="btn big" data-act="go" data-to="games">More games</button></div></section>`;
 }

@@ -76,7 +76,46 @@ sq53|Galaxy Planet|planet|grape|sky|l|galaxy
 sq54|Pumpkin Pal|pumpkin|orange||r
 sq55|Frosty|snowman|white||e
 sq56|Cherry Twins|cherry|red||r
-sq57|Golden Piggy|pig|gold||l|glitter`,
+sq57|Golden Piggy|pig|gold||l|glitter
+sq58|Blue Goo Ball|gooball|blue||c
+sq59|Pink Goo Ball|gooball|pink||c
+sq60|Lime Goo Ball|gooball|lime||c
+sq61|Sunset Goo Ball|gooball|orange|yellow|r
+sq62|Glitter Goo Ball|gooball|lilac||e|glitter
+sq63|Squish Cube|goocube|teal||c
+sq64|Bubblegum Cube|goocube|pink||r
+sq65|Galaxy Cube|goocube|grape||l|galaxy
+sq66|Cherry Gumdrop|gumdrop|red||c
+sq67|Lemon Gumdrop|gumdrop|yellow||c
+sq68|Rainbow Gumdrop|gumdrop|pink||e|rainbow
+sq69|Pinky Dumpling|bun|pink||c
+sq70|Matcha Dumpling|bun|mint||c
+sq71|Soup Dumpling|dumpling|cream||r
+sq72|Glitter Dumpling|dumpling|lilac||e|glitter
+sq73|Galaxy Dumpling|bun|grape||e|galaxy
+sq74|Golden Dumpling|dumpling|gold||l|glitter
+sq75|Dill Pickle|pickle|lime||c
+sq76|Baby Pickle|pickle|mint||c
+sq77|Glitter Pickle|pickle|lime||e|glitter
+sq78|Cheesy Burger|burger|tan||c
+sq79|Crunchy Taco|taco|yellow||r
+sq80|Happy Fries|fries|yellow||c
+sq81|Hot Diggity Dog|hotdog|tan||r
+sq82|Choco Chip Cookie|cookie|tan||c
+sq83|Pancake Stack|pancake|tan||r
+sq84|Banana Buddy|banana|yellow||c
+sq85|Fluffy Bread Loaf|loaf|tan||r
+sq86|Crunchy Bead Ball|beadball|sky||c
+sq87|Rainbow Bead Ball|beadball|white||e
+sq88|Crunchy Grape Ball|beadball|grape||r
+sq89|Snow Crunch Ball|beadball|gray||r
+sq90|Jumbo Mochi|blob|pink||r||J
+sq91|Jumbo Bear|bear|tan||e||J
+sq92|Jumbo Dumpling|bun|cream||e||J
+sq93|Jumbo Pickle|pickle|lime||e||J
+sq94|Jumbo Bread Loaf|loaf|tan||e||J
+sq95|Jumbo Goo Ball|gooball|sky||r||J
+sq96|Jumbo Bunny|bunny|lilac||l|glitter|J`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -232,8 +271,9 @@ export const TOYS = {};
 export const TOY_LIST = [];
 for (const cat in RAW) {
   RAW[cat].trim().split('\n').forEach((line) => {
-    const [id, name, v, c1, c2, r, fx] = line.trim().split('|');
-    const toy = { id, name, cat, v, c1, c2: c2 || '', r, fx: fx || '', value: RARITY[r].value };
+    const [id, name, v, c1, c2, r, fx, big] = line.trim().split('|');
+    // Jumbo toys are drawn bigger and are worth one and a half times as much.
+    const toy = { id, name, cat, v, c1, c2: c2 || '', r, fx: fx || '', big: big === 'J', value: Math.round(RARITY[r].value * (big === 'J' ? 1.5 : 1)) };
     TOYS[id] = toy;
     TOY_LIST.push(toy);
   });
@@ -261,6 +301,7 @@ export const BAGS = [
   { id: 'fidget', name: 'Fidget Bag', cost: 40, cats: ['fidget'], icon: 'fi02', odds: [60, 28, 10, 2] },
   { id: 'goo', name: 'Slime & Putty Bag', cost: 50, cats: ['slime', 'putty'], icon: 'sl01', odds: [58, 28, 11, 3] },
   { id: 'make', name: 'Dough & Springy Bag', cost: 40, cats: ['dough', 'springy'], icon: 'sp02', odds: [60, 28, 10, 2] },
+  { id: 'jumbo', name: 'Jumbo Squishy Bag', cost: 150, cats: ['squishy'], jumbo: true, icon: 'sq90', odds: [0, 40, 48, 12] },
   { id: 'mega', name: 'Mega Rainbow Bag', cost: 120, cats: ['squishy', 'fidget', 'slime', 'putty', 'dough', 'springy', 'plushie'], icon: 'sq12', odds: [30, 42, 22, 6] },
 ];
 
@@ -445,3 +486,19 @@ export const STORIES = [
     },
   },
 ];
+
+// How each toy sounds and moves when you play with it.
+const CRUNCHY = ['beadball', 'taco', 'cookie', 'fries'];
+const POPPY = ['popper', 'popround', 'popheart', 'dimple', 'peapod', 'keycap', 'cube'];
+const SPINNY = ['spinner', 'pinwheel', 'gear', 'yoyo', 'ring', 'twisty'];
+export function playStyle(id) {
+  const t = TOYS[id];
+  if (!t) return 'squish';
+  if (CRUNCHY.includes(t.v) || (t.cat === 'slime' && t.v === 'crunchy')) return 'crunch';
+  if (t.cat === 'fidget') return SPINNY.includes(t.v) ? 'spin' : POPPY.includes(t.v) ? 'pop' : t.v === 'track' ? 'click' : 'squish';
+  if (t.cat === 'springy') return 'boing';
+  if (t.cat === 'slime') return 'squelch';
+  if (t.cat === 'putty') return 'stretch';
+  if (t.cat === 'plushie') return 'soft';
+  return 'squish';
+}
