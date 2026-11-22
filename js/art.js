@@ -41,7 +41,15 @@ const star4 = (x, y, r, c = '#fff') =>
   `<path d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z" fill="${c}"/>`;
 
 function sparkles(t) {
-  if (t.fx === 'glitter') return star4(24, 30, 6) + star4(78, 44, 5) + star4(66, 20, 4) + star4(30, 72, 3.5) + star4(82, 76, 4, '#FFF3B0');
+  if (t.fx === 'glitter' || t.v === 'bomb') {
+    // Lots of tiny specks that twinkle, plus a few big sparkles.
+    const cols = ['#fff', '#FFF3B0', '#FFD1EC', '#BDEBFF', '#D9C4FF'];
+    let s = '';
+    for (let i = 0; i < 18; i++) { const a = i * 2.39996 + 0.6, r = 6 + Math.sqrt(i / 18) * 22; s += `<circle class="gl" style="animation-delay:${(i * 0.13 % 1.7).toFixed(2)}s" cx="${(50 + r * Math.cos(a)).toFixed(1)}" cy="${(59 + r * 0.85 * Math.sin(a)).toFixed(1)}" r="${i % 3 ? 1.1 : 1.7}" fill="${cols[i % 5]}"/>`; }
+    const big = (x, y, r, c, d) => `<g class="gl" style="animation-delay:${d}s">${star4(x, y, r, c)}</g>`;
+    if (t.fx === 'galaxy' || t.fx === 'rainbow') return s + big(26, 32, 5, '#fff', 0.2) + big(78, 46, 4, '#fff', 0.9);
+    return s + big(24, 30, 6, '#fff', 0) + big(78, 44, 5, '#fff', 0.5) + big(66, 20, 4, '#fff', 1.1) + big(30, 72, 3.5, '#fff', 0.8) + big(82, 76, 4, '#FFF3B0', 1.4);
+  }
   if (t.fx === 'galaxy') return star4(28, 34, 4) + star4(74, 30, 3) + star4(80, 66, 4) + `<circle cx="40" cy="74" r="1.3" fill="#fff"/><circle cx="62" cy="46" r="1.2" fill="#fff"/><circle cx="22" cy="58" r="1" fill="#fff"/>`;
   if (t.fx === 'glow') return `<circle cx="50" cy="54" r="46" fill="#D8FF7A" opacity=".28"/>`;
   return '';
@@ -146,6 +154,8 @@ function squishy(t, P) {
       return `<circle cx="50" cy="70" r="25" fill="${f}" stroke="${d}" stroke-width="1.5"/><circle cx="50" cy="36" r="19" fill="${f}" stroke="${d}" stroke-width="1.5"/><rect x="33" y="50" width="34" height="8" rx="4" fill="#F0524F"/><rect x="58" y="52" width="8" height="18" rx="4" fill="#F0524F"/><rect x="36" y="6" width="28" height="16" rx="3" fill="${INK}"/><rect x="29" y="19" width="42" height="6" rx="3" fill="${INK}"/><circle cx="50" cy="68" r="2.4" fill="${INK}"/><circle cx="50" cy="78" r="2.4" fill="${INK}"/>${face(50, 35, 0.7, false)}<path d="M50 36l10 2.5l-10 2.5Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="1.5" stroke-linejoin="round"/>`;
     case 'cherry':
       return `<path d="M32 50Q36 26 58 14M68 54Q66 30 58 14" fill="none" stroke="#5DBB4A" stroke-width="3.5" stroke-linecap="round"/><path d="M58 14q14 -8 24 2q-12 8 -24 -2Z" fill="#5DBB4A"/><circle cx="32" cy="68" r="20" fill="${f}"/><circle cx="70" cy="72" r="19" fill="${f}"/>${shine(24, 58, 5, 3)}${shine(62, 62, 5, 3)}${face(32, 69, 0.6, dk, 8)}${face(70, 73, 0.6, dk, 8)}`;
+    case 'bomb':
+      return `<path d="M52 22q4 -12 15 -9" fill="none" stroke="#C9924E" stroke-width="3" stroke-linecap="round"/>${star4(69, 11, 8, '#FFD84A')}${star4(69, 11, 4, '#FF9A3D')}<rect x="42" y="18" width="16" height="12" rx="4" fill="#8E96A8"/><circle cx="50" cy="60" r="33" fill="${f}"/>${shine(36, 42, 9, 5)}${face(50, 62, 1, dk)}`;
     case 'gooball':
       return `<circle cx="50" cy="56" r="35" fill="${f}"/>${P.c2 && t.c2 ? `<path d="M24 62q14 -30 30 -8t26 -12" fill="none" stroke="${P.c2}" stroke-width="9" stroke-linecap="round" opacity=".75"/>` : ''}<circle cx="50" cy="60" r="24" fill="#fff" opacity=".14"/><ellipse cx="36" cy="38" rx="12" ry="7" fill="#fff" opacity=".6" transform="rotate(-28 36 38)"/><circle cx="26" cy="54" r="3" fill="#fff" opacity=".55"/>`;
     case 'goocube':

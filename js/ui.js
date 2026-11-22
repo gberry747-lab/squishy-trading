@@ -46,6 +46,8 @@ export const sfx = {
   whirr: () => { tone(300, 0.6, 'sawtooth', 0.045, 900); hiss(0.5, 0.05, 2400, 0, 0.7); },
   stretch: () => { tone(260, 0.3, 'sine', 0.13, 150); tone(150, 0.2, 'triangle', 0.08, 300, 0.24); },
   soft: () => { hiss(0.16, 0.16, 700, 0, 0.6); tone(220, 0.14, 'sine', 0.07, 160); },
+  twinkle: () => { tone(2093, 0.09, 'sine', 0.07); tone(2637, 0.12, 'sine', 0.06, null, 0.07); tone(3136, 0.16, 'sine', 0.05, null, 0.14); },
+  bomb: () => { hiss(0.4, 0.34, 260, 0, 0.6); tone(120, 0.3, 'sine', 0.2, 50); [1568, 2093, 2637, 3136, 3951].forEach((f, i) => tone(f, 0.16, 'sine', 0.06, null, 0.12 + i * 0.07)); },
   click: () => { tone(900, 0.03, 'square', 0.08); tone(1300, 0.03, 'square', 0.06, null, 0.07); },
   note: (f) => tone(f, 0.25, 'triangle', 0.16),
   coin: () => { tone(988, 0.08, 'square', 0.06); tone(1319, 0.18, 'square', 0.06, null, 0.08); },
@@ -119,8 +121,27 @@ export function confetti(n = 36) {
   }
 }
 
+// Glitter flying out from a point on the screen.
+export function glitterBurst(x, y, n = 70, power = 1) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = $('#confetti'), cols = ['#FF8FC0', '#FFD84A', '#8ED3FF', '#C9A8FF', '#FFFFFF', '#9DE7C5', '#FFB36B'];
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('i'), s = 5 + Math.random() * 9;
+    el.className = 'glit' + (i % 3 === 0 ? ' star' : i % 3 === 1 ? ' dot' : '');
+    el.style.cssText = `left:${x}px;top:${y}px;width:${s}px;height:${s}px;background:${cols[i % cols.length]}`;
+    box.append(el);
+    const a = Math.random() * 6.283, d = (70 + Math.random() * 280) * power, dx = Math.cos(a) * d, dy = Math.sin(a) * d - 70 * power, rot = Math.random() * 720 - 360;
+    el.animate([
+      { transform: 'translate(-50%, -50%) scale(0) rotate(0deg)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.1) rotate(${rot}deg)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(calc(-50% + ${dx * 1.12}px), calc(-50% + ${dy + 150 * power}px)) scale(.5) rotate(${rot * 1.6}deg)`, opacity: 0 },
+    ], { duration: 900 + Math.random() * 800, easing: 'cubic-bezier(.12, .7, .3, 1)' }).onfinish = () => el.remove();
+  }
+}
+
 export function prize(title, body, toyId) {
   sfx.win(); confetti();
+  if (toyId && (TOYS[toyId].fx === 'glitter' || TOYS[toyId].v === 'bomb')) { glitterBurst(innerWidth / 2, innerHeight * 0.4, 80, 1.1); sfx.twinkle(); }
   modal(`<div class="prize"><h2>${title}</h2>${toyId ? `<div class="prize-toy squish${TOYS[toyId].big ? ' jumbo' : ''}" data-squish data-toy="${toyId}">${toySVG(toyId)}</div><p class="prize-name">${esc(TOYS[toyId].name)} <span class="pill r-${TOYS[toyId].r}">${RARITY[TOYS[toyId].r].name}</span></p>` : ''}
     <div class="prize-body">${body}</div><button class="btn primary" data-act="closeModal">Yay!</button></div>`, { label: title });
 }

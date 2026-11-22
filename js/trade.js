@@ -2,7 +2,7 @@
 import { TOYS, CATS, FRIENDS, PHRASES } from './data.js';
 import { toySVG, icon } from './art.js';
 import { store, save, P, addToy, removeToy, addCoins, track } from './state.js';
-import { $, esc, router, actions, sfx, toyCard, coins, toast, modal, closeModal, prize } from './ui.js';
+import { $, esc, router, actions, sfx, toyCard, coins, toast, modal, closeModal, prize, glitterBurst } from './ui.js';
 import { Room, cleanToys, cleanCoins, cleanInv } from './online.js';
 
 const MAX = 6;
@@ -125,7 +125,8 @@ function draw() {
       <div class="half half-mine"><h3>${T.mode === 'local' ? esc(p.name) + ' gives' : 'You give'} <small>worth ${worthMine}</small></h3><div class="tray-items">${trayHTML(T.mine, T.myCoins, 'mine', true)}</div></div>
       <div class="keys keys-mine" role="group" aria-label="Your buttons">${mine}</div>
     </section>
-    <p class="board-help muted"><b>&check;</b> accept &nbsp; <b>+</b> add to the offer &nbsp; <b>&times;</b> decline. Tap a toy on the board to take it off.</p>${extra}`;
+    <p class="board-help muted"><b>&check;</b> accept &nbsp; <b>+</b> add to the offer &nbsp; <b>&times;</b> decline. Tap a toy on the board to take it off.</p>
+    <div class="row center"><button class="btn" data-act="tBomb">Throw a glitter bomb</button></div>${extra}`;
   document.querySelectorAll('.v-table .shelf').forEach((el, i) => { el.scrollLeft = keep[i] || 0; });
   if (T.pick && !$('#modal').hidden) picker(T.pick);
 }
@@ -145,6 +146,16 @@ function picker(side) {
     <button class="btn primary big" data-act="closeModal">Done</button>`, { cls: 'wide picker' + (again ? ' still' : ''), label: 'Add to the offer', onClose: () => { if (T) T.pick = null; } });
   $('#modal .modal-card').scrollTop = top;
 }
+let lastBomb = 0;
+function boom(who) {
+  glitterBurst(innerWidth / 2, innerHeight * 0.45, 130, 1.4); sfx.bomb();
+  if (who) toast(`${esc(who)} threw a glitter bomb!`, 1800);
+}
+actions.tBomb = () => {
+  if (Date.now() - lastBomb < 1200) return;
+  lastBomb = Date.now(); boom(); track('bomb');
+  if (T && T.mode === 'online' && room) room.send(T.pid, { t: 'bomb' });
+};
 actions.tAdd = (el) => { sfx.tap(); picker(el.dataset.side); };
 actions.tDecline = () => {
   sfx.no();
@@ -340,6 +351,7 @@ function onMsg(from, m) {
     if (sigOf(give, gc, get, tc) === T.voted) { T.voted = ''; finishOnline(give, gc, get, tc); }
   } else if (m.t === 'say' && PHRASES[m.i]) { T.said = PHRASES[m.i]; sfx.pop(); draw(); }
   else if (m.t === 'wish' && TOYS[m.id]) { T.said = `I would love your ${TOYS[m.id].name}!`; sfx.pop(); draw(); }
+  else if (m.t === 'bomb') { if (Date.now() - lastBomb > 1200) { lastBomb = Date.now(); boom(pl.name); } }
   else if (m.t === 'decline') { T.mine = []; T.myCoins = 0; T.said = PHRASES[3]; sfx.no(); closeModal(); sendOffer(); draw(); toast(`${esc(pl.name)} declined. The board is clear.`); }
   else if (m.t === 'bye') { T = null; toast(`${esc(pl.name)} left the trade.`); lobby(); }
 }

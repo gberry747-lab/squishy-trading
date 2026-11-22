@@ -169,6 +169,11 @@ input { font: 800 1.15rem var(--body); color: var(--ink); min-height: 52px; padd
 .toast.out { opacity: 0; transform: translateY(10px); }
 #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
 #confetti i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; animation: fall linear forwards; }
+#confetti i.glit { animation: none; border-radius: 2px; top: auto; }
+#confetti i.glit.dot { border-radius: 50%; }
+#confetti i.glit.star { clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); border-radius: 0; }
+.squish .gl, .toy:hover .gl, .toy-art.down .gl { animation: twinkle 1.7s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .12; } }
 @keyframes fall { to { top: 105%; transform: rotate(720deg) translateX(40px); } }
 
 /* wheel */

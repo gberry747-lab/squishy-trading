@@ -115,7 +115,27 @@ sq92|Jumbo Dumpling|bun|cream||e||J
 sq93|Jumbo Pickle|pickle|lime||e||J
 sq94|Jumbo Bread Loaf|loaf|tan||e||J
 sq95|Jumbo Goo Ball|gooball|sky||r||J
-sq96|Jumbo Bunny|bunny|lilac||l|glitter|J`,
+sq96|Jumbo Bunny|bunny|lilac||l|glitter|J
+sq97|Glitter Mochi|blob|pink||r|glitter
+sq98|Glitter Kitty|cat|lilac||e|glitter
+sq99|Glitter Bear|bear|sky||e|glitter
+sq100|Glitter Bunny|bunny|pink||e|glitter
+sq101|Glitter Heart|heart|pink||r|glitter
+sq102|Glitter Star|star|sky||r|glitter
+sq103|Glitter Donut|donut|tan|lilac|r|glitter
+sq104|Glitter Whale|whale|teal||e|glitter
+sq105|Glitter Octo|octopus|pink||e|glitter
+sq106|Glitter Cupcake|cupcake|mint|pink|r|glitter
+sq107|Glitter Cube|goocube|pink||e|glitter
+sq108|Glitter Gumdrop|gumdrop|blue||r|glitter
+sq109|Glitter Cloud|cloud|lilac||r|glitter
+sq110|Glitter Ghost|ghost|sky||e|glitter
+sq111|Jumbo Glitter Mochi|blob|lilac||l|glitter|J
+sq112|Pink Glitter Bomb|bomb|pink||r|glitter
+sq113|Mint Glitter Bomb|bomb|mint||r|glitter
+sq114|Rainbow Glitter Bomb|bomb|pink||e|rainbow
+sq115|Galaxy Glitter Bomb|bomb|grape||l|galaxy
+sq116|Golden Glitter Bomb|bomb|gold||l|glitter`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -301,6 +321,7 @@ export const BAGS = [
   { id: 'fidget', name: 'Fidget Bag', cost: 40, cats: ['fidget'], icon: 'fi02', odds: [60, 28, 10, 2] },
   { id: 'goo', name: 'Slime & Putty Bag', cost: 50, cats: ['slime', 'putty'], icon: 'sl01', odds: [58, 28, 11, 3] },
   { id: 'make', name: 'Dough & Springy Bag', cost: 40, cats: ['dough', 'springy'], icon: 'sp02', odds: [60, 28, 10, 2] },
+  { id: 'glitter', name: 'Glitter Bag', cost: 90, cats: ['squishy', 'fidget', 'slime', 'putty', 'dough', 'springy', 'plushie'], glitter: true, icon: 'sq97', odds: [0, 48, 38, 14] },
   { id: 'jumbo', name: 'Jumbo Squishy Bag', cost: 150, cats: ['squishy'], jumbo: true, icon: 'sq90', odds: [0, 40, 48, 12] },
   { id: 'mega', name: 'Mega Rainbow Bag', cost: 120, cats: ['squishy', 'fidget', 'slime', 'putty', 'dough', 'springy', 'plushie'], icon: 'sq12', odds: [30, 42, 22, 6] },
 ];
@@ -322,6 +343,7 @@ export const QUESTS = [
   { id: 'shadow10', text: 'Guess 10 shadows in Shadow Match', ev: 'shadow', goal: 10, coins: 30 },
   { id: 'judge8', text: 'Judge 8 trades right in Fair or Not', ev: 'judge', goal: 8, coins: 30 },
   { id: 'shuffle4', text: 'Find the toy 4 times in Bag Shuffle', ev: 'shuffle', goal: 4, coins: 30 },
+  { id: 'bomb5', text: 'Throw 5 glitter bombs', ev: 'bomb', goal: 5, coins: 25 },
   { id: 'count8', text: 'Count right 8 times in Quick Count', ev: 'count', goal: 8, coins: 30 },
 ];
 

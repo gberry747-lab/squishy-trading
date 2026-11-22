@@ -1,7 +1,7 @@
 import { TOYS, CATS, RARITY, BAGS, QUESTS, GOALS, WHEEL, STORIES, FRIENDS, byCat, TOY_LIST, playStyle } from './data.js';
 import { toySVG, icon, coinSVG } from './art.js';
 import { store, save, P, ensureDaily, addToy, removeToy, addCoins, count, ownedList, uniqueCount, track, newProfile, onChange, goalProgress, readyGoals, rollToy, rng, pick, today } from './state.js';
-import { $, esc, router, actions, sfx, playSound, toggleMute, toyCard, coins, toast, modal, closeModal, confetti, prize } from './ui.js';
+import { $, esc, router, actions, sfx, playSound, glitterBurst, toggleMute, toyCard, coins, toast, modal, closeModal, confetti, prize } from './ui.js';
 import { tradeScreen } from './trade.js';
 import { gamesScreen } from './games.js';
 import { can3D, mount3D, dispose3D } from './buddy3d.js';
@@ -251,7 +251,7 @@ const bagSVG = (i) => {
 function shop() {
   return `<h1>Mystery bag shop</h1><p class="muted">What is inside? Every bag hides one surprise toy. Rare, Epic and Legendary toys are harder to find.</p>
     <div class="bags">${BAGS.map((b, i) => `<article class="card bag"><div class="bag-art">${bagSVG(i)}</div><h2>${b.name}</h2>
-      <p class="muted">${b.jumbo ? 'Only the big, extra-squishy ones.' : b.cats.length > 2 ? 'Any toy, even plushies. Best luck!' : b.cats.map((c) => CATS[c].name).join(' and ')}</p>
+      <p class="muted">${b.glitter ? 'Only sparkly toys and glitter bombs.' : b.jumbo ? 'Only the big, extra-squishy ones.' : b.cats.length > 2 ? 'Any toy, even plushies. Best luck!' : b.cats.map((c) => CATS[c].name).join(' and ')}</p>
       <button class="btn primary" data-act="buy" data-id="${b.id}">Open for ${coins(b.cost)}</button></article>`).join('')}</div>
     <section class="card"><h2>Need more coins?</h2><p class="muted">Play mini-games, read stories, finish challenges, or sell your extra toys.</p>
       <div class="row"><button class="btn" data-act="go" data-to="games">Play games</button><button class="btn" data-act="go" data-to="stories">Read stories</button></div></section>`;
@@ -260,7 +260,8 @@ actions.buy = (el) => {
   const b = BAGS.find((x) => x.id === el.dataset.id), p = P(), i = BAGS.indexOf(b);
   if (p.coins < b.cost) { sfx.no(); return toast(`You need ${b.cost - p.coins} more coins. Try a mini-game!`); }
   addCoins(-b.cost);
-  const id = rollToy(b.cats, b.odds, Math.random, !!b.jumbo), isNew = !p.seen[id];
+  const only = b.jumbo ? (t) => t.big : b.glitter ? (t) => t.fx === 'glitter' || t.v === 'bomb' : null;
+  const id = rollToy(b.cats, b.odds, Math.random, only), isNew = !p.seen[id];
   addToy(id); track('bag'); sfx.whoosh();
   modal(`<div class="opening"><h2>Opening...</h2><div class="bag-art shake">${bagSVG(i)}</div></div>`, { sticky: true, label: 'Opening bag' });
   setTimeout(() => {
@@ -365,7 +366,13 @@ document.addEventListener('pointerdown', (e) => {
   el.classList.remove('boing', 'spin', 'sproing'); void el.offsetWidth;
   el.classList.add('down');
   if (style === 'spin') el.classList.add('spin');
-  if (Date.now() - lastSquish > 110) { playSound(style); if (P()) track('squish'); lastSquish = Date.now(); }
+  if (Date.now() - lastSquish > 110) {
+    playSound(style); if (P()) track('squish'); lastSquish = Date.now();
+    const t = id && TOYS[id];
+    // Glitter bombs explode in a shower of glitter. Glitter toys shed a little sparkle.
+    if (t && t.v === 'bomb') { glitterBurst(e.clientX, e.clientY, 110, 1.25); sfx.bomb(); if (P()) track('bomb'); }
+    else if (t && t.fx === 'glitter') { glitterBurst(e.clientX, e.clientY, 14, 0.42); sfx.twinkle(); }
+  }
 });
 document.addEventListener('pointermove', (e) => {
   if (!held || held.classList.contains('is3d') || held.classList.contains('spin')) return;
