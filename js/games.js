@@ -1,8 +1,8 @@
 // Four mini-games that pay coins.
 import { TOYS, TOY_LIST, CATS } from './data.js';
 import { toySVG, icon } from './art.js';
-import { P, save, addCoins, track } from './state.js';
-import { $, router, actions, sfx, coins, confetti } from './ui.js';
+import { P, save, addCoins, track, rollToy } from './state.js';
+import { $, router, actions, sfx, coins, confetti, glitterBurst } from './ui.js';
 
 const GAMES = [
   { id: 'pop', name: 'Pop Party', art: 'fi01', how: 'Pop the bubbles that puff up. Gold ones are worth 3!', unit: 'pops' },
@@ -17,6 +17,10 @@ const GAMES = [
   { id: 'judge', name: 'Fair or Not?', art: 'sq23', how: 'Add up what each side is worth. Is the trade fair?', unit: 'right calls' },
   { id: 'shuffle', name: 'Bag Shuffle', art: 'sq12', how: 'Watch the bag with the toy as they swap around. Where did it go?', unit: 'finds' },
   { id: 'count', name: 'Quick Count', art: 'sq46', how: 'Count the toys before the time runs out.', unit: 'right counts' },
+  { id: 'blast', name: 'Glitter Blast', art: 'sq112', how: 'Glitter bombs float up. Pop them before they get away, but leave the rain clouds!', unit: 'points' },
+  { id: 'claw', name: 'Claw Machine', art: 'pl23', how: 'Line up the claw and drop it. Rarer toys score more.', unit: 'points' },
+  { id: 'stack', name: 'Squishy Stack', art: 'sq97', how: 'Drop each squishy on top of the last one. How tall can you build?', unit: 'stacked' },
+  { id: 'missing', name: 'What Is Missing?', art: 'sq38', how: 'Remember the toys. One sneaks away. Which one?', unit: 'spotted' },
 ];
 const view = () => $('#view');
 const best = (id) => P().stats['best_' + id] || 0;
@@ -63,7 +67,7 @@ function finish(g, score, won, line) {
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
+actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
 
 // ---------- Pop Party ----------
 function pop(g) {
@@ -409,4 +413,151 @@ function count(g) {
   };
   next();
   countdown(45, () => { track('count', score); finish(g, score, Math.min(45, score * 4), score >= 8 ? 'Counting champion!' : 'Good counting!'); });
+}
+
+// ---------- Glitter Blast ----------
+function blast(g) {
+  let score = 0, hits = 0, items = [], last = performance.now(), spawnAt = 0, run = true, n = 0;
+  const bombs = ['sq112', 'sq113', 'sq114', 'sq116'];
+  frame(g, `<div class="arena blast" id="arena" aria-label="Glitter bombs float up. Tap them to pop them."></div>`);
+  const arena = $('#arena');
+  actions.blastPop = (b, e) => {
+    const it = items.find((x) => x.el === b);
+    if (!it || it.dead) return;
+    it.dead = true; b.remove();
+    if (it.cloud) { score = Math.max(0, score - 2); sfx.no(); arena.classList.add('oops'); later(() => arena.classList.remove('oops'), 250); }
+    else { score += it.gold ? 3 : 1; hits++; glitterBurst(e.clientX, e.clientY, it.gold ? 46 : 24, it.gold ? 0.8 : 0.55); sfx.pop(); sfx.twinkle(); }
+    setScore(score);
+  };
+  const loop = (now) => {
+    if (!run) return;
+    const dt = Math.min(50, now - last); last = now;
+    if (now > spawnAt) {
+      const cloud = Math.random() < 0.15, gold = !cloud && Math.random() < 0.1, el = document.createElement('button');
+      el.className = 'flyer' + (cloud ? ' cloud' : ''); el.dataset.act = 'blastPop';
+      el.setAttribute('aria-label', cloud ? 'Rain cloud, do not tap' : gold ? 'Golden glitter bomb' : 'Glitter bomb');
+      el.innerHTML = toySVG(cloud ? 'sl22' : gold ? 'sq115' : bombs[n++ % 4]);
+      const it = { el, x: 10 + Math.random() * 80, y: 108, cloud, gold, v: 0.03 + Math.random() * 0.018 + hits * 0.0005, sway: Math.random() * 6 };
+      el.style.left = it.x + '%'; arena.append(el); items.push(it);
+      spawnAt = now + Math.max(330, 640 - hits * 6);
+    }
+    items = items.filter((it) => {
+      if (it.dead) return false;
+      it.y -= it.v * dt; it.el.style.top = it.y + '%'; it.el.style.left = it.x + Math.sin(now / 500 + it.sway) * 3 + '%';
+      if (it.y < -18) { it.el.remove(); return false; }
+      return true;
+    });
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  timers.push(() => { run = false; });
+  countdown(30, () => { track('blast', hits); finish(g, score, Math.min(45, Math.round(score * 1.4)), score >= 25 ? 'Glitter everywhere!' : 'Sparkly work!'); });
+}
+
+// ---------- Claw Machine ----------
+const PTS = { c: 1, r: 2, e: 4, l: 8 };
+function claw(g) {
+  const SLOTS = 5, CATS_ALL = ['squishy', 'fidget', 'slime', 'putty', 'dough', 'springy', 'plushie'];
+  let tries = 6, score = 0, grabs = 0, x = 10, dir = 1, moving = true, run = true, last = performance.now(), speed = 0.045;
+  const slotX = (i) => 12 + i * (76 / (SLOTS - 1));
+  const newToy = () => rollToy(CATS_ALL, [46, 32, 16, 6]);
+  let toys = Array.from({ length: SLOTS }, newToy);
+  frame(g, `<p class="game-say" id="say" aria-live="polite">Drops left: <span id="tries">6</span></p>
+    <div class="claw-box" id="claw-box" data-act="clawDrop"><div class="claw" id="claw"><i></i><svg viewBox="0 0 60 44" aria-hidden="true"><path d="M30 0v10M30 10L10 22L14 42M30 10L50 22L46 42M30 10v14" fill="none" stroke="#2A1846" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="10" r="6" fill="#C81E7A" stroke="#2A1846" stroke-width="3"/></svg><span class="claw-hold" id="hold"></span></div>
+      <div class="claw-row" id="claw-row"></div></div>
+    <div class="row center"><button class="btn primary big" data-act="clawDrop" id="drop-btn">Drop the claw!</button></div>`);
+  const cl = $('#claw'), row = $('#claw-row');
+  const drawRow = () => { row.innerHTML = toys.map((id, i) => id ? `<span class="claw-toy r-${TOYS[id].r}" style="left:${slotX(i)}%">${toySVG(id)}</span>` : '').join(''); };
+  drawRow();
+  const loop = (now) => {
+    if (!run) return;
+    const dt = Math.min(50, now - last); last = now;
+    if (moving) { x += dir * speed * dt; if (x >= 92) { x = 92; dir = -1; } if (x <= 8) { x = 8; dir = 1; } cl.style.left = x + '%'; }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  timers.push(() => { run = false; });
+  const end = () => { track('claw', grabs); finish(g, score, Math.min(50, 6 + score * 4), grabs >= 4 ? 'Claw master!' : grabs ? 'Nice grabbing!' : 'So close! Try again.'); };
+  actions.clawDrop = () => {
+    if (!moving || tries <= 0) return;
+    moving = false; tries--; $('#tries').textContent = tries; sfx.whoosh();
+    cl.classList.add('down');
+    later(() => {
+      let hit = -1;
+      toys.forEach((id, i) => { if (id && Math.abs(slotX(i) - x) < 7.5) hit = i; });
+      if (hit >= 0) {
+        const id = toys[hit]; toys[hit] = null; drawRow();
+        $('#hold').innerHTML = toySVG(id); grabs++; score += PTS[TOYS[id].r]; setScore(score); sfx.win();
+        $('#say').innerHTML = `Got ${TOYS[id].name}! +${PTS[TOYS[id].r]} &middot; Drops left: <span id="tries">${tries}</span>`;
+      } else { sfx.no(); $('#say').innerHTML = `Missed! Drops left: <span id="tries">${tries}</span>`; }
+      cl.classList.remove('down');
+      later(() => {
+        $('#hold').innerHTML = '';
+        toys = toys.map((id) => id || newToy()); drawRow();
+        if (tries <= 0) return end();
+        speed += 0.006; moving = true;
+      }, 800);
+    }, 650);
+  };
+}
+
+// ---------- Squishy Stack ----------
+function stack(g) {
+  const STEP = 50, pool = TOY_LIST.filter((t) => t.cat === 'squishy' && ['blob', 'bun', 'bear', 'cat', 'goocube', 'marsh', 'loaf', 'gooball', 'dumpling'].includes(t.v));
+  let n = 0, lives = 2, x = 50, dir = 1, speed = 0.05, prevX = 50, run = true, busy = false, last = performance.now(), piece = null;
+  frame(g, `<p class="game-say" id="say" aria-live="polite">Tries left: <span id="lives">2</span></p><div class="stack-box" id="stack-box" data-act="stackDrop"><div class="stack-inner" id="stack-inner"></div></div>
+    <div class="row center"><button class="btn primary big" data-act="stackDrop">Drop!</button></div>`);
+  const inner = $('#stack-inner');
+  const make = (cls) => { const el = document.createElement('div'); el.className = 'stack-piece ' + cls; el.innerHTML = toySVG(pool[rnd(pool.length)].id); inner.append(el); return el; };
+  const base = make('set'); base.style.left = '50%'; base.style.bottom = '0px';
+  const next = () => { piece = make('moving'); piece.style.bottom = (n + 1) * STEP + 26 + 'px'; x = Math.random() < 0.5 ? 12 : 88; dir = x < 50 ? 1 : -1; busy = false; inner.style.transform = `translateY(${Math.max(0, n - 3) * STEP}px)`; };
+  next();
+  const loop = (now) => {
+    if (!run) return;
+    const dt = Math.min(50, now - last); last = now;
+    if (!busy && piece) { x += dir * speed * dt; if (x >= 88) { x = 88; dir = -1; } if (x <= 12) { x = 12; dir = 1; } piece.style.left = x + '%'; }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  timers.push(() => { run = false; });
+  const end = () => { track('stack', n); finish(g, n, Math.min(45, n * 3), n >= 10 ? 'Sky-high tower!' : 'Good stacking!'); };
+  actions.stackDrop = () => {
+    if (busy || !piece) return;
+    busy = true;
+    const el = piece;
+    if (Math.abs(x - prevX) <= 13) {
+      n++; prevX = x; el.classList.remove('moving'); el.classList.add('set'); el.style.bottom = n * STEP + 'px';
+      sfx.squish(); setScore(n); speed += 0.004; later(next, 260);
+    } else {
+      lives--; sfx.no(); $('#lives').textContent = lives; el.classList.add('fall'); later(() => el.remove(), 600);
+      later(() => { if (lives > 0) next(); else end(); }, 650);
+    }
+  };
+}
+
+// ---------- What Is Missing? ----------
+function missing(g) {
+  let score = 0, answer = null;
+  frame(g, `<section class="card missing"><p class="game-say" id="say" aria-live="polite"></p><div class="miss-row" id="miss-row"></div><div class="shadow-opts miss-opts" id="opts"></div></section>`);
+  const cell = (t) => `<span class="miss-toy">${toySVG(t.id)}</span>`;
+  const round = () => {
+    const n = 4 + Math.min(3, Math.floor(score / 2));
+    const all = mixUp(TOY_LIST).slice(0, n + 2), set = all.slice(0, n), decoys = all.slice(n);
+    answer = set[rnd(n)];
+    $('#opts').innerHTML = '';
+    $('#say').textContent = 'Remember these toys!';
+    $('#miss-row').innerHTML = set.map(cell).join('');
+    later(() => { $('#miss-row').innerHTML = set.map(() => '<span class="miss-toy hide">?</span>').join(''); $('#say').textContent = 'Shuffling...'; }, Math.max(1500, 2800 - score * 110));
+    later(() => {
+      $('#miss-row').innerHTML = mixUp(set.filter((t) => t !== answer)).map(cell).join('');
+      $('#say').textContent = 'Which toy is missing?';
+      $('#opts').innerHTML = mixUp([answer, ...decoys]).map((t) => `<button class="odd-cell" data-act="missPick" data-hit="${t === answer ? 1 : 0}" aria-label="${t.name}">${toySVG(t.id)}</button>`).join('');
+    }, Math.max(1500, 2800 - score * 110) + 600);
+  };
+  actions.missPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); round(); }
+    else { sfx.no(); b.classList.add('wrong'); b.disabled = true; }
+  };
+  round();
+  countdown(50, () => { track('missing', score); finish(g, score, Math.min(45, score * 5), score >= 6 ? 'Super memory!' : 'Good remembering!'); });
 }

@@ -310,6 +310,28 @@ input { font: 800 1.15rem var(--body); color: var(--ink); min-height: 52px; padd
 .count-box span { position: absolute; width: 15%; max-width: 62px; aspect-ratio: 1; }
 .count-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 
+.arena.blast { cursor: default; touch-action: manipulation; background: linear-gradient(#2B2A7A, #7E57C9 60%, #F4A6B4); }
+.flyer { position: absolute; width: 17%; max-width: 78px; aspect-ratio: 1; transform: translate(-50%, 0); background: none; border: 0; padding: 0; }
+.flyer.cloud { filter: grayscale(.4); }
+.claw-box { position: relative; height: 300px; max-width: 560px; margin: 0 auto 14px; background: linear-gradient(#DDF1FF, #FFF4E4); border: 3px solid var(--ink); border-radius: 24px; overflow: hidden; }
+.claw { position: absolute; top: 0; width: 60px; margin-left: -30px; transition: top .6s ease-in-out; }
+.claw i { position: absolute; left: 50%; bottom: 100%; width: 4px; height: 300px; margin-left: -2px; background: var(--ink); }
+.claw svg { display: block; width: 60px; position: relative; }
+.claw.down { top: 176px; }
+.claw-hold { position: absolute; left: -4px; top: 24px; width: 68px; height: 68px; }
+.claw-row { position: absolute; left: 0; right: 0; bottom: 6px; height: 76px; }
+.claw-toy { position: absolute; bottom: 0; width: 72px; height: 72px; margin-left: -36px; }
+.stack-box { position: relative; height: 360px; max-width: 480px; margin: 0 auto 14px; background: linear-gradient(#DDF1FF, #FFF4E4); border: 3px solid var(--ink); border-radius: 24px; overflow: hidden; }
+.stack-inner { position: absolute; inset: 0; transition: transform .3s ease-out; }
+.stack-piece { position: absolute; width: 76px; height: 76px; margin-left: -38px; }
+.stack-piece.set { transition: bottom .18s ease-in; }
+.stack-piece.fall { transition: bottom .6s ease-in, transform .6s ease-in, opacity .6s; bottom: -120px !important; transform: rotate(80deg); opacity: 0; }
+.missing { text-align: center; max-width: 560px; margin-inline: auto; }
+.miss-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 150px; align-content: center; background: var(--soft); border-radius: 18px; padding: 10px; margin-bottom: 12px; }
+.miss-toy { width: 70px; height: 70px; display: grid; place-items: center; }
+.miss-toy.hide { background: var(--surface); border: 3px solid var(--ink); border-radius: 14px; font: 800 1.8rem var(--display); }
+.miss-opts { grid-template-columns: repeat(3, 1fr); max-width: 360px; margin: 0 auto; min-height: 110px; }
+
 /* Grace's trading board */
 h2 small { font: 800 .85rem var(--body); margin-left: 6px; }
 .board { display: grid; grid-template-columns: 1fr; background: var(--surface); border: 3px solid var(--ink); border-radius: 22px; box-shadow: var(--pop); overflow: hidden; margin: 16px 0 8px; }

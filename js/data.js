@@ -135,7 +135,16 @@ sq112|Pink Glitter Bomb|bomb|pink||r|glitter
 sq113|Mint Glitter Bomb|bomb|mint||r|glitter
 sq114|Rainbow Glitter Bomb|bomb|pink||e|rainbow
 sq115|Galaxy Glitter Bomb|bomb|grape||l|galaxy
-sq116|Golden Glitter Bomb|bomb|gold||l|glitter`,
+sq116|Golden Glitter Bomb|bomb|gold||l|glitter
+sq117|Cappy Capybara|capy|tan||r
+sq118|Ducky|duck|yellow||c
+sq119|Pengy|penguin|navy|white|r
+sq120|Lucky Clover|clover|lime||c
+sq121|Flutter Butterfly|butterfly|lilac|pink|r
+sq122|Mushy Marshmallow|marsh|white||c
+sq123|Strawberry Milk|milk|pink||r
+sq124|Choco Milk|milk|choc||c
+sq125|Golden Ducky|duck|gold||l|glitter`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -168,7 +177,17 @@ fi28|Galaxy Yo-Yo|yoyo|grape|sky|e|galaxy
 fi29|Spiky Ring|ring|lime||c
 fi30|Party Pinwheel|pinwheel|pink||r|rainbow
 fi31|Golden Pinwheel|pinwheel|gold|yellow|l|glitter
-fi32|Ocean Ring|ring|teal||r`,
+fi32|Ocean Ring|ring|teal||r
+fi33|Wiggly Slug|slug|lime||c
+fi34|Rainbow Slug|slug|pink||e|rainbow
+fi35|Bubble Mesh Ball|meshball|lime||c
+fi36|Galaxy Mesh Ball|meshball|grape||e|galaxy
+fi37|Stretchy Noodles|noodle|blue|pink|c
+fi38|Glitter Noodles|noodle|lilac|pink|r|glitter
+fi39|Fidget Pad|pad|sky|yellow|r
+fi40|Golden Fidget Pad|pad|gold|orange|l|glitter
+fi41|Magnet Marbles|magnet|gray|blue|r
+fi42|Rainbow Marbles|magnet|pink||e|rainbow`,
   slime: `
 sl01|Strawberry Slime|glossy|pink||c
 sl02|Ocean Slime|glossy|blue||c
@@ -194,7 +213,13 @@ sl21|Watermelon Crunch|crunchy|red||c
 sl22|Midnight Cloud|cloud|navy||r
 sl23|Honey Butter|butter|gold||c
 sl24|Rainbow Clear|clear|pink||e|rainbow
-sl25|Bubble Tea Slime|clear|tan||r`,
+sl25|Bubble Tea Slime|clear|tan||r
+sl26|Birthday Cake Slime|crunchy|pink||r
+sl27|Blue Raspberry Slime|glossy|sky||c
+sl28|Cookies and Cream|cloud|gray||r
+sl29|Lava Lamp Slime|clear|orange||e|glow
+sl30|Pearl Butter|butter|white||r
+sl31|Glitter Bomb Slime|glossy|pink||l|glitter`,
   putty: `
 pu01|Bubblegum Putty|swirl|pink|white|c
 pu02|Ocean Swirl|swirl|blue|teal|c
@@ -215,7 +240,11 @@ pu16|Mermaid Shine|metal|teal||e|glitter
 pu17|Minty Fresh Putty|swirl|mint|white|c
 pu18|Storm Cloud Putty|metal|navy||r
 pu19|Glow Sunshine|glow|yellow||e
-pu20|Peachy Putty|swirl|peach|pink|c`,
+pu20|Peachy Putty|swirl|peach|pink|c
+pu21|Aqua Glitter Putty|metal|sky||e|glitter
+pu22|Berry Blast Putty|swirl|grape|pink|c
+pu23|Candy Corn Swirl|swirl|orange|white|c
+pu24|Midnight Glow|glow|grape||e`,
   dough: `
 do01|Red Dough|ball|red||c
 do02|Blue Dough|ball|blue||c
@@ -239,7 +268,11 @@ do19|Lime Dough|ball|lime||c
 do20|Pink Star|star|pink||c
 do21|Blueberry Swirl|swirl|blue||r
 do22|Golden Heart Dough|heart|gold||l|glitter
-do23|Rainbow Dough|ball|pink||e|rainbow`,
+do23|Rainbow Dough|ball|pink||e|rainbow
+do24|Lilac Dough|ball|lilac||c
+do25|Sunny Star|star|yellow||c
+do26|Glitter Swirl|swirl|pink||e|glitter
+do27|Peach Heart|heart|peach||r`,
   springy: `
 sp01|Classic Springy|arc|gray||c
 sp02|Pink Springy|arc|pink||c
@@ -261,7 +294,11 @@ sp17|Rainbow Stack|stack|pink||e|rainbow
 sp18|Berry Springy|arc|red||c
 sp19|Zebra Stack|stack|white|navy|r
 sp20|Unicorn Springy|arc|pink|lilac|e|glitter
-sp21|Sunshine Springy|arc|yellow||c`,
+sp21|Sunshine Springy|arc|yellow||c
+sp22|Flamingo Springy|arc|pink|white|c
+sp23|Midnight Stack|stack|navy|sky|r
+sp24|Lemon Lime Springy|arc|yellow|lime|c
+sp25|Glitter Stack|stack|pink|lilac|e|glitter`,
   plushie: `
 pl01|Buttons the Bear|bear|tan|cream|r
 pl02|Clover the Bunny|bunny|white|pink|r
@@ -284,7 +321,14 @@ pl18|Cocoa the Bear|bear|choc|tan|r
 pl19|Hoot the Owl|owl|choc|cream|e
 pl20|Truffle the Pig|pig|pink|rose|r
 pl21|Ellie the Elephant|elephant|gray|pink|e
-pl22|Coco the Monkey|monkey|choc|tan|r`,
+pl22|Coco the Monkey|monkey|choc|tan|r
+pl23|Biscuit the Puppy|puppy|tan|choc|r
+pl24|Finn the Shark|shark|sky|white|e
+pl25|Stretch the Giraffe|giraffe|yellow|choc|e
+pl26|Woolly the Sheep|sheep|white|navy|r
+pl27|Stripes the Tiger|tiger|orange|white|e
+pl28|Moo the Cow|cow|white|navy|r
+pl29|Rainbow the Unicorn|unicorn|pink|sky|l|rainbow`,
 };
 
 export const TOYS = {};
@@ -343,6 +387,10 @@ export const QUESTS = [
   { id: 'shadow10', text: 'Guess 10 shadows in Shadow Match', ev: 'shadow', goal: 10, coins: 30 },
   { id: 'judge8', text: 'Judge 8 trades right in Fair or Not', ev: 'judge', goal: 8, coins: 30 },
   { id: 'shuffle4', text: 'Find the toy 4 times in Bag Shuffle', ev: 'shuffle', goal: 4, coins: 30 },
+  { id: 'blast20', text: 'Pop 20 bombs in Glitter Blast', ev: 'blast', goal: 20, coins: 30 },
+  { id: 'claw3', text: 'Grab 3 toys in Claw Machine', ev: 'claw', goal: 3, coins: 30 },
+  { id: 'stack8', text: 'Stack 8 squishies in Squishy Stack', ev: 'stack', goal: 8, coins: 30 },
+  { id: 'missing5', text: 'Spot 5 missing toys', ev: 'missing', goal: 5, coins: 30 },
   { id: 'bomb5', text: 'Throw 5 glitter bombs', ev: 'bomb', goal: 5, coins: 25 },
   { id: 'count8', text: 'Count right 8 times in Quick Count', ev: 'count', goal: 8, coins: 30 },
 ];
@@ -355,6 +403,7 @@ export const GOALS = [
   { id: 'u80', text: 'Collect 80 different toys', kind: 'unique', goal: 80, coins: 350 },
   { id: 'u120', text: 'Collect 120 different toys', kind: 'unique', goal: 120, coins: 500 },
   { id: 'u160', text: 'Collect 160 different toys', kind: 'unique', goal: 160, coins: 700 },
+  { id: 'u220', text: 'Collect 220 different toys', kind: 'unique', goal: 220, coins: 900 },
   { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: TOY_LIST.length, coins: 1000 },
   { id: 't1', text: 'Make your first trade', kind: 'stat', ev: 'trade', goal: 1, coins: 20 },
   { id: 't10', text: 'Make 10 trades', kind: 'stat', ev: 'trade', goal: 10, coins: 80 },
@@ -511,13 +560,14 @@ export const STORIES = [
 
 // How each toy sounds and moves when you play with it.
 const CRUNCHY = ['beadball', 'taco', 'cookie', 'fries'];
-const POPPY = ['popper', 'popround', 'popheart', 'dimple', 'peapod', 'keycap', 'cube'];
+const POPPY = ['popper', 'popround', 'popheart', 'dimple', 'peapod', 'keycap', 'cube', 'meshball'];
+const CLICKY = ['track', 'slug', 'pad', 'magnet'];
 const SPINNY = ['spinner', 'pinwheel', 'gear', 'yoyo', 'ring', 'twisty'];
 export function playStyle(id) {
   const t = TOYS[id];
   if (!t) return 'squish';
   if (CRUNCHY.includes(t.v) || (t.cat === 'slime' && t.v === 'crunchy')) return 'crunch';
-  if (t.cat === 'fidget') return SPINNY.includes(t.v) ? 'spin' : POPPY.includes(t.v) ? 'pop' : t.v === 'track' ? 'click' : 'squish';
+  if (t.cat === 'fidget') return SPINNY.includes(t.v) ? 'spin' : POPPY.includes(t.v) ? 'pop' : CLICKY.includes(t.v) ? 'click' : t.v === 'noodle' ? 'stretch' : 'squish';
   if (t.cat === 'springy') return 'boing';
   if (t.cat === 'slime') return 'squelch';
   if (t.cat === 'putty') return 'stretch';
