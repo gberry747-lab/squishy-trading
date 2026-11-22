@@ -45,7 +45,24 @@ sq22|Sunny Egg|egg|white|yellow|r
 sq23|Sparkle Unicorn|unicorn|white|pink|l|glitter
 sq24|Dino Squish|dino|teal||e
 sq25|Golden Mochi|blob|gold||l|glitter
-sq26|Blueberry Bop|berry|blue||e`,
+sq26|Blueberry Bop|berry|blue||e
+sq27|Vanilla Cone|icecream|cream||c
+sq28|Strawberry Cone|icecream|pink||r
+sq29|Birthday Cupcake|cupcake|pink|yellow|c
+sq30|Midnight Cupcake|cupcake|grape|sky|e|galaxy
+sq31|Avo Cuddle|avocado|lime||c
+sq32|Inky Octo|octopus|lilac||r
+sq33|Rainbow Octo|octopus|pink||e|rainbow
+sq34|Dotty Mushroom|mushroom|red||c
+sq35|Bubbles the Whale|whale|sky||r
+sq36|Boba Buddy|boba|tan||r
+sq37|Taro Boba|boba|lilac||e
+sq38|Boo Boo|ghost|white||c
+sq39|Glow Ghost|ghost|mint||e|glow
+sq40|Peep|chick|yellow||c
+sq41|Melon Slice|melon|red||c
+sq42|Prickles|cactus|lime||r
+sq43|Nelly Narwhal|narwhal|sky||l|glitter`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -62,7 +79,15 @@ fi12|Candy Twisty|twisty|pink|white|r
 fi13|Happy Keycap|keycap|yellow||c
 fi14|Grape Keycap|keycap|grape||e
 fi15|Gold Popper|popper|gold||l|glitter
-fi16|Glitter Spinner|spinner|lilac|pink|e|glitter`,
+fi16|Glitter Spinner|spinner|lilac|pink|e|glitter
+fi17|Pea Pod Popper|peapod|lime||c
+fi18|Gear Spinner|gear|gray|blue|r
+fi19|Gold Gears|gear|gold|orange|l|glitter
+fi20|Smiley Squeeze|squeeze|yellow||c
+fi21|Galaxy Squeeze|squeeze|grape||e|galaxy
+fi22|Snap Track|track|pink||r|rainbow
+fi23|Heart Popper|popheart|red||r
+fi24|Rainbow Heart Popper|popheart|pink||e|rainbow`,
   slime: `
 sl01|Strawberry Slime|glossy|pink||c
 sl02|Ocean Slime|glossy|blue||c
@@ -77,7 +102,13 @@ sl10|Crystal Clear|clear|sky||r
 sl11|Galaxy Slime|glossy|grape||l|galaxy
 sl12|Unicorn Slime|glossy|pink||e|rainbow
 sl13|Glow Goo|glossy|lime||e|glow
-sl14|Gold Dust Slime|clear|gold||l|glitter`,
+sl14|Gold Dust Slime|clear|gold||l|glitter
+sl15|Grape Jelly Slime|glossy|grape||c
+sl16|Bubblegum Butter|butter|pink||c
+sl17|Snow Cloud|cloud|white||r
+sl18|Fishbowl Slime|crunchy|sky||r
+sl19|Lava Slime|glossy|orange||e|glow
+sl20|Mermaid Slime|clear|teal||e|glitter`,
   putty: `
 pu01|Bubblegum Putty|swirl|pink|white|c
 pu02|Ocean Swirl|swirl|blue|teal|c
@@ -90,7 +121,11 @@ pu08|Glow Moon|glow|sky||e
 pu09|Magnet Monster|magnet|grape||e
 pu10|Rainbow Swirl|swirl|pink|white|e|rainbow
 pu11|Galaxy Putty|swirl|grape|sky|l|galaxy
-pu12|Gold Rush|metal|gold||l|glitter`,
+pu12|Gold Rush|metal|gold||l|glitter
+pu13|Cotton Candy Swirl|swirl|pink|sky|c
+pu14|Lava Putty|swirl|red|orange|r
+pu15|Glow Pink|glow|pink||r
+pu16|Mermaid Shine|metal|teal||e|glitter`,
   dough: `
 do01|Red Dough|ball|red||c
 do02|Blue Dough|ball|blue||c
@@ -103,7 +138,13 @@ do08|Dough Snake|snake|lime||r
 do09|Rainbow Snake|snake|pink||e|rainbow
 do10|Sparkle Dough|ball|lilac||e|glitter
 do11|Choco Swirl|swirl|choc||r
-do12|Golden Star Dough|star|gold||l|glitter`,
+do12|Golden Star Dough|star|gold||l|glitter
+do13|Heart Dough|heart|pink||c
+do14|Teal Dough|ball|teal||c
+do15|Orange Swirl|swirl|orange||c
+do16|Candy Snake|snake|red||r
+do17|Galaxy Dough|ball|grape||e|galaxy
+do18|Rainbow Heart Dough|heart|pink||e|rainbow`,
   springy: `
 sp01|Classic Springy|arc|gray||c
 sp02|Pink Springy|arc|pink||c
@@ -116,7 +157,12 @@ sp08|Neon Springy|stack|lime|pink|r
 sp09|Mini Springy|stack|sky||c
 sp10|Glitter Springy|arc|lilac||e|glitter
 sp11|Golden Springy|arc|gold||l|glitter
-sp12|Ocean Wave|arc|teal|sky|r`,
+sp12|Ocean Wave|arc|teal|sky|r
+sp13|Sunset Springy|stack|orange|yellow|c
+sp14|Grape Springy|arc|grape||c
+sp15|Mint Stack|stack|mint|white|c
+sp16|Silver Stack|stack|gray||r
+sp17|Rainbow Stack|stack|pink||e|rainbow`,
   plushie: `
 pl01|Buttons the Bear|bear|tan|cream|r
 pl02|Clover the Bunny|bunny|white|pink|r
@@ -129,7 +175,13 @@ pl08|Stardust the Unicorn|unicorn|white|lilac|l|glitter
 pl09|Blueberry the Bear|bear|blue|sky|r
 pl10|Snowball the Bunny|bunny|sky|white|r
 pl11|Shadow the Cat|cat|grape|lilac|e
-pl12|Ember the Dragon|dino|red|gold|l`,
+pl12|Ember the Dragon|dino|red|gold|l
+pl13|Bamboo the Panda|panda|white|navy|e
+pl14|Kiki the Koala|koala|gray|white|r
+pl15|Hopper the Frog|frog|lime|cream|r
+pl16|Sunny the Lion|lion|yellow|orange|e
+pl17|Mint the Dino|dino|mint|teal|r
+pl18|Cocoa the Bear|bear|choc|tan|r`,
 };
 
 export const TOYS = {};
@@ -172,6 +224,10 @@ export const QUESTS = [
   { id: 'catch25', text: 'Catch 25 toys in Squishy Catch', ev: 'catch', goal: 25, coins: 30 },
   { id: 'match1', text: 'Win a game of Memory Match', ev: 'match', goal: 1, coins: 25 },
   { id: 'mix3', text: 'Mix 3 perfect slimes', ev: 'mix', goal: 3, coins: 25 },
+  { id: 'sort20', text: 'Sort 20 toys in Toy Sorter', ev: 'sort', goal: 20, coins: 30 },
+  { id: 'copy8', text: 'Copy 8 patterns in Copy Cat', ev: 'copy', goal: 8, coins: 30 },
+  { id: 'odd10', text: 'Spot 10 odd toys in Odd One Out', ev: 'odd', goal: 10, coins: 30 },
+  { id: 'step10', text: 'Land 10 steps in Springy Stairs', ev: 'step', goal: 10, coins: 30 },
 ];
 
 // Big goals. kind: unique (toys collected), set (finish a family), stat (lifetime counter)
@@ -180,7 +236,8 @@ export const GOALS = [
   { id: 'u25', text: 'Collect 25 different toys', kind: 'unique', goal: 25, coins: 100 },
   { id: 'u50', text: 'Collect 50 different toys', kind: 'unique', goal: 50, coins: 200 },
   { id: 'u80', text: 'Collect 80 different toys', kind: 'unique', goal: 80, coins: 350 },
-  { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: 104, coins: 1000 },
+  { id: 'u120', text: 'Collect 120 different toys', kind: 'unique', goal: 120, coins: 500 },
+  { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: TOY_LIST.length, coins: 1000 },
   { id: 't1', text: 'Make your first trade', kind: 'stat', ev: 'trade', goal: 1, coins: 20 },
   { id: 't10', text: 'Make 10 trades', kind: 'stat', ev: 'trade', goal: 10, coins: 80 },
   { id: 't30', text: 'Make 30 trades', kind: 'stat', ev: 'trade', goal: 30, coins: 200 },

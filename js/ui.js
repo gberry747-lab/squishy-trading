@@ -26,6 +26,7 @@ export const sfx = {
   squish: () => { tone(320, 0.12, 'sine', 0.18, 140); tone(180, 0.16, 'triangle', 0.1, 420, 0.1); },
   pop: () => tone(700 + Math.random() * 300, 0.07, 'sine', 0.2, 200),
   tap: () => tone(520, 0.05, 'triangle', 0.1),
+  note: (f) => tone(f, 0.25, 'triangle', 0.16),
   coin: () => { tone(988, 0.08, 'square', 0.06); tone(1319, 0.18, 'square', 0.06, null, 0.08); },
   win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'triangle', 0.14, null, i * 0.1)),
   no: () => tone(220, 0.22, 'sawtooth', 0.07, 150),

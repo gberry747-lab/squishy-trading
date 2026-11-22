@@ -1,5 +1,5 @@
 // Four mini-games that pay coins.
-import { TOYS, TOY_LIST } from './data.js';
+import { TOYS, TOY_LIST, CATS } from './data.js';
 import { toySVG, icon } from './art.js';
 import { P, save, addCoins, track } from './state.js';
 import { $, router, actions, sfx, coins, confetti } from './ui.js';
@@ -9,6 +9,10 @@ const GAMES = [
   { id: 'match', name: 'Memory Match', art: 'sq13', how: 'Flip two cards. Find all the matching toys.', unit: 'points' },
   { id: 'mix', name: 'Slime Lab', art: 'sl12', how: 'Pick the two colors that mix into the slime on the card.', unit: 'perfect mixes' },
   { id: 'catch', name: 'Squishy Catch', art: 'do03', how: 'Slide the tub to catch falling toys. Dodge the mud!', unit: 'catches' },
+  { id: 'copy', name: 'Copy Cat', art: 'fi04', how: 'Watch the bubbles light up, then tap them in the same order.', unit: 'patterns' },
+  { id: 'sort', name: 'Toy Sorter', art: 'sq36', how: 'Which shelf does the toy belong on? Sort as many as you can.', unit: 'toys sorted' },
+  { id: 'stairs', name: 'Springy Stairs', art: 'sp07', how: 'Tap when the dot is in the green to walk the springy down the stairs.', unit: 'steps' },
+  { id: 'odd', name: 'Odd One Out', art: 'sq32', how: 'One toy is different from the rest. Find it fast!', unit: 'found' },
 ];
 const view = () => $('#view');
 const best = (id) => P().stats['best_' + id] || 0;
@@ -55,7 +59,7 @@ function finish(g, score, won, line) {
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
+actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
 
 // ---------- Pop Party ----------
 function pop(g) {
@@ -174,4 +178,108 @@ function catchGame(g) {
   requestAnimationFrame(loop);
   timers.push(() => { run = false; });
   countdown(30, () => { track('catch', caught); finish(g, score, Math.min(40, score), score >= 25 ? 'Catch champion!' : 'Great catching!'); });
+}
+
+// ---------- Copy Cat ----------
+function copy(g) {
+  const cols = ['#FF8FC0', '#8ED3FF', '#FFD84A', '#9BD84A'], notes = [392, 494, 587, 698];
+  let seq = [], at = 0, rounds = 0, busy = true;
+  frame(g, `<p class="game-say" id="say" aria-live="polite">Watch closely...</p><div class="copy-grid">${cols.map((c, i) => `<button class="pad" data-act="pad" data-i="${i}" style="--c:${c}" aria-label="Bubble ${i + 1}"></button>`).join('')}</div>`);
+  const pads = [...document.querySelectorAll('.pad')];
+  const flash = (i, ms = 320) => { pads[i].classList.add('lit'); sfx.note(notes[i]); later(() => pads[i].classList.remove('lit'), ms); };
+  const show = () => {
+    busy = true; at = 0; seq.push(Math.floor(Math.random() * 4));
+    $('#say').textContent = 'Watch closely...';
+    const gap = Math.max(380, 620 - seq.length * 20);
+    seq.forEach((n, k) => later(() => flash(n), 600 + k * gap));
+    later(() => { busy = false; $('#say').textContent = 'Your turn!'; }, 600 + seq.length * gap);
+  };
+  actions.pad = (b) => {
+    if (busy) return;
+    const i = +b.dataset.i; flash(i, 180);
+    if (i !== seq[at]) { busy = true; sfx.no(); $('#say').textContent = 'Oops, wrong bubble!'; track('copy', rounds); return later(() => finish(g, rounds, Math.min(45, 5 + rounds * 5), rounds >= 6 ? 'Amazing memory!' : 'Good copying!'), 900); }
+    at++;
+    if (at === seq.length) { rounds++; setScore(rounds); busy = true; $('#say').textContent = 'Yes! Here comes a longer one.'; later(show, 700); }
+  };
+  show();
+}
+
+// ---------- Toy Sorter ----------
+function sort(g) {
+  const cats = Object.keys(CATS);
+  let score = 0, cur = null;
+  frame(g, `<section class="card sorter"><div class="sort-toy" id="sort-toy"></div><p class="game-say" id="say">Which shelf?</p><div class="bins" id="bins"></div></section>`);
+  const next = () => {
+    cur = TOY_LIST[Math.floor(Math.random() * TOY_LIST.length)];
+    const opts = [cur.cat, ...cats.filter((c) => c !== cur.cat).sort(() => Math.random() - 0.5).slice(0, 2)].sort(() => Math.random() - 0.5);
+    $('#sort-toy').innerHTML = `<div class="squish boing">${toySVG(cur.id)}</div><b>${cur.name}</b>`;
+    $('#bins').innerHTML = opts.map((c) => `<button class="btn big bin" data-act="bin" data-id="${c}">${CATS[c].name}</button>`).join('');
+  };
+  actions.bin = (b) => {
+    if (b.dataset.id === cur.cat) { score++; sfx.pop(); setScore(score); $('#say').textContent = 'Yes!'; next(); }
+    else { sfx.no(); b.disabled = true; $('#say').textContent = `Not that one. Try again!`; }
+  };
+  next();
+  countdown(30, () => { track('sort', score); finish(g, score, Math.min(45, Math.round(score * 1.8)), score >= 18 ? 'Super sorter!' : 'Nicely sorted!'); });
+}
+
+// ---------- Springy Stairs ----------
+function stairs(g) {
+  const STEPS = 12;
+  let step = 0, lives = 3, pos = 0, dir = 1, speed = 0.07, zone = [38, 62], run = true, last = performance.now(), pause = false;
+  frame(g, `<div class="stairs" id="stairs" aria-hidden="true">${Array.from({ length: STEPS + 1 }, (_, i) => `<i style="--n:${i}"></i>`).join('')}<div class="walker" id="walker">${toySVG('sp07')}</div></div>
+    <p class="game-say" id="say" aria-live="polite">Lives: <span id="lives">3</span></p>
+    <button class="timing" data-act="stepIt" id="timing" aria-label="Tap when the dot is in the green zone"><span class="zone" id="zone"></span><span class="dot" id="dot"></span></button>
+    <div class="row center"><button class="btn primary big" data-act="stepIt">Step!</button></div>`);
+  const setZone = () => {
+    const w = Math.max(12, 26 - step * 1.2), c = 20 + Math.random() * 60;
+    zone = [Math.max(0, c - w / 2), Math.min(100, c + w / 2)];
+    $('#zone').style.left = zone[0] + '%'; $('#zone').style.width = zone[1] - zone[0] + '%';
+  };
+  const walk = () => { const w = $('#walker'); w.style.setProperty('--n', step); w.classList.remove('hop'); void w.offsetWidth; w.classList.add('hop'); };
+  setZone(); walk();
+  const loop = (now) => {
+    if (!run) return;
+    const dt = Math.min(50, now - last); last = now;
+    if (!pause) { pos += dir * speed * dt; if (pos >= 100) { pos = 100; dir = -1; } if (pos <= 0) { pos = 0; dir = 1; } $('#dot').style.left = pos + '%'; }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  timers.push(() => { run = false; });
+  const end = () => { track('step', step); finish(g, step, step * 3 + (step === STEPS ? 9 : 0), step === STEPS ? 'All the way down!' : 'Boing! Good try!'); };
+  actions.stepIt = () => {
+    if (pause) return;
+    if (pos >= zone[0] && pos <= zone[1]) {
+      step++; sfx.pop(); setScore(step); walk(); speed += 0.006;
+      if (step === STEPS) { pause = true; return later(end, 700); }
+      setZone();
+    } else {
+      lives--; sfx.no(); $('#lives').textContent = lives; $('#timing').classList.add('miss'); later(() => $('#timing').classList.remove('miss'), 250);
+      if (lives === 0) { pause = true; later(end, 600); }
+    }
+  };
+}
+
+// ---------- Odd One Out ----------
+function odd(g) {
+  let score = 0;
+  frame(g, `<p class="game-say" id="say">Find the toy that is different.</p><div class="odd-grid" id="odd"></div>`);
+  const next = () => {
+    const n = score < 3 ? 3 : score < 8 ? 4 : 5;
+    const base = TOY_LIST[Math.floor(Math.random() * TOY_LIST.length)];
+    const sameShape = TOY_LIST.filter((t) => t.id !== base.id && t.cat === base.cat && t.v === base.v);
+    const sameCat = TOY_LIST.filter((t) => t.id !== base.id && t.cat === base.cat);
+    const pool = score >= 5 && sameShape.length ? sameShape : sameCat;
+    const other = pool[Math.floor(Math.random() * pool.length)];
+    const spot = Math.floor(Math.random() * n * n);
+    const grid = $('#odd');
+    grid.style.setProperty('--n', n);
+    grid.innerHTML = Array.from({ length: n * n }, (_, i) => `<button class="odd-cell" data-act="oddPick" data-hit="${i === spot ? 1 : 0}" aria-label="${i === spot ? other.name : base.name}">${toySVG(i === spot ? other.id : base.id)}</button>`).join('');
+  };
+  actions.oddPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); next(); }
+    else { sfx.no(); b.classList.add('wrong'); b.disabled = true; }
+  };
+  next();
+  countdown(40, () => { track('odd', score); finish(g, score, Math.min(45, score * 3), score >= 12 ? 'Eagle eyes!' : 'Sharp spotting!'); });
 }

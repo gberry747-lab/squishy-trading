@@ -93,6 +93,32 @@ function squishy(t, P) {
       return `<path d="M50 4L43 34L57 34Z" fill="#F5B921"/><path d="M46 22l8 -3M45 28l10 -3" stroke="#fff" stroke-width="1.5"/><path d="M22 46L25 24L44 36ZM78 46L75 24L56 36Z" fill="${f}" stroke="${f}" stroke-width="5" stroke-linejoin="round"/>${body}<path d="M70 40q14 4 12 20q-8 -6 -14 -8Z" fill="${P.c2}"/><path d="M76 50q10 6 6 20q-6 -8 -10 -10Z" fill="#C9A8FF"/>${shine(34, 46)}${face(48, 62, 1, dk)}`;
     case 'dino':
       return `<path d="M26 44l7 -14l7 11l7 -16l7 16l7 -11l7 14Z" fill="${d}" stroke="${d}" stroke-width="3" stroke-linejoin="round"/>${body}<circle cx="34" cy="76" r="3" fill="${d}" opacity=".5"/><circle cx="68" cy="50" r="3" fill="${d}" opacity=".5"/><circle cx="74" cy="72" r="2.4" fill="${d}" opacity=".5"/>${shine(34, 48)}${face(50, 62, 1, dk)}`;
+    case 'icecream':
+      return `<path d="M31 56L50 95L69 56Z" fill="#E8B878" stroke="#C9924E" stroke-width="2" stroke-linejoin="round"/><path d="M38 62l18 22M48 60l14 16M62 62l-18 22M52 60l-14 16" stroke="#C9924E" stroke-width="1.2"/><circle cx="50" cy="40" r="25" fill="${f}"/><path d="M27 50q6 10 12 2q5 9 11 1q6 9 12 -1q5 8 11 -2" fill="${f}" stroke="${f}" stroke-width="5" stroke-linejoin="round"/><circle cx="50" cy="13" r="5" fill="#F0524F"/>${shine(38, 26, 7, 4)}${face(50, 40, 0.9, dk)}`;
+    case 'cupcake':
+      return `<path d="M26 60L32 93L68 93L74 60Z" fill="${P.c2}"/><path d="M36 62l2 30M46 62l1 30M56 62l-1 30M65 62l-3 30" stroke="#fff" stroke-width="2" opacity=".6"/><ellipse cx="50" cy="56" rx="29" ry="12" fill="${f}"/><ellipse cx="50" cy="43" rx="22" ry="11" fill="${f}"/><ellipse cx="50" cy="31" rx="14" ry="9" fill="${f}"/><circle cx="50" cy="19" r="5.5" fill="#F0524F"/>${shine(38, 36, 6, 3)}${face(50, 50, 0.75, dk)}`;
+    case 'avocado':
+      return `<path d="M50 9C34 9 31 30 26 48C20 70 32 93 50 93C68 93 80 70 74 48C69 30 66 9 50 9Z" fill="#4E9A3E"/><path d="M50 17C38 17 36 34 32 50C28 68 36 86 50 86C64 86 72 68 68 50C64 34 62 17 50 17Z" fill="#DDF2A6"/><circle cx="50" cy="64" r="14" fill="#8A5A3C"/>${shine(44, 57, 4, 2.4)}${face(50, 64, 0.6, true)}`;
+    case 'octopus': {
+      let legs = '';
+      [22, 36, 50, 64, 78].forEach((x) => { legs += `<rect x="${x - 7}" y="58" width="14" height="28" rx="7" fill="${f}"/>`; });
+      return `${legs}<circle cx="50" cy="44" r="30" fill="${f}"/><circle cx="26" cy="30" r="2.5" fill="#fff" opacity=".6"/>${shine(36, 28)}${face(50, 50, 1, dk)}`;
+    }
+    case 'mushroom':
+      return `<path d="M35 58Q32 91 50 91Q68 91 65 58Z" fill="#FFE9C4"/><path d="M9 58Q11 16 50 16Q89 16 91 58Q50 68 9 58Z" fill="${f}"/><circle cx="32" cy="38" r="7" fill="#fff"/><circle cx="56" cy="30" r="6" fill="#fff"/><circle cx="74" cy="46" r="5.5" fill="#fff"/><circle cx="46" cy="50" r="4" fill="#fff"/>${face(50, 74, 0.7, false)}`;
+    case 'whale':
+    case 'narwhal':
+      return `${t.v === 'narwhal' ? '<path d="M30 36L17 6L40 30Z" fill="#F5B921"/><path d="M25 22l8 -3M29 30l9 -4" stroke="#fff" stroke-width="1.5"/>' : '<path d="M46 28q-6 -12 -14 -9M50 28q4 -14 13 -10" stroke="#5DB7F0" stroke-width="3.5" fill="none" stroke-linecap="round"/>'}<path d="M82 54L95 38Q99 50 93 57Q99 64 94 74L82 62Z" fill="${f}" stroke="${f}" stroke-width="3" stroke-linejoin="round"/><path d="M11 58C11 38 30 30 50 30C74 30 87 44 87 60C87 76 70 85 50 85C28 85 11 76 11 58Z" fill="${f}"/><path d="M15 68Q50 92 85 66Q72 85 50 85Q26 85 15 68Z" fill="#fff" opacity=".65"/>${shine(34, 42)}${face(40, 58, 0.95, dk)}`;
+    case 'boba':
+      return `<rect x="52" y="4" width="8" height="30" rx="3" fill="#FF8FC0" transform="rotate(12 56 19)"/><path d="M25 34L31 90Q32 95 38 95L62 95Q68 95 69 90L75 34Z" fill="${f}"/><path d="M25 34L31 90Q32 95 38 95L62 95Q68 95 69 90L75 34" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/><g fill="#5B3A29"><circle cx="38" cy="86" r="4.5"/><circle cx="49" cy="88" r="4.5"/><circle cx="60" cy="86" r="4.5"/><circle cx="43" cy="78" r="4.5"/><circle cx="55" cy="78" r="4.5"/></g><rect x="21" y="27" width="58" height="10" rx="5" fill="${d}"/>${face(50, 58, 0.85, dk)}`;
+    case 'ghost':
+      return `<path d="M22 56C22 30 34 16 50 16C66 16 78 30 78 56L78 90L69 82L60 90L50 82L40 90L31 82L22 90Z" fill="${f}" stroke="${d}" stroke-width="1.5" stroke-linejoin="round"/>${shine(36, 30)}${face(50, 50, 1, dk)}`;
+    case 'chick':
+      return `<path d="M44 30q-2 -12 4 -10q2 -8 6 0q6 -2 2 10Z" fill="${f}"/><ellipse cx="20" cy="62" rx="8" ry="12" fill="${d}" transform="rotate(20 20 62)"/><ellipse cx="80" cy="62" rx="8" ry="12" fill="${d}" transform="rotate(-20 80 62)"/><path d="M40 88l-4 6M44 88v6M56 88v6M60 88l4 6" stroke="#FF9A3D" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="58" r="31" fill="${f}"/>${shine(36, 40)}${face(50, 54, 1, dk)}<path d="M44 59L56 59L50 67Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="2" stroke-linejoin="round"/>`;
+    case 'melon':
+      return `<path d="M8 36A42 42 0 0 0 92 36Z" fill="#4E9A3E" transform="translate(0 6)"/><path d="M14 36A36 36 0 0 0 86 36Z" fill="#E9F7C8" transform="translate(0 6)"/><path d="M18 36A32 32 0 0 0 82 36Z" fill="${f}" transform="translate(0 6)"/><g fill="${INK}"><ellipse cx="30" cy="50" rx="1.6" ry="2.6"/><ellipse cx="70" cy="50" rx="1.6" ry="2.6"/><ellipse cx="40" cy="66" rx="1.6" ry="2.6"/><ellipse cx="60" cy="66" rx="1.6" ry="2.6"/></g>${face(50, 54, 0.85, dk)}`;
+    case 'cactus':
+      return `<path d="M34 56H25Q18 56 18 48V40" stroke="${f}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M66 48H75Q82 48 82 40V32" stroke="${f}" stroke-width="12" fill="none" stroke-linecap="round"/><rect x="33" y="16" width="34" height="66" rx="17" fill="${f}"/><path d="M42 24v8M58 26v8M50 62v8M40 66v6M60 66v6" stroke="${d}" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="14" r="6.5" fill="#FF8FC0"/><circle cx="50" cy="14" r="2.5" fill="#FFD84A"/><path d="M29 76L33 94L67 94L71 76Z" fill="#E08A5B"/><rect x="26" y="72" width="48" height="8" rx="4" fill="#C9703F"/>${face(50, 46, 0.8, dk)}`;
     default:
       return `<ellipse cx="50" cy="60" rx="35" ry="29" fill="${f}"/>${shine(34, 44)}${face(50, 61, 1, dk)}`;
   }
@@ -138,6 +164,27 @@ function fidget(t, P) {
     }
     case 'keycap':
       return `<path d="M16 78L24 26Q25 20 31 20L69 20Q75 20 76 26L84 78Q85 88 76 88L24 88Q15 88 16 78Z" fill="${d}"/><rect x="26" y="22" width="48" height="46" rx="9" fill="${f}"/>${shine(36, 30, 6, 3)}${face(50, 44, 0.9, P.darkFace)}`;
+    case 'popheart': {
+      let s = `<path d="M50 92C6 62 9 20 32 20C44 20 50 31 50 37C50 31 56 20 68 20C91 20 94 62 50 92Z" fill="${t.fx === 'rainbow' ? '#fff' : d}" stroke="${d}" stroke-width="2"/>`;
+      const rows = [[36, [28, 42, 58, 72]], [50, [24, 37, 50, 63, 76]], [64, [37, 50, 63]], [77, [50]]];
+      rows.forEach(([y, xs], r) => xs.forEach((x) => { s += bubble(x, y, 6.2, t.fx === 'rainbow' ? RAINBOW[r * 1 + (r > 1 ? 2 : 0)] : P.base); }));
+      return s;
+    }
+    case 'peapod':
+      return `<path d="M6 56Q50 16 94 56Q50 96 6 56Z" fill="${d}"/><path d="M12 56Q50 28 88 56" fill="none" stroke="${shade(P.base, 0.3)}" stroke-width="2.5" opacity=".7"/>${bubble(28, 57, 11, P.base)}${bubble(50, 57, 12.5, P.base)}${bubble(72, 57, 11, P.base)}${face(50, 57, 0.5, false, 8)}<path d="M92 54q6 -8 2 -14" fill="none" stroke="${d}" stroke-width="3" stroke-linecap="round"/>`;
+    case 'gear': {
+      let s = '';
+      for (let i = 0; i < 8; i++) s += `<rect x="43" y="14" width="14" height="18" rx="3.5" fill="${f}" transform="rotate(${i * 45} 50 54)"/>`;
+      return s + `<circle cx="50" cy="54" r="29" fill="${f}"/><circle cx="50" cy="54" r="29" fill="none" stroke="${d}" stroke-width="2" opacity=".4"/><circle cx="50" cy="54" r="17" fill="${P.c2}"/><circle cx="50" cy="54" r="7" fill="#fff"/>${shine(36, 38, 6, 3)}`;
+    }
+    case 'squeeze':
+      return `<circle cx="50" cy="54" r="36" fill="${f}"/><path d="M20 44q30 -18 60 0M17 60q33 16 66 0" fill="none" stroke="${d}" stroke-width="1.5" opacity=".45"/>${shine(34, 34, 9, 5)}${face(50, 54, 1.25, P.darkFace)}`;
+    case 'track': {
+      const pts = [[13, 70], [31, 38], [50, 70], [69, 38], [87, 70]];
+      let s = '';
+      for (let i = 0; i < 4; i++) s += `<line x1="${pts[i][0]}" y1="${pts[i][1]}" x2="${pts[i + 1][0]}" y2="${pts[i + 1][1]}" stroke="${shade(RAINBOW[i + 1], -0.2)}" stroke-width="17" stroke-linecap="round"/><line x1="${pts[i][0]}" y1="${pts[i][1] - 1.5}" x2="${pts[i + 1][0]}" y2="${pts[i + 1][1] - 1.5}" stroke="${t.fx === 'rainbow' ? RAINBOW[i + 1] : (i % 2 ? P.c2 : P.base)}" stroke-width="13" stroke-linecap="round"/>`;
+      return s + pts.map(([x, y]) => `<circle cx="${x}" cy="${y - 1.5}" r="3.6" fill="#fff"/>`).join('');
+    }
     default:
       return `<circle cx="50" cy="54" r="34" fill="${f}"/>`;
   }
@@ -176,6 +223,8 @@ function dough(t, P) {
       return `<ellipse cx="50" cy="48" rx="24" ry="10" fill="${f}"/><ellipse cx="50" cy="38" rx="18" ry="9" fill="${f}"/><ellipse cx="50" cy="29" rx="12" ry="7" fill="${f}"/><path d="M50 12q8 6 2 14q-8 0 -8 -6Z" fill="${f}"/><path d="M30 46q20 8 40 0M36 36q14 6 28 0" fill="none" stroke="${d}" stroke-width="1.6" opacity=".5"/>${face(50, 40, 0.7, dk)}${tub}`;
     case 'star':
       return `<path d="M50 8L57 26L76 27L61 39L66 57L50 47L34 57L39 39L24 27L43 26Z" fill="${f}" stroke="${f}" stroke-width="8" stroke-linejoin="round"/>${face(50, 34, 0.7, dk)}${tub}`;
+    case 'heart':
+      return `<path d="M50 54C22 38 25 8 39 8C46 8 50 14 50 19C50 14 54 8 61 8C75 8 78 38 50 54Z" fill="${f}"/>${shine(36, 18, 5, 3)}${face(50, 28, 0.65, dk)}${tub}`;
     case 'snake':
       return `<path d="M26 50Q30 34 50 38T72 26Q78 16 68 12" fill="none" stroke="${f}" stroke-width="13" stroke-linecap="round"/><circle cx="68" cy="13" r="9" fill="${f}"/><circle cx="65" cy="11" r="1.6" fill="${INK}"/><circle cx="72" cy="11" r="1.6" fill="${INK}"/><path d="M68 20v5l-2 2M68 25l2 2" stroke="#F0524F" stroke-width="1.5" fill="none" stroke-linecap="round"/>${tub}`;
     default:
@@ -206,6 +255,7 @@ function springy(t, P) {
 function plushie(t, P) {
   const f = P.fill, d = P.dark, c2 = P.c2, dk = P.darkFace;
   let ears = '', extra = '', patch = `<ellipse cx="50" cy="76" rx="11" ry="10" fill="${c2}"/>`;
+  let post = '', faceStr = '', limb = f;
   switch (t.v) {
     case 'bear': ears = `<circle cx="28" cy="20" r="10" fill="${f}"/><circle cx="72" cy="20" r="10" fill="${f}"/><circle cx="28" cy="20" r="5" fill="${c2}"/><circle cx="72" cy="20" r="5" fill="${c2}"/>`; extra = `<ellipse cx="50" cy="46" rx="8" ry="6" fill="${c2}"/>`; break;
     case 'bunny': ears = `<ellipse cx="38" cy="14" rx="7" ry="17" fill="${f}" transform="rotate(-8 38 14)"/><ellipse cx="62" cy="14" rx="7" ry="17" fill="${f}" transform="rotate(8 62 14)"/><ellipse cx="38" cy="15" rx="3" ry="11" fill="#FF9CC4" transform="rotate(-8 38 15)"/><ellipse cx="62" cy="15" rx="3" ry="11" fill="#FF9CC4" transform="rotate(8 62 15)"/>`; break;
@@ -214,10 +264,14 @@ function plushie(t, P) {
     case 'dino': ears = `<path d="M36 16l5 -10l5 8l4 -10l4 10l5 -8l5 10Z" fill="${c2}" stroke="${c2}" stroke-width="3" stroke-linejoin="round"/>`; extra = `<path d="M70 82q18 4 20 -10q-12 -2 -18 2Z" fill="${f}"/><circle cx="33" cy="30" r="2.4" fill="${d}" opacity=".6"/><circle cx="68" cy="26" r="2.4" fill="${d}" opacity=".6"/>`; break;
     case 'penguin': patch = `<ellipse cx="50" cy="76" rx="13" ry="13" fill="${c2}"/>`; extra = `<path d="M30 40Q30 26 42 26Q50 26 50 32Q50 26 58 26Q70 26 70 40Q70 56 50 56Q30 56 30 40Z" fill="#fff"/><path d="M45 44L55 44L50 50Z" fill="#FF9A3D" stroke="#FF9A3D" stroke-width="2" stroke-linejoin="round"/>`; break;
     case 'axolotl': ears = `<g fill="${c2}" stroke="${d}" stroke-width="1"><ellipse cx="18" cy="26" rx="10" ry="4" transform="rotate(25 18 26)"/><ellipse cx="14" cy="38" rx="10" ry="4"/><ellipse cx="18" cy="50" rx="10" ry="4" transform="rotate(-25 18 50)"/><ellipse cx="82" cy="26" rx="10" ry="4" transform="rotate(-25 82 26)"/><ellipse cx="86" cy="38" rx="10" ry="4"/><ellipse cx="82" cy="50" rx="10" ry="4" transform="rotate(25 82 50)"/></g>`; break;
+    case 'panda': ears = `<circle cx="28" cy="18" r="10" fill="${c2}"/><circle cx="72" cy="18" r="10" fill="${c2}"/>`; extra = `<ellipse cx="40.5" cy="41" rx="7.5" ry="9" fill="${c2}" transform="rotate(-14 40.5 41)"/><ellipse cx="59.5" cy="41" rx="7.5" ry="9" fill="${c2}" transform="rotate(14 59.5 41)"/>`; post = `<circle cx="41" cy="40" r="3.6" fill="#fff"/><circle cx="59" cy="40" r="3.6" fill="#fff"/><circle cx="41.4" cy="40.4" r="2" fill="${INK}"/><circle cx="58.6" cy="40.4" r="2" fill="${INK}"/>`; limb = c2; patch = ''; break;
+    case 'koala': ears = `<circle cx="21" cy="26" r="14" fill="${f}"/><circle cx="79" cy="26" r="14" fill="${f}"/><circle cx="21" cy="26" r="8" fill="#FFC9DC"/><circle cx="79" cy="26" r="8" fill="#FFC9DC"/>`; post = `<ellipse cx="50" cy="44" rx="5.5" ry="7.5" fill="${INK}"/><ellipse cx="48.6" cy="41" rx="1.6" ry="2.2" fill="#fff" opacity=".7"/>`; break;
+    case 'frog': ears = `<circle cx="35" cy="16" r="11" fill="${f}"/><circle cx="65" cy="16" r="11" fill="${f}"/>`; post = `<circle cx="35" cy="15" r="6.5" fill="#fff"/><circle cx="65" cy="15" r="6.5" fill="#fff"/><circle cx="36" cy="16" r="3.4" fill="${INK}"/><circle cx="64" cy="16" r="3.4" fill="${INK}"/>`; faceStr = `<path d="M38 44q12 9 24 0" fill="none" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/><circle cx="30" cy="46" r="3.4" fill="#FF5F9E" opacity=".45"/><circle cx="70" cy="46" r="3.4" fill="#FF5F9E" opacity=".45"/>`; break;
+    case 'lion': { let mane = ''; for (let i = 0; i < 12; i++) mane += `<circle cx="${(50 + 27 * Math.cos(i * 0.5236)).toFixed(1)}" cy="${(38 + 27 * Math.sin(i * 0.5236)).toFixed(1)}" r="9.5" fill="${c2}"/>`; ears = mane; extra = `<ellipse cx="50" cy="47" rx="9" ry="6.5" fill="#FFF3D6"/><path d="M72 84q16 2 14 -14" fill="none" stroke="${f}" stroke-width="5" stroke-linecap="round"/><circle cx="86" cy="68" r="5" fill="${c2}"/>`; break; }
     case 'unicorn': ears = `<path d="M50 0L45 20L55 20Z" fill="#F5B921"/><path d="M28 28L29 10L44 20ZM72 28L71 10L56 20Z" fill="${f}" stroke="${f}" stroke-width="4" stroke-linejoin="round"/>`; extra = `<path d="M70 20q14 6 10 26q-8 -8 -12 -12Z" fill="${c2}"/><path d="M76 34q8 8 2 22q-4 -10 -8 -12Z" fill="#FF8FC0"/>`; break;
   }
   const isPeng = t.v === 'penguin';
-  return `${ears}<ellipse cx="29" cy="72" rx="8" ry="11" fill="${f}" transform="rotate(25 29 72)"/><ellipse cx="71" cy="72" rx="8" ry="11" fill="${f}" transform="rotate(-25 71 72)"/><ellipse cx="50" cy="76" rx="21" ry="17" fill="${f}"/>${patch}<ellipse cx="38" cy="91" rx="9" ry="5.5" fill="${isPeng ? '#FF9A3D' : d}"/><ellipse cx="62" cy="91" rx="9" ry="5.5" fill="${isPeng ? '#FF9A3D' : d}"/><circle cx="50" cy="38" r="26" fill="${f}"/>${extra}${shine(36, 22, 6, 3.5)}${isPeng ? face(50, 38, 0.85, false, 9).replace(/<path[^>]*stroke-linecap="round"\/>/, '') : face(50, 40, 0.95, dk && t.v !== 'fox')}`;
+  return `${ears}<ellipse cx="29" cy="72" rx="8" ry="11" fill="${limb}" transform="rotate(25 29 72)"/><ellipse cx="71" cy="72" rx="8" ry="11" fill="${limb}" transform="rotate(-25 71 72)"/><ellipse cx="50" cy="76" rx="21" ry="17" fill="${f}"/>${patch}<ellipse cx="38" cy="91" rx="9" ry="5.5" fill="${isPeng ? '#FF9A3D' : limb === f ? d : limb}"/><ellipse cx="62" cy="91" rx="9" ry="5.5" fill="${isPeng ? '#FF9A3D' : limb === f ? d : limb}"/><circle cx="50" cy="38" r="26" fill="${f}"/>${extra}${shine(36, 22, 6, 3.5)}${isPeng ? face(50, 38, 0.85, false, 9).replace(/<path[^>]*stroke-linecap="round"\/>/, '') : (faceStr || face(50, 40, 0.95, dk && t.v !== 'fox'))}${post}`;
 }
 
 const DRAW = { squishy, fidget, slime, putty, dough, springy, plushie };
