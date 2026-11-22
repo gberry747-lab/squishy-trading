@@ -33,6 +33,7 @@ export function tradeScreen() {
     <div class="modes" role="group" aria-label="Who to trade with">${mode('bot', '1 player', 'You and a computer friend')}${mode('local', '2 players', 'On this iPad or computer')}${mode('online', 'Online', 'Friends on their own devices')}</div>
     ${panel}`;
 }
+export const setHub = (m) => { hubMode = m; };
 actions.tMode = (el) => { hubMode = el.dataset.v; sfx.tap(); router.go('trade'); };
 
 // ---------- the trade table ----------
@@ -124,7 +125,7 @@ function draw() {
   const keep = [...document.querySelectorAll('.v-table .shelf')].map((el) => el.scrollLeft);
   view().className = 'view v-table';
   view().innerHTML = `<button class="btn back" data-act="tBack">${icon('back')} ${T.mode === 'online' ? 'Room' : 'Trading post'}</button>
-    <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish data-toy="${who.art}">${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b>${esc(who.name)}:</b> ${esc(say)}</p></section>
+    <section class="who-row mood-${mood}"><span class="friend-art squish" data-squish data-toy="${who.art}">${toySVG(who.art)}</span><p class="bubble" aria-live="polite"><b translate="no">${esc(who.name)}:</b> ${esc(say)}</p></section>
     ${theirShelf}
     <section class="board" aria-label="Trading board">
       <div class="keys keys-theirs" role="group" aria-label="${esc(who.name)}'s buttons">${theirs}</div>
@@ -224,7 +225,7 @@ actions.tOffer = () => {
   const get = [...T.theirs], give = [...T.mine];
   doSwap(p, give, T.myCoins, get, back, false);
   const inv = p.daily.bots[b.id];
-  get.forEach((id) => inv.splice(inv.indexOf(id), 1));
+  get.forEach((id) => { const k = inv.indexOf(id); if (k >= 0) inv.splice(k, 1); });
   inv.push(...give); save();
   T = { mode: 'bot', bot: b, inv: toMap(inv), mine: [], theirs: [], myCoins: 0, theirCoins: 0 };
   draw();
@@ -249,12 +250,18 @@ actions.tAgree = (el) => {
   celebrate(get, gc, `${esc(p.name)} and ${esc(o.name)} shook hands. Both shelves are updated!`);
 };
 
+// Buttons on a trading board that has just closed (the friend left a moment ago) do nothing.
+['tPick', 'tDrop', 'tCoin', 'tDecline', 'tDeal', 'tSay', 'tWish', 'tAdd', 'tOffer', 'tAgree'].forEach((k) => {
+  const fn = actions[k];
+  actions[k] = (...a) => { if (!T || ((k === 'tDeal' || k === 'tSay' || k === 'tWish') && !room)) return; return fn(...a); };
+});
+
 // ---------- online ----------
 const info = () => ({ name: P().name, avatar: P().buddy });
 function leaveRoom() { if (room) { room.leave(); room = null; } T = null; }
 function wire() {
   room.on('players', () => {
-    if (T && T.mode === 'online' && !room.players.some((x) => x.id === T.pid)) { T = null; toast('Your friend left the room.'); }
+    if (T && T.mode === 'online' && !room.players.some((x) => x.id === T.pid)) { closeModal(); T = null; toast('Your friend left the room.'); }
     if (!T) lobby();
   });
   room.on('closed', () => { leaveRoom(); router.go('trade'); toast('The room closed.'); });
@@ -301,8 +308,9 @@ function openOnline(pid) {
   if (defs.length) room.send(pid, { t: 'defs', defs });
   sendOffer(); draw(); window.scrollTo(0, 0);
 }
+const dropVote = () => { const t = T; setTimeout(() => { if (t && !t.myLock) t.voted = ''; }, 2500); };
 function sendOffer() {
-  if (T.myLock) { T.myLock = false; room.send(T.pid, { t: 'lock', v: false }); }
+  if (T.myLock) { T.myLock = false; room.send(T.pid, { t: 'lock', v: false }); dropVote(); }
   T.theirLock = false;
   room.send(T.pid, { t: 'offer', toys: T.mine, coins: T.myCoins, inv: P().inv });
 }
@@ -316,7 +324,8 @@ function tryCommit() {
 }
 function finishOnline(give, giveCoins, get, getCoins) {
   const p = P(), name = T.name;
-  give = give.filter((id) => p.inv[id]);
+  const left = { ...p.inv };
+  give = give.filter((id) => left[id] > 0 && left[id]-- > 0);
   doSwap(p, give, Math.min(giveCoins, p.coins), get, getCoins, true);
   Object.assign(T, { mine: [], theirs: [], myCoins: 0, theirCoins: 0, myLock: false, theirLock: false, said: '' });
   room.send(T.pid, { t: 'offer', toys: [], coins: 0, inv: p.inv });
@@ -324,13 +333,14 @@ function finishOnline(give, giveCoins, get, getCoins) {
   celebrate(get, getCoins, `You and ${esc(name)} made a deal!`);
 }
 actions.tDeal = () => {
+  if (!T || !room) return;
   T.myLock = !T.myLock; sfx.tap();
-  if (T.myLock) T.voted = sig();
+  if (T.myLock) T.voted = sig(); else dropVote();
   room.send(T.pid, { t: 'lock', v: T.myLock, sig: sig() });
   draw(); tryCommit();
 };
-actions.tSay = (el) => { room.send(T.pid, { t: 'say', i: +el.dataset.i }); toast(`You said: "${PHRASES[+el.dataset.i]}"`, 1500); };
-actions.tWish = (el) => { room.send(T.pid, { t: 'wish', id: el.dataset.id }); toast(`You asked for ${esc(TOYS[el.dataset.id].name)}.`, 1500); };
+actions.tSay = (el) => { if (!T || !room) return; room.send(T.pid, { t: 'say', i: +el.dataset.i }); toast(`You said: "${PHRASES[+el.dataset.i]}"`, 1500); };
+actions.tWish = (el) => { if (!T || !room) return; room.send(T.pid, { t: 'wish', id: el.dataset.id }); toast(`You asked for ${esc(TOYS[el.dataset.id].name)}.`, 1500); };
 actions.tInviteYes = (el) => { room.send(el.dataset.id, { t: 'accept' }); openOnline(el.dataset.id); };
 actions.tInviteNo = (el) => { room.send(el.dataset.id, { t: 'no' }); closeModal(); };
 
@@ -347,13 +357,13 @@ function onMsg(from, m) {
   if (m.t === 'no') return toast(m.busy ? `${esc(pl.name)} is busy trading.` : `${esc(pl.name)} said not right now.`);
   if (!T || T.mode !== 'online' || T.pid !== from) return;
   if (m.t === 'defs' && Array.isArray(m.defs)) {
-    m.defs.slice(0, 60).forEach((d) => { const made = registerCustom(d); if (made && Object.keys(store.custom).length < 300) store.custom[made.id] = made.art; });
+    m.defs.slice(0, 60).forEach((d) => { if (!d || TOYS[d.id] || Object.keys(store.custom).length >= 300) return; const made = registerCustom(d); if (made) store.custom[made.id] = made.art; });
     save(); return draw();
   }
   if (m.t === 'offer') {
     T.theirs = cleanToys(m.toys); T.theirCoins = cleanCoins(m.coins); T.theirInv = cleanInv(m.inv);
     T.theirLock = false;
-    if (T.myLock) { T.myLock = false; room.send(from, { t: 'lock', v: false }); }
+    if (T.myLock) { T.myLock = false; room.send(from, { t: 'lock', v: false }); dropVote(); }
     draw();
   } else if (m.t === 'lock') {
     T.theirLock = !!m.v; T.theirSig = String(m.sig || '');
@@ -367,5 +377,5 @@ function onMsg(from, m) {
   else if (m.t === 'wish' && TOYS[m.id]) { T.said = `I would love your ${TOYS[m.id].name}!`; sfx.pop(); draw(); }
   else if (m.t === 'bomb') { if (Date.now() - lastBomb > 1200) { lastBomb = Date.now(); boom(pl.name); } }
   else if (m.t === 'decline') { T.mine = []; T.myCoins = 0; T.said = PHRASES[3]; sfx.no(); closeModal(); sendOffer(); draw(); toast(`${esc(pl.name)} declined. The board is clear.`); }
-  else if (m.t === 'bye') { T = null; toast(`${esc(pl.name)} left the trade.`); lobby(); }
+  else if (m.t === 'bye') { closeModal(); T = null; toast(`${esc(pl.name)} left the trade.`); lobby(); }
 }

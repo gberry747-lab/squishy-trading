@@ -1,11 +1,12 @@
-import { TOYS, CATS, RARITY, BAGS, QUESTS, GOALS, WHEEL, STORIES, FRIENDS, byCat, TOY_LIST, playStyle } from './data.js';
+import { TOYS, CATS, RARITY, BAGS, QUESTS, GOALS, WHEEL, STORIES, FRIENDS, byCat, TOY_LIST, playStyle, QUEST } from './data.js';
 import { toySVG, icon, coinSVG } from './art.js';
 import { store, save, P, ensureDaily, addToy, removeToy, addCoins, count, ownedList, uniqueCount, track, newProfile, onChange, goalProgress, readyGoals, rollToy, rng, pick, today } from './state.js';
 import { $, esc, router, actions, sfx, playSound, glitterBurst, toggleMute, toyCard, coins, toast, modal, closeModal, confetti, prize } from './ui.js';
-import { tradeScreen } from './trade.js';
+import { tradeScreen, setHub } from './trade.js';
 import { gamesScreen } from './games.js';
 import { can3D, mount3D, dispose3D } from './buddy3d.js';
-import { studioScreen, studioReady, myDrawings } from './studio.js';
+import { studioScreen, studioReady, myDrawings, editDrawing, newDrawing } from './studio.js';
+import { initLang, lang, setLang, say } from './i18n.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -17,7 +18,7 @@ function header() {
   document.body.classList.toggle('no-profile', !p);
   if (!p) return;
   $('#coins').innerHTML = coins(p.coins);
-  $('#who').innerHTML = `<span class="who-art">${toySVG(p.buddy)}</span><span class="who-name">${esc(p.name)}</span>`;
+  $('#who').innerHTML = `<span class="who-art">${toySVG(p.buddy, p.style)}</span><span class="who-name" translate="no">${esc(p.name)}</span>`;
   $('#sound').innerHTML = icon(store.mute ? 'mute' : 'sound');
   $('#sound').setAttribute('aria-label', store.mute ? 'Turn sound on' : 'Turn sound off');
   const dot = readyGoals(p).length + p.daily.quests.filter((q) => !q.claimed && q.n >= QUESTS.find((x) => x.id === q.id).goal).length + (p.daily.spun ? 0 : 1);
@@ -25,13 +26,13 @@ function header() {
 }
 onChange(header);
 
-const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen };
+const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest };
 function go(to = tab, arg) {
   if (router.cleanup) { router.cleanup(); router.cleanup = null; }
   if (!P()) return welcome();
   ensureDaily();
   tab = to;
-  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to) ? 'page' : 'false'));
+  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' ? 'stories' : to) ? 'page' : 'false'));
   view.className = 'view v-' + to;
   view.innerHTML = SCREENS[to](arg);
   header();
@@ -45,20 +46,24 @@ actions.closeModal = () => closeModal();
 actions.sound = () => { toggleMute(); header(); };
 
 // ---------- welcome ----------
-let pickStarter = 'sq04';
+let pickStarter = 'sq04', pickStyle = 'girl';
 function welcome(adding = false) {
   document.body.classList.add('no-profile');
   view.className = 'view v-welcome';
   const first = store.profiles.length === 0;
   view.innerHTML = `<section class="welcome">
     <div class="welcome-toys" aria-hidden="true">${['sq12', 'pl02', 'fi01', 'sl05', 'sp07'].map((id, i) => `<span style="--i:${i}">${toySVG(id)}</span>`).join('')}</div>
-    <h1 class="big-title"><small>Grace Emilia's</small>Squishy Trading</h1>
+    <div class="lang-row" role="group" aria-label="Language" translate="no"><button class="chip" data-act="lang" data-v="en" aria-pressed="${lang() === 'en'}">English</button><button class="chip" data-act="lang" data-v="es" aria-pressed="${lang() === 'es'}">Espa\u00f1ol</button></div>
+    <h1 class="big-title"><small translate="no">Grace Emilia's</small><span translate="no">Squishy Trading</span></h1>
     <p class="lead">Collect squishies, slimes, fidgets and more. Trade with friends. Win coins. Squish everything.</p>
     <form class="card welcome-form" data-form="start">
       <label for="nm">What is your name?</label>
       <input id="nm" name="name" maxlength="14" autocomplete="off" value="${first ? 'Grace Emilia' : ''}" placeholder="Your name" required>
+      <fieldset><legend>Is your squishy a girl or a boy?</legend>
+        <div class="row"><button class="chip" type="button" data-act="pickStyle" data-v="girl" aria-pressed="${pickStyle === 'girl'}">Girl squishy</button><button class="chip" type="button" data-act="pickStyle" data-v="boy" aria-pressed="${pickStyle === 'boy'}">Boy squishy</button></div>
+      </fieldset>
       <fieldset><legend>Pick your first squishy</legend>
-        <div class="starter">${['sq04', 'sq08', 'sq06'].map((id) => toyCard(id, { act: 'starter', cls: id === pickStarter ? 'sel' : '', extra: `type="button" aria-pressed="${id === pickStarter}"` })).join('')}</div>
+        <div class="starter">${['sq04', 'sq08', 'sq06'].map((id) => `<button class="toy r-c ${id === pickStarter ? 'sel' : ''}" data-act="starter" data-id="${id}" type="button" aria-pressed="${id === pickStarter}"><span class="toy-art">${toySVG(id, pickStyle)}</span><span class="toy-name">${TOYS[id].name}</span></button>`).join('')}</div>
       </fieldset>
       <button class="btn primary big" type="submit">Let's play!</button>
       ${adding || !first ? '<button class="btn" type="button" data-act="cancelAdd">Back</button>' : ''}
@@ -68,13 +73,14 @@ actions.starter = (el) => {
   pickStarter = el.dataset.id; sfx.squish();
   document.querySelectorAll('.starter .toy').forEach((b) => { b.classList.toggle('sel', b === el); b.setAttribute('aria-pressed', b === el); });
 };
+actions.pickStyle = (el) => { pickStyle = el.dataset.v; sfx.tap(); const nm = $('#nm') ? $('#nm').value : ''; welcome(true); if ($('#nm')) $('#nm').value = nm; };
 actions.cancelAdd = () => { if (P()) go('home'); };
 document.addEventListener('submit', (e) => {
   const f = e.target.closest('[data-form]');
   if (!f) return;
   e.preventDefault();
   if (f.dataset.form === 'start') {
-    const p = newProfile(new FormData(f).get('name'), pickStarter);
+    const p = newProfile(new FormData(f).get('name'), pickStarter, pickStyle);
     go('home');
     prize(`Welcome, ${esc(p.name)}!`, `<p>Here is your starter pack: <b>7 toys</b> and ${coins(120)}. Press any toy to squish it!</p>`, pickStarter);
   }
@@ -119,6 +125,9 @@ function offerCard() {
 }
 actions.offerYes = () => {
   const p = P(), o = p.daily.offer;
+  // Only if the offer still stands: not used already, and both toys are still where they were.
+  if (!o || p.daily.offerDone || !count(o.want) || !p.daily.bots[o.bot] || !p.daily.bots[o.bot].includes(o.give)) return go('home');
+  p.daily.offerDone = true;
   removeToy(o.want); addToy(o.give);
   const inv = p.daily.bots[o.bot]; inv.splice(inv.indexOf(o.give), 1); inv.push(o.want);
   p.daily.offerDone = true; track('trade');
@@ -141,8 +150,13 @@ function home() {
         <p class="muted" id="squish-left">${squishText(d.squish)}</p><p class="pill" id="squish-hint" hidden>3D buddy: drag to spin, press to squish</p>
         <div class="row"><button class="btn primary big" data-act="go" data-to="trade">Start trading</button>
         ${d.spun ? '' : '<button class="btn big" data-act="wheel">Spin the prize wheel</button>'}</div></div>
-      <button class="hero-toy squish" data-squish data-toy="${p.buddy}" data-act="heroSquish" aria-label="Squish ${esc(TOYS[p.buddy].name)}">${toySVG(p.buddy)}</button>
+      <button class="hero-toy squish" data-squish data-toy="${p.buddy}" data-act="heroSquish" aria-label="Squish ${esc(TOYS[p.buddy].name)}">${toySVG(p.buddy, p.style)}</button>
     </section>
+    <section class="card"><h2>How do you want to play?</h2>
+      <div class="modes"><button class="mode" data-act="go" data-to="quest"><b>Story Mode</b><small>1 player. An adventure through the whole game.</small></button>
+      <button class="mode" data-act="playMode" data-v="bot"><b>1 player</b><small>You against the computer</small></button>
+      <button class="mode" data-act="playMode" data-v="local"><b>2 players</b><small>Together on this screen</small></button>
+      <button class="mode" data-act="playMode" data-v="online"><b>Online</b><small>A friend on their own device</small></button></div></section>
     ${offerCard()}
     <section class="card"><h2>Today's challenges</h2><ul class="quests">${d.quests.map(questRow).join('')}</ul>
       ${allClaimed ? (d.chest ? '<p class="muted">All done. New challenges tomorrow!</p>' : `<button class="btn primary" data-act="chest">Open the bonus chest</button>`) : '<p class="muted">Finish all three to open the bonus chest.</p>'}</section>
@@ -151,6 +165,12 @@ function home() {
     <section class="stats"><div><b>${uniqueCount()}</b><span>of ${TOY_LIST.length} toys found</span></div><div><b>${p.stats.trade || 0}</b><span>trades made</span></div><div><b>${Object.keys(p.stories).length}</b><span>of ${STORIES.length} stories read</span></div></section>`;
 }
 const squishText = (n) => (n > 0 ? `Press your buddy! ${n} coin squish${n === 1 ? '' : 'es'} left today.` : 'No coin squishes left today. You can still squish for fun!');
+actions.playMode = (el) => {
+  const v = el.dataset.v; sfx.tap();
+  if (v === 'online') { setHub('online'); return go('trade'); }
+  modal(`<h2>${v === 'bot' ? '1 player' : '2 players'}</h2><p class="muted">What would you like to do?</p><div class="modes"><button class="mode" data-act="modeGo" data-v="${v}" data-to="trade"><b>Trade toys</b><small>${v === 'bot' ? 'With a computer friend' : 'With a friend on this screen'}</small></button><button class="mode" data-act="modeGo" data-v="${v}" data-to="games"><b>Play games</b><small>${v === 'bot' ? 'Against the computer' : 'Take turns on this screen'}</small></button></div>`, { label: 'Choose what to play' });
+};
+actions.modeGo = (el) => { closeModal(); if (el.dataset.to === 'trade') setHub(el.dataset.v); go(el.dataset.to); if (el.dataset.to === 'games') document.querySelector('#sec-vs')?.scrollIntoView({ block: 'start' }); };
 actions.heroSquish = (el) => {
   const d = P().daily;
   if (d.squish <= 0) return;
@@ -161,7 +181,8 @@ actions.heroSquish = (el) => {
   el.append(f); setTimeout(() => f.remove(), 900);
 };
 actions.claimQuest = (el) => {
-  const q = P().daily.quests.find((x) => x.id === el.dataset.id), d = QUESTS.find((x) => x.id === q.id);
+  const q = P().daily.quests.find((x) => x.id === el.dataset.id), d = q && QUESTS.find((x) => x.id === q.id);
+  if (!q || !d) return go('home'); // yesterday's button after midnight
   if (q.claimed || q.n < d.goal) return;
   q.claimed = true; addCoins(d.coins); sfx.coin(); confetti(16); go('home');
   toast(`Challenge done! +${d.coins} coins`);
@@ -195,15 +216,17 @@ actions.spin = (el) => {
   if (p.daily.spun) return;
   p.daily.spun = true; save(); el.disabled = true; sfx.whoosh();
   const i = Math.floor(Math.random() * WHEEL.length), w = WHEEL[i];
+  const wonId = w.coins ? null : w.plushie ? rollToy(['plushie'], [0, 70, 25, 5]) : rollToy(['squishy'], [50, 35, 12, 3]);
+  const wonNew = wonId ? !p.seen[wonId] : false;
+  if (w.coins) addCoins(w.coins); else addToy(wonId);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   $('#wheel').style.transition = reduce ? 'none' : 'transform 3.2s cubic-bezier(.15,.8,.2,1)';
   $('#wheel').style.transform = `rotate(${360 * 5 - (i * 45 + 22.5)}deg)`;
   setTimeout(() => {
     closeModal(); go('home');
-    if (w.coins) { addCoins(w.coins); prize('You won coins!', `<p>The wheel gives you ${coins(w.coins)}. Come back tomorrow for another spin.</p>`); }
+    if (w.coins) { prize('You won coins!', `<p>The wheel gives you ${coins(w.coins)}. Come back tomorrow for another spin.</p>`); }
     else {
-      const id = w.plushie ? rollToy(['plushie'], [0, 70, 25, 5]) : rollToy(['squishy'], [50, 35, 12, 3]);
-      const isNew = !p.seen[id]; addToy(id);
+      const id = wonId, isNew = wonNew;
       prize(w.plushie ? 'A bonus plushie!' : 'A free squishy!', `<p>${isNew ? 'It is brand new for your shelf!' : 'Another one to trade!'}</p>`, id);
     }
   }, reduce ? 300 : 3400);
@@ -222,7 +245,7 @@ function toys() {
   }
   return `<h1>${shelf === 'mine' ? 'My toys' : CATS[shelf].name + ' shelf'}</h1>
     <p class="muted">${shelf === 'mine' ? 'Tap a toy to squish it, sell extras or make it your buddy.' : shelf === 'plushie' ? 'Plushies are bonus prizes. Win them from stories, goals, the prize wheel and Mega bags.' : 'Find every toy on this shelf to win a bonus plushie.'}</p>
-    <div class="row"><button class="btn primary" data-act="go" data-to="studio">Draw your own squishy</button>${myDrawings().length ? `<span class="pill">${myDrawings().length} handmade</span>` : ''}</div>
+    <div class="row"><button class="btn primary" data-act="newDraw">Draw your own squishy</button>${myDrawings().length ? `<span class="pill">${myDrawings().length} handmade</span>` : ''}</div>
     <div class="chips" role="tablist">${chips.map(([k, l]) => `<button class="chip" role="tab" aria-selected="${k === shelf}" data-act="shelf" data-id="${k}">${l}</button>`).join('')}</div>
     <div class="grid">${grid}</div>`;
 }
@@ -234,8 +257,32 @@ actions.toy = (el) => {
     <h2>${esc(t.name)}</h2><p><span class="pill r-${t.r}">${RARITY[t.r].name}</span> <span class="pill">${CATS[t.cat].one}</span></p>
     <p>Worth ${coins(t.value)} &middot; ${n ? `You have ${n}` : 'You traded this one away'}</p><p class="muted">${can3D(id) ? 'Drag to spin it around. Press and hold to squish!' : 'Press and hold to squish!'}</p>
     <div class="row center">${n && p.buddy !== id ? `<button class="btn primary" data-act="buddy" data-id="${id}">Make my buddy</button>` : ''}
-    ${n > 1 ? `<button class="btn" data-act="sell" data-id="${id}">Sell 1 extra for ${coins(Math.round(t.value / 2))}</button>` : ''}</div></div>`, { label: t.name, onClose: dispose3D });
+    ${n > 1 ? `<button class="btn" data-act="sell" data-id="${id}">Sell 1 extra for ${coins(Math.round(t.value / 2))}</button>` : ''}</div>
+    ${t.custom && n ? `<div class="row center made-row"><button class="btn" data-act="editToy" data-id="${id}">Edit drawing</button><button class="btn" data-act="realToy" data-id="${id}">${t.art.real ? 'Back to my drawing' : 'Make it lifelike (3D)'}</button><button class="btn danger" data-act="delToy" data-id="${id}">Delete</button></div>` : ''}</div>`, { label: t.name, onClose: dispose3D });
   if (can3D(id)) mount3D($('.detail-toy'), id);
+};
+actions.editToy = (el) => { closeModal(); editDrawing(el.dataset.id); };
+// Turn a drawing into a puffy 3D squishy you can spin (and back again).
+actions.realToy = (el) => {
+  const id = el.dataset.id, t = TOYS[id];
+  t.art.real = !t.art.real; store.custom[id] = t.art; save();
+  closeModal(); go(tab);
+  document.querySelector(`.grid .toy[data-id="${id}"]`)?.click();
+  toast(t.art.real ? 'Now it is lifelike! Drag to spin it around.' : 'Back to your drawing.');
+};
+actions.delToy = (el) => {
+  const id = el.dataset.id;
+  modal(`<div class="detail"><div class="detail-toy">${toySVG(id)}</div><h2>Delete ${esc(TOYS[id].name)}?</h2><p>This drawing will be gone for good. It cannot be undone.</p>
+    <div class="row center"><button class="btn" data-act="closeModal" autofocus>Keep it</button><button class="btn danger" data-act="delToyYes" data-id="${id}">Yes, delete</button></div></div>`, { label: 'Delete drawing' });
+};
+actions.delToyYes = (el) => {
+  const id = el.dataset.id, p = P(), name = TOYS[id].name;
+  removeToy(id, count(id));
+  if (p.buddy === id) p.buddy = ownedList()[0] || 'sq04';
+  // Keep the picture only if someone else on this device still holds a copy.
+  const held = store.profiles.some((x) => x.inv[id] || (x.daily && Object.values(x.daily.bots || {}).some((b) => b.includes(id))));
+  if (!held) delete store.custom[id];
+  save(); closeModal(); go(tab); toast(`${esc(name)} was deleted.`);
 };
 actions.buddy = (el) => { P().buddy = el.dataset.id; save(); closeModal(); go(tab); toast(`${esc(TOYS[el.dataset.id].name)} is your buddy now!`); };
 actions.sell = (el) => {
@@ -277,15 +324,17 @@ actions.buy = (el) => {
 const endings = (s) => Object.values(s.nodes).filter((n) => n.end).length;
 function stories() {
   const p = P();
+  const q = p.quest || { ch: 0 };
   return `<h1>Story time</h1><p class="muted">You choose what happens next. Every story has four endings to find. Finish a story to win coins and a plushie.</p>
+    <button class="card story-card quest-card" data-act="go" data-to="quest"><span class="story-art">${toySVG('sq23')}</span><span><b>Story Mode: The Glitter Crown</b><small>${q.ch >= QUEST.length ? 'Finished! The crown is whole.' : `Chapter ${Math.min(q.ch + 1, QUEST.length)} of ${QUEST.length}. Read, solve and explore.`}</small></span></button>
     <div class="story-list">${STORIES.map((s) => {
       const got = Object.keys(p.stories[s.id] || {}).length;
       return `<button class="card story-card" data-act="story" data-id="${s.id}"><span class="story-art">${toySVG(s.toy)}</span>
-        <span><b>${s.title}</b><small>${got ? `${got} of ${endings(s)} endings found` : `Prize: ${coins(s.coins)} + ${esc(TOYS[s.prize].name)}`}</small></span></button>`;
+        <span><b>${s.title}</b><small><span class="pill">${s.kind || 'Friends'}</span> ${got ? `${got} of ${endings(s)} endings found` : `Prize: ${coins(s.coins)} + ${esc(TOYS[s.prize].name)}`}</small></span></button>`;
     }).join('')}</div>`;
 }
 let reading = null;
-actions.story = (el) => { reading = { s: STORIES.find((x) => x.id === el.dataset.id) }; reading.at = reading.s.start; sfx.tap(); page(); };
+actions.story = (el) => { reading = { s: STORIES.find((x) => x.id === el.dataset.id), ok: {} }; reading.at = reading.s.start; sfx.tap(); page(); };
 actions.choose = (el) => { reading.at = el.dataset.id; sfx.tap(); page(); };
 // Story pages are read by a recorded narrator. Pages that say the player's name were
 // recorded as "Grace Emilia", so other names fall back to the device's own voice.
@@ -294,7 +343,7 @@ function stopVoice() { if (voice) { voice.pause(); voice = null; } if ('speechSy
 actions.readAloud = (btn) => {
   if (voice || ('speechSynthesis' in window && speechSynthesis.speaking)) return stopVoice();
   const { s, at } = reading, raw = s.nodes[at].t;
-  if (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia') {
+  if (lang() === 'en' && (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia')) {
     const a = new Audio(`audio/stories/${s.id}_${at}.mp3`);
     voice = a; btn.setAttribute('aria-pressed', 'true');
     a.onended = () => { if (voice === a) stopVoice(); };
@@ -307,7 +356,7 @@ actions.readAloud = (btn) => {
 const deviceVoice = () => {
   if (!('speechSynthesis' in window)) return toast('This device cannot read aloud.');
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance($('#story-text').textContent); u.rate = 0.9; u.pitch = 1.1;
+  const u = new SpeechSynthesisUtterance($('#story-text').textContent); u.rate = 0.9; u.pitch = 1.1; u.lang = lang() === 'es' ? 'es-US' : 'en-US';
   speechSynthesis.speak(u);
 };
 function page() {
@@ -318,21 +367,23 @@ function page() {
   if (n.end) {
     const rec = (p.stories[s.id] = p.stories[s.id] || {}), first = Object.keys(rec).length === 0, newEnd = !rec[n.end];
     rec[n.end] = 1;
-    const c = first ? s.coins : newEnd ? 15 : 5;
+    const paid = (p.daily.read = p.daily.read || {});
+    const c = first ? s.coins : newEnd ? 15 : paid[s.id] ? 0 : 5;
+    paid[s.id] = 1;
     addCoins(c); track('story');
     if (first) addToy(s.prize);
     sfx.win(); confetti();
-    foot = `<div class="ending"><p class="pill big">Ending: ${n.end}</p><p>You win ${coins(c)}${first ? ` and <b>${esc(TOYS[s.prize].name)}</b>!` : newEnd ? ' for finding a new ending.' : '.'}</p>
+    foot = `<div class="ending"><p class="pill big">Ending: <span>${n.end}</span></p><p>${c ? `You win ${coins(c)}${first ? ` and <b>${esc(TOYS[s.prize].name)}</b>!` : newEnd ? ' for finding a new ending.' : '.'}` : 'You found this ending already today. Try a different choice to find a new one!'}</p>
       ${first ? `<div class="prize-toy squish" data-squish data-toy="${s.prize}">${toySVG(s.prize)}</div>` : ''}
       <p class="muted">${Object.keys(rec).length} of ${endings(s)} endings found.</p>
       <div class="row center"><button class="btn primary" data-act="story" data-id="${s.id}">Read again</button><button class="btn" data-act="go" data-to="stories">More stories</button></div></div>`;
   } else {
-    foot = `<p class="what">What do you do?</p><div class="choices">${n.c.map(([l, to]) => `<button class="btn big choice" data-act="choose" data-id="${to}">${l}</button>`).join('')}</div>`;
+    foot = n.ask && !reading.ok[at] ? askHTML(n.ask, 'storyAsk') : `<p class="what">What do you do?</p><div class="choices">${n.c.map(([l, to]) => `<button class="btn big choice" data-act="choose" data-id="${to}">${l}</button>`).join('')}</div>`;
   }
   view.className = 'view v-reader';
   view.innerHTML = `<button class="btn back" data-act="go" data-to="stories">${icon('back')} Stories</button>
-    <article class="card reader"><h1>${s.title}</h1><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${n.art}">${toySVG(n.art)}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
-    <p id="story-text" class="story-text">${esc(n.t.replaceAll('{name}', p.name))}</p>
+    <article class="card reader"><h1>${s.title}</h1><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${n.art}">${toySVG(n.art)}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy, p.style)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
+    <p id="story-text" class="story-text" translate="no">${esc(say(n.t).replaceAll('{name}', p.name))}</p>
     <button class="btn sm" data-act="readAloud" id="read-btn" aria-pressed="false">${icon('sound')} Read it to me</button>${foot}</article>`;
   window.scrollTo(0, 0);
 }
@@ -340,7 +391,8 @@ function page() {
 // ---------- players, sound, grown-ups ----------
 actions.who = () => {
   const p = P();
-  modal(`<h2>Who is playing?</h2><div class="players">${store.profiles.map((x) => `<button class="player ${x.id === p.id ? 'sel' : ''}" data-act="switch" data-id="${x.id}"><span class="who-art">${toySVG(x.buddy)}</span><b>${esc(x.name)}</b><small>${coins(x.coins)}</small></button>`).join('')}</div>
+  modal(`<h2>Who is playing?</h2><div class="players">${store.profiles.map((x) => `<button class="player ${x.id === p.id ? 'sel' : ''}" data-act="switch" data-id="${x.id}"><span class="who-art">${toySVG(x.buddy)}</span><b translate="no">${esc(x.name)}</b><small>${coins(x.coins)}</small></button>`).join('')}</div>
+    <div class="lang-row" role="group" aria-label="Language" translate="no"><span>Language / Idioma:</span><button class="chip" data-act="lang" data-v="en" aria-pressed="${lang() === 'en'}">English</button><button class="chip" data-act="lang" data-v="es" aria-pressed="${lang() === 'es'}">Espa\u00f1ol</button></div>
     <div class="row"><button class="btn primary" data-act="pickIcon">Change my squishy icon</button><button class="btn" data-act="addPlayer">Add a player</button><button class="btn" data-act="grownups">For grown-ups</button></div>`, { label: 'Players' });
 };
 actions.pickIcon = () => {
@@ -349,7 +401,9 @@ actions.pickIcon = () => {
     <div class="grid pick-grid">${ownedList().map((id) => toyCard(id, { act: 'buddy', cls: id === p.buddy ? 'sel' : '', tag: id === p.buddy ? 'Now' : '' })).join('')}</div>
     <div class="row"><button class="btn" data-act="closeModal">Done</button><button class="btn" data-act="iconDraw">Draw a new one</button></div>`, { label: 'Pick your icon', cls: 'wide picker' });
 };
-actions.iconDraw = () => { closeModal(); go('studio'); };
+actions.iconDraw = () => { closeModal(); newDrawing(); };
+actions.newDraw = () => { sfx.tap(); newDrawing(); };
+actions.lang = (el) => { if (el.dataset.v !== lang()) setLang(el.dataset.v); };
 actions.switch = (el) => { store.cur = el.dataset.id; save(); closeModal(); go('home'); toast(`Hi, ${esc(P().name)}!`); };
 actions.addPlayer = () => { closeModal(); welcome(true); };
 actions.grownups = () => modal(`<h2>For grown-ups</h2>
@@ -363,6 +417,59 @@ actions.removeYes = () => {
   store.profiles = store.profiles.filter((x) => x.id !== store.cur);
   store.cur = store.profiles[0]?.id || null; save(); closeModal(); go('home');
 };
+
+// ---------- questions that make the reader read and count ----------
+function askHTML(ask, act) {
+  const opts = [ask.a, ...ask.w].sort(() => Math.random() - 0.5);
+  return `<div class="ask"><p class="what">Answer to keep going:</p><p class="ask-q">${ask.q}</p>
+    <div class="choices">${opts.map((o) => `<button class="btn big choice" data-act="${act}" data-hit="${o === ask.a ? 1 : 0}">${o}</button>`).join('')}</div><p class="muted" id="ask-say" aria-live="polite"></p></div>`;
+}
+const wrongAsk = (el) => { sfx.no(); el.disabled = true; const s = $('#ask-say'); if (s) s.textContent = 'Not quite. Read the page again, slowly, and try once more.'; };
+actions.storyAsk = (el) => {
+  if (el.dataset.hit !== '1') return wrongAsk(el);
+  reading.ok[reading.at] = 1; sfx.win(); page();
+};
+
+// ---------- Story Mode: The Glitter Crown ----------
+const qState = (p) => (p.quest = p.quest || { ch: 0, step: 'read', base: 0 });
+function quest() {
+  const p = P(), q = qState(p), n = QUEST.length;
+  const gems = `<div class="gems" role="img" aria-label="${q.ch} of ${n} gems found">${QUEST.map((_, i) => `<i class="${i < q.ch ? 'got' : ''}"></i>`).join('')}</div>`;
+  const top = `<button class="btn back" data-act="go" data-to="home">${icon('back')} Home</button><h1>The Glitter Crown</h1>${gems}`;
+  if (q.ch >= n) return `${top}<article class="card reader"><div class="reader-art squish" data-squish data-toy="pl08">${toySVG('pl08')}</div><p class="story-text">The Glitter Crown is whole again, and Squishy Town is brighter than ever. Mayor Mochi bows. You are the hero of the town!</p><p class="muted">You finished Story Mode. You can still play everything, any time.</p><div class="row center"><button class="btn primary" data-act="go" data-to="stories">Read more stories</button><button class="btn" data-act="questAgain">Play Story Mode again</button></div></article>`;
+  const c = QUEST[q.ch];
+  let body;
+  if (q.step === 'mission') {
+    const done = Math.min(c.goal, (p.stats[c.ev] || 0) - q.base), ok = done >= c.goal;
+    body = `<p class="what">Your mission</p><p class="ask-q">${c.todo}</p><div class="bar" role="img" aria-label="${done} of ${c.goal}"><i style="width:${(done / c.goal) * 100}%"></i></div><p class="muted">${done} of ${c.goal} done</p>
+      <div class="row center">${ok ? `<button class="btn primary big" data-act="questGem">Collect the gem!</button>` : `<button class="btn primary big" data-act="go" data-to="${c.to}">Go do it</button>`}</div>${ok ? '' : '<p class="muted">Come back here when you are done.</p>'}`;
+  } else {
+    body = askHTML(q.step === 'math' ? c.mq : c.rq, 'questAsk').replace('Answer to keep going:', q.step === 'math' ? 'Now a number puzzle:' : 'First, a question about what you read:');
+  }
+  return `${top}<article class="card reader"><p class="pill">Chapter ${q.ch + 1} of ${n}</p><h2>${c.title}</h2><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${c.art}">${toySVG(c.art)}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy, p.style)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
+    <p id="story-text" class="story-text" translate="no">${esc(say(c.t))}</p>${q.step === 'read' ? `<button class="btn sm" data-act="questRead" id="read-btn" aria-pressed="false">${icon('sound')} Read it to me</button>` : ''}${body}</article>`;
+}
+actions.questRead = () => {
+  if (!('speechSynthesis' in window)) return toast('This device cannot read aloud.');
+  if (speechSynthesis.speaking) return speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance($('#story-text').textContent); u.rate = 0.9; u.pitch = 1.1; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u);
+};
+actions.questAsk = (el) => {
+  if (el.dataset.hit !== '1') return wrongAsk(el);
+  const p = P(), q = qState(p), c = QUEST[q.ch];
+  window.speechSynthesis?.cancel(); sfx.win();
+  if (q.step === 'read') q.step = 'math';
+  else { q.step = 'mission'; q.base = p.stats[c.ev] || 0; if (c.grant) addCoins(c.grant); }
+  save(); go('quest');
+};
+actions.questGem = () => {
+  const p = P(), q = qState(p), c = QUEST[q.ch];
+  if (q.step !== 'mission' || (p.stats[c.ev] || 0) - q.base < c.goal) return;
+  q.ch++; q.step = 'read'; q.base = 0; addCoins(c.coins); if (c.toy) addToy(c.toy);
+  save(); go('quest');
+  prize(q.ch >= QUEST.length ? 'The crown is whole!' : `Gem ${q.ch} of ${QUEST.length} found!`, `<p>You win ${coins(c.coins)}${c.toy ? ' and a Legendary plushie!' : '.'}</p>`, c.toy);
+};
+actions.questAgain = () => { P().quest = { ch: 0, step: 'read', base: 0 }; save(); go('quest'); };
 
 // ---------- global input ----------
 document.addEventListener('click', (e) => {
@@ -418,5 +525,6 @@ document.addEventListener('pointermove', (e) => {
 
 $('#nav').innerHTML = [['home', 'Home'], ['toys', 'My toys'], ['trade', 'Trade'], ['games', 'Games'], ['stories', 'Stories'], ['shop', 'Shop']]
   .map(([k, l]) => `<button data-act="go" data-to="${k}">${icon(k)}<span>${l}</span></button>`).join('');
+await initLang();
 if (P()) ensureDaily();
 go('home');

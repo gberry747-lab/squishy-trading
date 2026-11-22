@@ -40,10 +40,10 @@ export function rollToy(cats, odds, r = Math.random, only = null) {
   return pick(pool, r).id;
 }
 
-export function newProfile(name, starter) {
+export function newProfile(name, starter, style = 'girl') {
   const p = {
     id: 'p' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
-    name: name.trim().slice(0, 14) || 'Player', buddy: starter, coins: 120, inv: {}, seen: {},
+    name: name.trim().slice(0, 14) || 'Player', buddy: starter, style, coins: 120, inv: {}, seen: {},
     stats: {}, claimed: {}, stories: {}, daily: null, streak: 0, lastDay: '',
   };
   store.profiles.push(p);
@@ -72,6 +72,8 @@ export function ensureDaily(p = P()) {
   if (p.daily && p.daily.date === d) {
     // Friends added in a game update get their toys for today too.
     FRIENDS.forEach((b) => { if (!p.daily.bots[b.id]) p.daily.bots[b.id] = botInventory(b, d + p.id); });
+    // A challenge that no longer exists (after a game update) is dropped instead of crashing the screen.
+    p.daily.quests = p.daily.quests.filter((q) => QUESTS.some((x) => x.id === q.id));
     return;
   }
   const r = rng(d + p.id);

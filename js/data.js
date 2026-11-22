@@ -228,7 +228,17 @@ fi49|Neon Popper|popper|lime||c
 fi50|Sunset Spinner|spinner|orange|pink|c
 fi51|Berry Dimple|dimple|grape||r
 fi52|Ocean Slug|slug|teal||c
-fi53|Candy Maze|maze|pink|white|r`,
+fi53|Candy Maze|maze|pink|white|r
+fi54|Bubble Wrap|wrap|sky||c
+fi55|Pink Bubble Wrap|wrap|pink||c
+fi56|Click Switch|switch|yellow|blue|c
+fi57|Night Switch|switch|navy|lime|r
+fi58|Liquid Timer|timer|blue|pink|r
+fi59|Sunset Timer|timer|orange|yellow|e
+fi60|Pom Pom Ball|pom|pink|lilac|c
+fi61|Rainbow Pom Ball|pom|pink||e|rainbow
+fi62|Flippy Chain|chain|gray|blue|c
+fi63|Golden Flippy Chain|chain|gold|orange|l|glitter`,
   slime: `
 sl01|Strawberry Slime|glossy|pink||c
 sl02|Ocean Slime|glossy|blue||c
@@ -476,6 +486,10 @@ export const QUESTS = [
   { id: 'four1', text: 'Win a game of Four in a Row', ev: 'four', goal: 1, coins: 30 },
   { id: 'math8', text: 'Answer 8 Shop Math questions', ev: 'math', goal: 8, coins: 30 },
   { id: 'tug1', text: 'Win a Tap Tug', ev: 'tug', goal: 1, coins: 25 },
+  { id: 'spell4', text: 'Spell 4 words in Spell It', ev: 'spell', goal: 4, coins: 35 },
+  { id: 'read5', text: 'Solve 5 clues in Read and Find', ev: 'readfind', goal: 5, coins: 35 },
+  { id: 'times8', text: 'Answer 8 times tables', ev: 'times', goal: 8, coins: 35 },
+  { id: 'rhyme8', text: 'Find 8 rhymes in Rhyme Time', ev: 'rhyme', goal: 8, coins: 30 },
   { id: 'bomb5', text: 'Throw 5 glitter bombs', ev: 'bomb', goal: 5, coins: 25 },
   { id: 'count8', text: 'Count right 8 times in Quick Count', ev: 'count', goal: 8, coins: 30 },
 ];
@@ -490,13 +504,14 @@ export const GOALS = [
   { id: 'u160', text: 'Collect 160 different toys', kind: 'unique', goal: 160, coins: 700 },
   { id: 'u220', text: 'Collect 220 different toys', kind: 'unique', goal: 220, coins: 900 },
   { id: 'u280', text: 'Collect 280 different toys', kind: 'unique', goal: 280, coins: 1200 },
-  { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: TOY_LIST.length, coins: 1000 },
+  { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: TOY_LIST.length, coins: 2500 },
   { id: 't1', text: 'Make your first trade', kind: 'stat', ev: 'trade', goal: 1, coins: 20 },
   { id: 't10', text: 'Make 10 trades', kind: 'stat', ev: 'trade', goal: 10, coins: 80 },
   { id: 't30', text: 'Make 30 trades', kind: 'stat', ev: 'trade', goal: 30, coins: 200 },
   { id: 'f1', text: 'Trade with a real friend', kind: 'stat', ev: 'friendtrade', goal: 1, coins: 60 },
   { id: 's5', text: 'Finish 5 stories', kind: 'storiesN', goal: 5, coins: 150 },
-  { id: 's10', text: 'Finish all 10 stories', kind: 'storiesN', goal: 10, coins: 300 },
+  { id: 's10', text: 'Finish 10 stories', kind: 'storiesN', goal: 10, coins: 300 },
+  { id: 's14', text: 'Finish all 14 stories', kind: 'storiesN', goal: 14, coins: 400 },
   { id: 'setsquishy', text: 'Finish the Squishies shelf', kind: 'set', cat: 'squishy', coins: 200, toy: 'pl09' },
   { id: 'setfidget', text: 'Finish the Fidgets shelf', kind: 'set', cat: 'fidget', coins: 200, toy: 'pl04' },
   { id: 'setslime', text: 'Finish the Slimes shelf', kind: 'set', cat: 'slime', coins: 200, toy: 'pl10' },
@@ -644,17 +659,84 @@ export const STORIES = [
   },
 ];
 
+// Stories with reading and math questions built in. "ask" must be answered before the choices appear.
+STORIES.push(
+  {
+    id: 'crown', kind: 'Princess', title: 'Princess Mochi and the Missing Crown', toy: 'sq01', prize: 'pl36', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'sq01', t: "Princess Mochi wakes up in Squishy Castle. Today is the Royal Trade Fair, but her glitter crown is gone! On her pillow she finds three pink feathers and a note that says, \"Follow the sparkle.\"", ask: { q: 'What did Princess Mochi find on her pillow?', a: 'Three pink feathers and a note', w: ['A golden key', 'Two blue shoes'] }, c: [['Follow the sparkles to the garden', 'b'], ['Ask the royal guards for help', 'c']] },
+      b: { art: 'sq24', t: 'In the garden, the sparkles lead past 4 rose bushes and 5 lily ponds. A baby dragon is asleep in the roses, hugging something shiny.', ask: { q: 'How many rose bushes and lily ponds did she pass altogether?', a: '9', w: ['8', '10'] }, c: [['Tiptoe closer', 'd'], ['Sing a gentle wake-up song', 'e']] },
+      c: { art: 'pl01', t: "The guards are two teddy bears named Button and Bow. \"We saw a little dragon carry something up the tall tower,\" they say. The tower has 20 steps, and Mochi has already climbed 12.", ask: { q: 'How many more steps are there to the top?', a: '8', w: ['7', '32'] }, c: [['Climb to the very top', 'f'], ['Call up to the dragon kindly', 'g']] },
+      d: { art: 'sq25', t: 'Mochi tiptoes over. The dragon is only hugging the crown because it is warm and shiny. Mochi gives him her soft blanket instead, and he hands back the crown with a sleepy smile.', end: 'Gentle Princess' },
+      e: { art: 'pl12', t: "Mochi sings softly. The dragon opens one eye and hums along. \"I only borrowed it to see my reflection,\" he says. He places the crown on her head himself.", end: 'Royal Singer' },
+      f: { art: 'sq13', t: 'At the top of the tower, the crown is sitting in a nest of glitter. The little dragon made it a bed! Mochi thanks him and invites him to the fair.', end: 'Brave Climber' },
+      g: { art: 'pl36', t: "\"Hello up there! I am not angry,\" Mochi calls. The dragon flies down and lands on her shoulder with the crown in his paws. Kind words bring friends closer.", end: 'Kind Voice' },
+    },
+  },
+  {
+    id: 'island', kind: 'Adventure', title: 'The Treasure Map of Slime Island', toy: 'sl02', prize: 'pl24', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'pu02', t: '{name} finds an old map inside a putty tin. A dotted line crosses the sea to Slime Island, where an X marks the spot. Captain Ollie the penguin has a boat with 3 rows of 4 seats.', ask: { q: 'How many seats are on the boat?', a: '12', w: ['7', '14'] }, c: [['Sail through Bubble Bay', 'b'], ['Sail around Shark Rock', 'c']] },
+      b: { art: 'fi54', t: "Bubble Bay is full of giant bubbles. Each one you pop pushes the boat forward. The map says, \"Pop only the bubble with an EVEN number.\" You see bubbles marked 3, 6 and 9.", ask: { q: 'Which bubble should you pop?', a: '6', w: ['3', '9'] }, c: [['Land on the sandy beach', 'd'], ['Follow the glowing slime river', 'e']] },
+      c: { art: 'pl24', t: "A friendly shark named Finn swims up to the boat. \"These rocks are tricky,\" he says. \"I will guide you past them if you tell me why you want the treasure.\"", ask: { q: 'What does Finn offer to do?', a: 'Guide you past the rocks', w: ['Eat the map', 'Take the boat'] }, c: [['"To share it with my friends."', 'f'], ['"To find out what it is."', 'g']] },
+      d: { art: 'sl14', t: 'At the X you dig and dig. Clunk! It is a chest full of glitter slime jars, one for every friend back home.', end: 'Beach Explorer' },
+      e: { art: 'sl13', t: 'The glowing river carries your boat right into a secret cave. The treasure chest is sitting on a rock, shining green in the dark.', end: 'River Rider' },
+      f: { art: 'sq35', t: "\"Sharing is the best reason,\" says Finn. He leads you straight to the treasure, and you save the shiniest jar for him.", end: 'Sharing Captain' },
+      g: { art: 'sq19', t: "\"Being curious is how explorers are made,\" laughs Finn. Together you open the chest and count every sparkling jar.", end: 'Curious Sailor' },
+    },
+  },
+  {
+    id: 'rainbow', kind: 'Quest', title: 'The Quest for the Rainbow Springy', toy: 'sp07', prize: 'pl33', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'pl19', t: 'A wise old owl gives {name} a quest: find the three pieces of the Rainbow Springy. The red piece is in the Crunchy Caves. The yellow piece is on Mount Mochi. The blue piece is under Lake Glitter.', ask: { q: 'Where is the yellow piece?', a: 'On Mount Mochi', w: ['In the Crunchy Caves', 'Under Lake Glitter'] }, c: [['Go to the Crunchy Caves', 'b'], ['Climb Mount Mochi', 'c']] },
+      b: { art: 'sl06', t: 'The door of the Crunchy Caves has a number puzzle carved in stone: 5, 10, 15, __, 25. Say the missing number and the door will open.', ask: { q: 'What is the missing number?', a: '20', w: ['18', '30'] }, c: [['Share your snack with the cave bats', 'd'], ['Light your little lantern', 'e']] },
+      c: { art: 'sq02', t: 'Mount Mochi is 100 squishy steps high. You climb 60 steps and stop to rest beside a sleepy goat.', ask: { q: 'How many steps are left to climb?', a: '40', w: ['30', '160'] }, c: [['Ask the goat for a shortcut', 'f'], ['Keep climbing by yourself', 'g']] },
+      d: { art: 'sp05', t: 'The bats are so happy with the snack that they fly off and come back carrying the red piece. A kind hero always has helpers.', end: 'Friend of Bats' },
+      e: { art: 'sp11', t: 'Your lantern makes the cave walls sparkle. There, tucked in a crack, the red piece is glowing like a tiny sunset.', end: 'Lantern Bearer' },
+      f: { art: 'sp07', t: "\"A shortcut? Hop on,\" says the goat. He carries you to the top, where the yellow piece is bouncing in the wind.", end: 'Good Asker' },
+      g: { art: 'sp13', t: 'Step by step, you reach the top by yourself. The yellow piece is waiting, and so is the best view in the whole land.', end: 'Steady Climber' },
+    },
+  },
+  {
+    id: 'tea', kind: 'Princess', title: 'The Princess Tea Party Mix-Up', toy: 'sq29', prize: 'pl35', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'sq29', t: 'Princess Peaches is hosting a tea party for 6 guests. Each guest needs 2 cupcakes. But the royal baker made only 10!', ask: { q: 'How many cupcakes does she need altogether?', a: '12', w: ['8', '10'] }, c: [['Bake two more together', 'b'], ['Cut some cupcakes in half', 'c']] },
+      b: { art: 'do05', t: "In the royal kitchen, the recipe says, \"Stir slowly, then add the pink sprinkles LAST.\" Oh no! The sprinkles jar is wobbling on the edge of the shelf!", ask: { q: 'When do the sprinkles go in?', a: 'Last', w: ['First', 'Never'] }, c: [['Dive and catch the jar', 'd'], ['Ask Sir Buttons to help', 'e']] },
+      c: { art: 'pl34', t: "A small voice says, \"I do not mind a small piece.\" It is the tiniest guest, a shy hamster. Peaches cuts 2 cupcakes in half.", ask: { q: 'If you cut 2 cupcakes in half, how many pieces do you get?', a: '4', w: ['2', '6'] }, c: [['Give the hamster a whole cupcake anyway', 'f'], ['Let every guest choose a size', 'g']] },
+      d: { art: 'sq152', t: 'Peaches catches the jar with one hand. Not a single sprinkle is lost! The new cupcakes come out pink, sweet and perfect.', end: 'Quick Hands' },
+      e: { art: 'pl01', t: 'Sir Buttons the bear holds the shelf steady while Peaches stirs. Two more cupcakes, baked by two good friends.', end: 'Team Baker' },
+      f: { art: 'sq131', t: "The hamster's eyes go wide. \"A whole one? For me?\" Peaches takes a half herself. A good host makes sure the smallest guest feels big.", end: 'Generous Host' },
+      g: { art: 'sq149', t: 'Some guests pick a half and some pick a whole, and somehow there is exactly enough. When everyone has a say, everyone is happy.', end: 'Fair Princess' },
+    },
+  },
+);
+
+// Story Mode: one long adventure that walks through every part of the game.
+// Each chapter is: read the page, answer a reading question, answer a math question, then do a mission.
+export const QUEST = [
+  { title: 'Welcome to Squishy Town', art: 'sq23', t: "Long ago, the Glitter Crown kept Squishy Town bright and happy. One stormy night it broke into ten gems that rolled away in every direction. Mayor Mochi needs a hero. \"First,\" she says, \"show the toys that you are gentle. Give some squishies a good squeeze.\"", rq: { q: 'How many gems did the crown break into?', a: 'Ten', w: ['Two', 'Five'] }, mq: { q: 'There are 10 gems. If you find 3, how many are still lost?', a: '7', w: ['6', '13'] }, ev: 'squish', goal: 8, to: 'toys', todo: 'Squish your toys 8 times', coins: 20 },
+  { title: 'The Mystery Bag Shop', art: 'pl26', t: "The first gem rolled into the shop and hid inside a mystery bag. The shopkeeper is a fluffy sheep. She gives you 40 coins and whispers, \"Buy a bag. You never know what is inside.\"", rq: { q: 'Who is the shopkeeper?', a: 'A fluffy sheep', w: ['A green frog', 'A tall giraffe'] }, mq: { q: 'One bag costs 40 coins. How much do 2 bags cost?', a: '80', w: ['60', '42'] }, grant: 40, ev: 'bag', goal: 1, to: 'shop', todo: 'Open a mystery bag', coins: 20 },
+  { title: 'The Trading Post', art: 'pl02', t: "Poppy the bunny waves from the Trading Post. \"A gem is stuck behind my shelf! Make a fair trade with one of us and I will move it.\" Remember: a fair trade makes both friends happy.", rq: { q: 'What makes a trade fair?', a: 'Both friends are happy', w: ['One friend gets everything', 'Nobody gets a toy'] }, mq: { q: 'You give a toy worth 25. You get toys worth 10 and 15. What do your new toys add up to?', a: '25', w: ['20', '35'] }, ev: 'trade', goal: 1, to: 'trade', todo: 'Make a trade', coins: 30 },
+  { title: 'The Game Arcade', art: 'pl04', t: "The arcade lights flicker on and off. Max the dino says the next gem is the top prize. \"But nobody wins a prize by watching,\" he grins. \"You have to play.\"", rq: { q: 'Who runs the arcade?', a: 'Max the dino', w: ['Poppy the bunny', 'A fluffy sheep'] }, mq: { q: 'You score 12 points, then 9 more. What is your score now?', a: '21', w: ['20', '3'] }, ev: 'game', goal: 2, to: 'games', todo: 'Play 2 mini-games', coins: 30 },
+  { title: 'The Word Workshop', art: 'pl11', t: "Luna the cat keeps the fifth gem in a jar of letters. \"Words are magic,\" she purrs. \"Spell two words and the jar will open.\"", rq: { q: 'What is in the jar with the gem?', a: 'Letters', w: ['Coins', 'Slime'] }, mq: { q: 'UNICORN has 7 letters and CAT has 3. How many more letters does UNICORN have?', a: '4', w: ['10', '3'] }, ev: 'spell', goal: 2, to: 'games', todo: 'Spell 2 words in Spell It', coins: 30 },
+  { title: 'The Number Bridge', art: 'pl01', t: "A wobbly bridge crosses Slime River. Every plank has a number puzzle on it. Benny the bear says, \"Answer five sums and the bridge will hold steady.\"", rq: { q: 'What will make the bridge steady?', a: 'Answering five sums', w: ['Jumping up and down', 'Painting it pink'] }, mq: { q: 'There are 5 planks with 2 nails in each. How many nails?', a: '10', w: ['7', '25'] }, ev: 'addsub', goal: 5, to: 'games', todo: 'Get 5 right in Add and Take Away', coins: 30 },
+  { title: 'The Drawing Studio', art: 'pl07', t: "The seventh gem is hiding inside a blank page. Zara the fox hands you a pen. \"Draw a squishy of your very own, and the gem will pop out to meet it.\"", rq: { q: 'Where is the seventh gem hiding?', a: 'Inside a blank page', w: ['Under a bed', 'In a slime jar'] }, mq: { q: 'You draw 2 eyes, 1 smile and 4 legs. How many things did you draw?', a: '7', w: ['6', '8'] }, ev: 'draw', goal: 1, to: 'toys', todo: 'Draw your own squishy', coins: 30 },
+  { title: 'The Fidget Fair', art: 'pl16', t: "Pop! Click! Whirr! The Fidget Fair is the noisiest place in town. Leo the lion roars, \"Pop twenty bubbles and the gem is yours!\"", rq: { q: 'How many bubbles must you pop?', a: 'Twenty', w: ['Two', 'Twelve'] }, mq: { q: 'A sheet has 4 rows of 5 bubbles. How many bubbles is that?', a: '20', w: ['9', '25'] }, ev: 'pop', goal: 20, to: 'games', todo: 'Pop 20 bubbles in Bubble Wrap or Pop Party', coins: 30 },
+  { title: 'The Story Library', art: 'pl14', t: "Kiki the koala guards the quiet library. \"The ninth gem is being used as a bookmark,\" she says softly. \"Read one whole story to the end, and it will slide out.\"", rq: { q: 'What is the ninth gem being used as?', a: 'A bookmark', w: ['A hat', 'A spoon'] }, mq: { q: 'A story has 4 endings. You have found 1. How many are left to find?', a: '3', w: ['5', '4'] }, ev: 'story', goal: 1, to: 'stories', todo: 'Finish a story', coins: 30 },
+  { title: 'The Grand Trade Fair', art: 'pl12', t: "Nine gems glow in your pocket. The last one belongs to Ember the dragon, who loves treasure. \"Show me you are the fairest trader in town,\" she says. \"Make three trades, and the crown will be whole again.\"", rq: { q: 'Who has the last gem?', a: 'Ember the dragon', w: ['Kiki the koala', 'Mayor Mochi'] }, mq: { q: '9 gems plus 1 more gem makes how many?', a: '10', w: ['8', '19'] }, ev: 'trade', goal: 3, to: 'trade', todo: 'Make 3 trades', coins: 200, toy: 'pl08' },
+];
+
 // How each toy sounds and moves when you play with it.
 const CRUNCHY = ['beadball', 'taco', 'cookie', 'fries'];
-const POPPY = ['popper', 'popround', 'popheart', 'dimple', 'peapod', 'keycap', 'cube', 'meshball'];
-const CLICKY = ['track', 'slug', 'pad', 'magnet', 'maze', 'pen'];
+const POPPY = ['popper', 'popround', 'popheart', 'dimple', 'peapod', 'keycap', 'cube', 'meshball', 'wrap'];
+const CLICKY = ['track', 'slug', 'pad', 'magnet', 'maze', 'pen', 'switch', 'chain'];
 const SPINNY = ['spinner', 'pinwheel', 'gear', 'yoyo', 'ring', 'twisty', 'top'];
 export function playStyle(id) {
   const t = TOYS[id];
   if (!t) return 'squish';
   if (t.custom) return t.snd || 'squish';
   if (CRUNCHY.includes(t.v) || (t.cat === 'slime' && t.v === 'crunchy')) return 'crunch';
-  if (t.cat === 'fidget') return SPINNY.includes(t.v) ? 'spin' : POPPY.includes(t.v) ? 'pop' : CLICKY.includes(t.v) ? 'click' : t.v === 'noodle' ? 'stretch' : 'squish';
+  if (t.cat === 'fidget') return SPINNY.includes(t.v) ? 'spin' : POPPY.includes(t.v) ? 'pop' : CLICKY.includes(t.v) ? 'click' : t.v === 'noodle' ? 'stretch' : t.v === 'pom' ? 'soft' : t.v === 'timer' ? 'squelch' : 'squish';
   if (t.cat === 'springy') return 'boing';
   if (t.cat === 'slime') return 'squelch';
   if (t.cat === 'putty') return 'stretch';
@@ -678,7 +760,7 @@ export function cleanDef(d) {
   if (!strokes.length) return null;
   const faces = (Array.isArray(d.faces) ? d.faces : []).slice(0, 6).map((f) => ({ x: num(f && f.x, 0, 100), y: num(f && f.y, 0, 100), s: num(f && f.s, 0.4, 2) }));
   const name = String(d.name || '').replace(/[<>&"']/g, '').trim().slice(0, 18) || 'My Squishy';
-  return { id: String(d.id), name, snd: SOUNDS.includes(d.snd) ? d.snd : 'squish', strokes, faces };
+  return { id: String(d.id), name, snd: SOUNDS.includes(d.snd) ? d.snd : 'squish', real: !!d.real, strokes, faces };
 }
 export function registerCustom(d) {
   const c = cleanDef(d);

@@ -11,6 +11,8 @@ function loadPeer() {
     if (window.Peer) return res();
     const s = document.createElement('script');
     s.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+    // Only run this exact file: if it is ever changed on the server, the browser refuses it.
+    s.integrity = 'sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR'; s.crossOrigin = 'anonymous';
     s.onload = res; s.onerror = () => rej(new Error('offline'));
     document.head.append(s);
   });
@@ -60,7 +62,7 @@ export class Room {
         this.sync();
       } else if (!this.conns[c.peer]) return;
       else if (m.to === 'host') this.emit('msg', c.peer, m);
-      else if (this.conns[m.to]) this.conns[m.to].send({ ...m, from: c.peer });
+      else if (typeof m.to === 'string' && Object.prototype.hasOwnProperty.call(this.conns, m.to)) this.conns[m.to].send({ ...m, from: c.peer });
     });
     c.on('close', () => this.drop(c.peer));
     c.on('error', () => this.drop(c.peer));
@@ -90,7 +92,7 @@ export class Room {
         c.on('data', (m) => {
           if (!m || typeof m !== 'object') return;
           if (m.t === 'room' && Array.isArray(m.players)) {
-            this.players = m.players.slice(0, 6).map((p) => ({ id: String(p.id), ...cleanInfo(p) }));
+            this.players = m.players.filter((p) => p && typeof p === 'object' && p.id != null).slice(0, 6).map((p) => ({ id: String(p.id), ...cleanInfo(p) }));
             if (!this.joined) { this.joined = true; clearTimeout(timer); this.peer = peer; this.code = code; res(code); }
             this.emit('players');
           } else if (m.t === 'full') fail(new Error('full'));

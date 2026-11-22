@@ -9,13 +9,13 @@ const INK = 0x2a1846;
 const A = 1.18, B = 0.95, C = 1.0; // body half-sizes: wide, short, deep (a squashed ball)
 let loading = null, live = null;
 
-export const can3D = (id) => !!TOYS[id] && TOYS[id].cat === 'squishy' && SHAPES.has(TOYS[id].v);
+export const can3D = (id) => !!TOYS[id] && (TOYS[id].custom ? !!TOYS[id].art.real : TOYS[id].cat === 'squishy' && SHAPES.has(TOYS[id].v));
 
 function load() {
   if (window.THREE) return Promise.resolve();
   if (!loading) loading = new Promise((res, rej) => {
     const s = document.createElement('script');
-    s.src = SRC; s.onload = res; s.onerror = () => { loading = null; rej(new Error('offline')); };
+    s.src = SRC; s.integrity = 'sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu'; s.crossOrigin = 'anonymous'; s.onload = res; s.onerror = () => { loading = null; rej(new Error('offline')); };
     document.head.append(s);
   });
   return loading;
@@ -38,7 +38,45 @@ function shadowTexture(T) {
   return new T.CanvasTexture(c);
 }
 
+// A player's own drawing, puffed up into a real 3D squishy. The biggest closed shape becomes the
+// body (or, if there is none, a soft outline around everything drawn), and the whole drawing is
+// printed on the front like a decorated cushion.
+function buildDrawing(T, t) {
+  const a = t.art, pts = (k) => { const o = []; for (let i = 0; i < k.p.length; i += 2) o.push([k.p[i] / 100, 1 - k.p[i + 1] / 100]); return o; };
+  const area = (o) => Math.abs(o.reduce((s, p, i) => { const q = o[(i + 1) % o.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
+  let outline = null, body = null;
+  a.strokes.filter((k) => k.f).forEach((k) => { const o = pts(k); if (!outline || area(o) > area(outline)) { outline = o; body = k; } });
+  if (!outline || area(outline) < 0.03) { // no big closed shape: wrap everything in a rounded hull
+    const all = a.strokes.flatMap(pts); const cx = all.reduce((s, p) => s + p[0], 0) / all.length, cy = all.reduce((s, p) => s + p[1], 0) / all.length;
+    outline = []; body = null;
+    for (let i = 0; i < 40; i++) { const an = (i / 40) * Math.PI * 2, dx = Math.cos(an), dy = Math.sin(an); let far = 0.12; all.forEach((p) => { const d = (p[0] - cx) * dx + (p[1] - cy) * dy; if (d > far) far = d; }); outline.push([cx + dx * (far + 0.05), cy + dy * (far + 0.05)]); }
+  }
+  const thin = outline.filter((p, i) => i % Math.max(1, Math.floor(outline.length / 90)) === 0);
+  const shape = new T.Shape(); thin.forEach((p, i) => (i ? shape.lineTo(p[0], p[1]) : shape.moveTo(p[0], p[1]))); shape.closePath();
+  // the drawing as a texture for the front and back
+  const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d'), S = 5.12;
+  const bodyCol = body ? body.c : '#FFD9EC', tint = (hex) => { const n = parseInt(hex.slice(1), 16); return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v + (255 - v) * 0.3).toString(16).padStart(2, '0')).join(''); };
+  g.fillStyle = tint(bodyCol); g.fillRect(0, 0, 512, 512); g.lineCap = g.lineJoin = 'round';
+  a.strokes.forEach((k) => { g.beginPath(); for (let i = 0; i < k.p.length; i += 2) (i ? g.lineTo(k.p[i] * S, k.p[i + 1] * S) : g.moveTo(k.p[i] * S, k.p[i + 1] * S)); if (k.f) { g.closePath(); g.fillStyle = tint(k.c); g.fill(); } g.strokeStyle = k.c; g.lineWidth = k.w * S; g.stroke(); });
+  a.faces.forEach((f) => {
+    const s = f.s * S, x = f.x * S, y = f.y * S;
+    [-9, 9].forEach((dx) => { g.fillStyle = '#2A1846'; g.beginPath(); g.ellipse(x + dx * s, y, 2.7 * s, 3.3 * s, 0, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x + dx * s - 0.8 * s, y - 1.2 * s, s, 0, 7); g.fill(); });
+    g.strokeStyle = '#2A1846'; g.lineWidth = 1.5 * s; g.beginPath(); g.moveTo(x - 3 * s, y + 3.5 * s); g.quadraticCurveTo(x, y + 6.7 * s, x + 3 * s, y + 3.5 * s); g.stroke();
+    g.fillStyle = 'rgba(255,95,158,.45)'; [-15, 15].forEach((dx) => { g.beginPath(); g.arc(x + dx * s, y + 4.5 * s, 3.2 * s, 0, 7); g.fill(); });
+  });
+  const tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding;
+  const geo = new T.ExtrudeGeometry(shape, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.13, bevelSize: 0.035, bevelSegments: 10, curveSegments: 8, steps: 1 });
+  const front = new T.MeshPhysicalMaterial({ map: tex, roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.35 });
+  const side = new T.MeshPhysicalMaterial({ color: new T.Color(tint(bodyCol)).convertSRGBToLinear(), roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.35 });
+  const mesh = new T.Mesh(geo, [front, side]);
+  geo.computeBoundingBox(); const bb = geo.boundingBox, w = bb.max.x - bb.min.x, h = bb.max.y - bb.min.y, k = 2.1 / Math.max(w, h);
+  mesh.position.set(-(bb.min.x + w / 2) * k, -bb.min.y * k, -((bb.min.z + bb.max.z) / 2) * k); mesh.scale.setScalar(k);
+  const toy = new T.Group(); toy.add(mesh);
+  return toy;
+}
+
 function build(T, t) {
+  if (t.custom) return buildDrawing(T, t);
   const base = new T.Color(COL[t.c1] || COL.pink).convertSRGBToLinear();
   const dark = base.clone().multiplyScalar(0.72), isDark = base.r * 0.3 + base.g * 0.59 + base.b * 0.11 < 0.22 || t.fx === 'galaxy';
   const skin = (color, o = {}) => new T.MeshPhysicalMaterial({ color, roughness: 0.42, clearcoat: 0.55, clearcoatRoughness: 0.35, ...o });
@@ -175,7 +213,7 @@ export async function mount3D(host, id) {
     if (dead) return; dead = true; cancelAnimationFrame(raf);
     if (ro) ro.disconnect();
     window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
-    scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
+    scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach((m) => { if (m.map && m.map.dispose) m.map.dispose(); m.dispose(); }); });
     renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss();
     canvas.remove(); host.classList.remove('is3d');
     if (live === stop) live = null;

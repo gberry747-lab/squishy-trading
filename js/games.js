@@ -3,9 +3,10 @@ import { TOYS, TOY_LIST, CATS, RARITY, FRIENDS } from './data.js';
 import { toySVG, icon } from './art.js';
 import { P, save, addCoins, track, rollToy } from './state.js';
 import { $, router, actions, sfx, coins, confetti, glitterBurst, modal, closeModal } from './ui.js';
+import { lang } from './i18n.js';
 
 const GAMES = [
-  { id: 'pop', name: 'Pop Party', art: 'fi01', how: 'Pop the bubbles that puff up. Gold ones are worth 3!', unit: 'pops' },
+  { id: 'pop', name: 'Pop Party', art: 'fi01', how: 'Pop the bubbles that puff up. Gold ones are worth 3!', unit: 'pops', sec: 'fidget' },
   { id: 'match', name: 'Memory Match', art: 'sq13', how: 'Flip two cards. Find all the matching toys.', unit: 'points' },
   { id: 'mix', name: 'Slime Lab', art: 'sl12', how: 'Pick the two colors that mix into the slime on the card.', unit: 'perfect mixes' },
   { id: 'catch', name: 'Squishy Catch', art: 'do03', how: 'Slide the tub to catch falling toys. Dodge the mud!', unit: 'catches' },
@@ -14,33 +15,55 @@ const GAMES = [
   { id: 'stairs', name: 'Springy Stairs', art: 'sp07', how: 'Tap when the dot is in the green to walk the springy down the stairs.', unit: 'steps' },
   { id: 'odd', name: 'Odd One Out', art: 'sq32', how: 'One toy is different from the rest. Find it fast!', unit: 'found' },
   { id: 'shadow', name: 'Shadow Match', art: 'sq50', how: 'Whose shadow is it? Pick the toy that matches.', unit: 'shadows' },
-  { id: 'judge', name: 'Fair or Not?', art: 'sq23', how: 'Add up what each side is worth. Is the trade fair?', unit: 'right calls' },
+  { id: 'judge', name: 'Fair or Not?', art: 'sq23', how: 'Add up what each side is worth. Is the trade fair?', unit: 'right calls', sec: 'math' },
   { id: 'shuffle', name: 'Bag Shuffle', art: 'sq12', how: 'Watch the bag with the toy as they swap around. Where did it go?', unit: 'finds' },
-  { id: 'count', name: 'Quick Count', art: 'sq46', how: 'Count the toys before the time runs out.', unit: 'right counts' },
+  { id: 'count', name: 'Quick Count', art: 'sq46', how: 'Count the toys before the time runs out.', unit: 'right counts', sec: 'math' },
   { id: 'blast', name: 'Glitter Blast', art: 'sq112', how: 'Glitter bombs float up. Pop them before they get away, but leave the rain clouds!', unit: 'points' },
   { id: 'claw', name: 'Claw Machine', art: 'pl23', how: 'Line up the claw and drop it. Rarer toys score more.', unit: 'points' },
   { id: 'stack', name: 'Squishy Stack', art: 'sq97', how: 'Drop each squishy on top of the last one. How tall can you build?', unit: 'stacked' },
   { id: 'missing', name: 'What Is Missing?', art: 'sq38', how: 'Remember the toys. One sneaks away. Which one?', unit: 'spotted' },
   { id: 'tapit', name: 'Tap It!', art: 'fi02', how: 'Toys pop up. Tap only the kind the sign asks for.', unit: 'points' },
-  { id: 'hilo', name: 'More or Less', art: 'sq137', how: 'Is the next toy worth more coins or less? Learn what makes a toy rare.', unit: 'right guesses' },
-  { id: 'pattern', name: 'Finish the Pattern', art: 'sq138', how: 'Look at the row of toys. Which one comes next?', unit: 'patterns' },
+  { id: 'hilo', name: 'More or Less', art: 'sq137', how: 'Is the next toy worth more coins or less? Learn what makes a toy rare.', unit: 'right guesses', sec: 'math' },
+  { id: 'pattern', name: 'Finish the Pattern', art: 'sq138', how: 'Look at the row of toys. Which one comes next?', unit: 'patterns', sec: 'math' },
   { id: 'tactoe', name: 'Squishy Tac Toe', art: 'pl32', how: 'Get three in a row. Play the computer or a friend sitting with you. Best of three rounds.', unit: 'wins', vs: true },
   { id: 'four', name: 'Four in a Row', art: 'sq145', how: 'Drop squishies into the frame. First to line up four wins. Play the computer or a friend.', unit: 'wins', vs: true },
   { id: 'tug', name: 'Tap Tug', art: 'sp05', how: 'Tap as fast as you can to pull the squishy to your side. Play the computer or a friend.', unit: 'wins', vs: true },
   { id: 'quick', name: 'Quick Squish', art: 'sq58', how: 'Wait for SQUISH, then tap first. Tap too early and you lose the round. Computer or a friend.', unit: 'rounds won', vs: true },
-  { id: 'math', name: 'Shop Math', art: 'sq149', how: 'Add up toys and count your change. Pick the right number of coins.', unit: 'right answers' },
+  { id: 'math', name: 'Shop Math', art: 'sq149', how: 'Add up toys and count your change. Pick the right number of coins.', unit: 'right answers', sec: 'math' },
+  { id: 'spell', name: 'Spell It', art: 'sq04', how: 'Look at the picture and tap the letters to spell the word.', unit: 'words', sec: 'read' },
+  { id: 'rhyme', name: 'Rhyme Time', art: 'sq10', how: 'Which word rhymes? Cat and hat, frog and log...', unit: 'rhymes', sec: 'read' },
+  { id: 'readfind', name: 'Read and Find', art: 'sq38', how: 'Read the clue, then tap the toy it is talking about.', unit: 'clues', sec: 'read' },
+  { id: 'endings', name: 'Finish the Sentence', art: 'pl19', how: 'Pick the word that makes the sentence make sense.', unit: 'sentences', sec: 'read' },
+  { id: 'times', name: 'Times Tables', art: 'sq145', how: 'Groups of squishies! Work out the multiplication.', unit: 'right answers', sec: 'math' },
+  { id: 'skip', name: 'Skip Count', art: 'sp07', how: 'Count by 2s, 5s, 10s and more. Find the missing number.', unit: 'right answers', sec: 'math' },
+  { id: 'clock', name: 'What Time Is It?', art: 'sq51', how: 'Read the clock and pick the right time.', unit: 'right answers', sec: 'math' },
+  { id: 'bonds', name: 'Make the Number', art: 'sq61', how: 'What is missing? Fill in the sum to make 10, 20 or 100.', unit: 'right answers', sec: 'math' },
+  { id: 'opposites', name: 'Opposites', art: 'sq51', how: 'Hot and cold, big and small. Pick the word that means the opposite.', unit: 'opposites', sec: 'read' },
+  { id: 'build', name: 'Build the Sentence', art: 'sq131', how: 'The words are mixed up. Tap them in the right order to make a sentence.', unit: 'sentences', sec: 'read' },
+  { id: 'fraction', name: 'Fraction Pizza', art: 'sq44', how: 'How much of the pizza is left? Pick the right fraction.', unit: 'right answers', sec: 'math' },
+  { id: 'cents', name: 'Count the Coins', art: 'sq137', how: 'Add up quarters, dimes, nickels and pennies.', unit: 'right answers', sec: 'math' },
+  { id: 'addsub', name: 'Add and Take Away', art: 'sq146', how: 'Adding and subtracting, from easy to tricky.', unit: 'right answers', sec: 'math' },
+  { id: 'bigger', name: 'Bigger or Smaller', art: 'sq35', how: 'Which number is bigger? Pick the right sign.', unit: 'right answers', sec: 'math' },
+  { id: 'wrapgame', name: 'Bubble Wrap', art: 'fi54', how: 'Pop every bubble on the sheet. How fast can you clear it?', unit: 'points', sec: 'fidget' },
+  { id: 'spin', name: 'Spinner Spin', art: 'fi06', how: 'Tap fast to get the spinner whirling. Count the spins!', unit: 'spins', sec: 'fidget' },
+  { id: 'box', name: 'Fidget Box', art: 'fi09', how: 'No score, no timer. Just pop, click, slide, spin and squish for as long as you like.', unit: 'fidgets', sec: 'fidget' },
 ];
 const view = () => $('#view');
 // The player's own handmade squishies join in several games.
 const mine = () => Object.keys(P().inv).filter((id) => TOYS[id] && TOYS[id].custom).map((id) => TOYS[id]);
 const best = (id) => P().stats['best_' + id] || 0;
 
+const SECTIONS = [['read', 'Reading games', 'Spelling, rhymes and reading for meaning.'], ['math', 'Math and thinking games', 'Adding, times tables, clocks, patterns and fair trades.'], ['fidget', 'Fidget games', 'Pop, spin and click. Good for calm, busy fingers.'], ['vs', 'Play together', 'Play the computer, or a friend on this screen.'], ['fun', 'Fun games', 'Quick games to win coins.']];
+const secOf = (g) => g.sec || (g.vs ? 'vs' : 'fun');
 export function gamesScreen() {
+  const card = (g) => `<article class="card game-card"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div>
+      <div><h3>${g.name}</h3><p class="muted">${g.how}</p>${best(g.id) ? `<p class="pill">Best: ${best(g.id)} ${g.unit}</p>` : ''}</div>
+      <button class="btn primary" data-act="play" data-id="${g.id}">Play</button></article>`;
   return `<h1>Mini-games</h1><p class="muted">Every game pays coins. Play as many times as you like.</p>
-    <div class="game-list">${GAMES.map((g) => `<article class="card game-card"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div>
-      <div><h2>${g.name}</h2><p class="muted">${g.how}</p>${best(g.id) ? `<p class="pill">Best: ${best(g.id)} ${g.unit}</p>` : ''}</div>
-      <button class="btn primary" data-act="play" data-id="${g.id}">Play</button></article>`).join('')}</div>`;
+    <div class="chips" role="group" aria-label="Jump to a kind of game">${SECTIONS.map(([k, t]) => `<button class="chip" data-act="gameSec" data-v="${k}">${t.replace(' games', '')}</button>`).join('')}</div>
+    ${SECTIONS.map(([k, t, sub]) => `<section id="sec-${k}"><h2>${t}</h2><p class="muted">${sub}</p><div class="game-list">${GAMES.filter((g) => secOf(g) === k).map(card).join('')}</div></section>`).join('')}`;
 }
+actions.gameSec = (el) => { const t = $('#sec-' + el.dataset.v); if (t) t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); };
 
 let timers = [];
 const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(() => clearTimeout(t)); return t; };
@@ -77,7 +100,7 @@ function finish(g, score, won, line) {
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-const START = () => ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe, four, tug, quick, math });
+const START = () => ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe, four, tug, quick, math, spell, rhyme, readfind, endings, times, skip, clock, bonds, opposites, build, fraction, cents, addsub, bigger, wrapgame, spin, box });
 // Games marked "vs" ask first: play the computer, or a friend on the same screen?
 actions.play = (el) => {
   sfx.tap();
@@ -357,6 +380,7 @@ function judge(g) {
     const pick = (r) => { const pool = byR(r); return pool[rnd(pool.length)]; };
     const L = left.map(pick), R = right.map(pick);
     $('#judge-row').dataset.l = L.reduce((a, t) => a + t.value, 0); $('#judge-row').dataset.r = R.reduce((a, t) => a + t.value, 0);
+    fair = $('#judge-row').dataset.l === $('#judge-row').dataset.r; // the real totals decide, not the plan
     $('#judge-row').innerHTML = `${side(L)}<span class="swap" aria-hidden="true">${icon('trade')}</span>${side(R)}`;
     $('#say').textContent = 'Add up each side. Is it a fair trade?';
   };
@@ -657,7 +681,8 @@ function pattern(g) {
 
 // Helpers for games you can play against the computer or a friend on the same screen.
 const rival = (two) => (two ? { name: 'Player 2', avatar: P().buddy === 'sq08' ? 'sq06' : 'sq08' } : FRIENDS[rnd(FRIENDS.length)]);
-const vsCoins = (two, won, tied) => (two ? 10 : won ? 28 : tied ? 14 : 8);
+const twoCoins = () => { const d = P().daily; d.vs = (d.vs || 0) + 1; return d.vs <= 6 ? 10 : 0; };
+const vsCoins = (two, won, tied) => (two ? twoCoins() : won ? 28 : tied ? 14 : 8);
 
 // ---------- Squishy Tac Toe ----------
 function tactoe(g, two) {
@@ -674,7 +699,7 @@ function tactoe(g, two) {
     if (res === 'me') { wins++; setScore(wins); sfx.win(); $('#say').textContent = `Three in a row. ${myName} wins this round!`; }
     else if (res === 'bot') { losses++; two ? sfx.win() : sfx.no(); $('#say').textContent = `${bot.name} got three in a row.`; }
     else { draws++; $('#say').textContent = 'A tie! Nobody got three.'; }
-    later(() => { if (round >= 3) { track('tactoe', wins); finish(g, wins, two ? 10 : 8 + wins * 12 + draws * 5, two ? (wins > losses ? `${myName} wins!` : losses > wins ? `${bot.name} wins!` : 'It is a tie!') : wins >= 2 ? 'Tac Toe champion!' : wins ? 'Nice playing!' : 'Good game!'); } else start(); }, 1500);
+    later(() => { if (round >= 3) { track('tactoe', wins); finish(g, wins, two ? twoCoins() : 8 + wins * 12 + draws * 5, two ? (wins > losses ? `${myName} wins!` : losses > wins ? `${bot.name} wins!` : 'It is a tie!') : wins >= 2 ? 'Tac Toe champion!' : wins ? 'Nice playing!' : 'Good game!'); } else start(); }, 1500);
   };
   const place = (i, who) => { cells[i] = who; const w = winner(cells); if (w) { over(w[0], w[1]); return true; } return false; };
   function botMove() {
@@ -767,7 +792,7 @@ function tug(g, two) {
     const iWon = who === 'me';
     $('#say').textContent = `${iWon ? myName : bot.name} wins the tug!`; iWon || two ? sfx.win() : sfx.no();
     if (iWon) { setScore(1); track('tug'); }
-    later(() => finish(g, iWon ? 1 : 0, vsCoins(two, iWon, false), `${iWon ? myName : bot.name} wins!`), 1400);
+    later(() => finish(g, iWon ? 1 : 0, two ? twoCoins() : iWon ? 14 : 5, `${iWon ? myName : bot.name} wins!`), 1400);
   };
   const pull = (who) => { if (!run) return; pos += who === 'me' ? 2.4 : -2.4; place(); if (pos >= 88) end('me'); else if (pos <= 12) end('bot'); };
   actions.tugTap = (el) => { sfx.tap(); pull(el.dataset.who); };
@@ -787,7 +812,7 @@ function quick(g, two) {
   const sign = $('#q-sign');
   const show = () => { $('#q-a').textContent = `${myName}: ${a}`; $('#q-b').textContent = `${bot.name}: ${b}`; setScore(a); };
   const next = () => {
-    if (round >= ROUNDS) { track('quick', a); return finish(g, a, two ? 10 : 6 + a * 6, a > b ? `${myName} wins!` : b > a ? `${bot.name} wins!` : 'It is a tie!'); }
+    if (round >= ROUNDS) { track('quick', a); return finish(g, a, two ? twoCoins() : 6 + a * 6, a > b ? `${myName} wins!` : b > a ? `${bot.name} wins!` : 'It is a tie!'); }
     round++; state = 'wait'; sign.className = 'quick-sign'; sign.textContent = `Round ${round}: wait...`;
     timer = later(() => { state = 'go'; sign.className = 'quick-sign go'; sign.textContent = 'SQUISH!'; sfx.pop(); if (!two) botTimer = later(() => point('bot', `${bot.name} was faster.`), 380 + Math.random() * 330); }, 1400 + Math.random() * 2600);
   };
@@ -827,4 +852,269 @@ function math(g) {
   };
   next();
   countdown(50, () => { track('math', score); finish(g, score, Math.min(45, score * 4), score >= 8 ? 'Math whiz!' : 'Good counting!'); });
+}
+
+// ================= Learning games: reading =================
+// Reading games teach the language the game is set to, so each has its own Spanish word list.
+const ES = () => lang() === 'es';
+const L = (en, es) => (ES() ? es : en);
+const WORDS_ES = [['gato', 'sq04'], ['oso', 'sq06'], ['sol', 'sq51'], ['rana', 'sq10'], ['luna', 'sq50'], ['pato', 'sq118'], ['nube', 'sq11'], ['taco', 'sq79'], ['dona', 'sq16'], ['abeja', 'sq46'], ['cerdo', 'sq49'], ['leche', 'sq123'], ['pizza', 'sq44'], ['dulce', 'sq136'], ['conejo', 'sq08'], ['paleta', 'sq133'], ['cactus', 'sq42'],
+  ['ballena', 'sq35'], ['manzana', 'sq139'], ['tortuga', 'sq48'], ['galleta', 'sq82'], ['estrella', 'sq13'], ['fantasma', 'sq38'], ['calabaza', 'sq54'], ['mariposa', 'sq121'], ['unicornio', 'sq23'], ['pepinillo', 'sq75'], ['capibara', 'sq117']];
+const RHYMES_ES = [['gato', 'pato'], ['luna', 'cuna'], ['sol', 'caracol'], ['rana', 'manzana'], ['casa', 'taza'], ['flor', 'amor'], ['mesa', 'fresa'], ['cama', 'rama'], ['queso', 'beso'], ['estrella', 'botella'], ['nube', 'sube'], ['dedo', 'miedo'], ['mano', 'hermano'], ['silla', 'ardilla'], ['globo', 'lobo'], ['vaca', 'hamaca'], ['camino', 'pepino'], ['ventana', 'campana'], ['juego', 'fuego'], ['oso', 'hermoso'], ['pelota', 'gota'], ['brillo', 'grillo']];
+const SENT_ES = [['El squishy es muy ___.', 'suave', ['ruidoso', 'alto']], ['Pongo mis juguetes en la ___.', 'repisa', ['nube', 'cuchara']], ['El slime se siente frío y ___.', 'pegajoso', ['enojado', 'dormido']], ['Hicimos un ___ justo en el recreo.', 'intercambio', ['pan', 'trueno']], ['El resorte bajó por las ___.', 'escaleras', ['nubes', 'sopas']], ['Le dio a su amiga un gran ___.', 'abrazo', ['zapato', 'árbol']], ['Conté mis monedas antes de ir a la ___.', 'tienda', ['luna', 'bañera']], ['La brillantina hizo ___ el cuarto.', 'brillar', ['susurrar', 'galopar']], ['Una empanada es algo que puedes ___.', 'comer', ['vestir', 'montar']], ['El peluche tenía sueño y se fue a ___.', 'dormir', ['correr', 'cocinar']], ['Empezó a llover, así que entramos a la ___.', 'casa', ['piscina', 'playa']], ['Por favor ___ antes de tomar mi juguete.', 'pregunta', ['corre', 'salta']], ['Si un intercambio no es justo, puedes decir ___.', 'no, gracias', ['hurra', 'buenas noches']], ['Al capibara le encanta sentarse en agua ___.', 'tibia', ['cuadrada', 'ruidosa']], ['Estaba tan feliz que empecé a ___.', 'sonreír', ['llorar', 'estornudar']]];
+const OPP_ES = [['caliente', 'frío'], ['grande', 'pequeño'], ['arriba', 'abajo'], ['feliz', 'triste'], ['rápido', 'lento'], ['día', 'noche'], ['abierto', 'cerrado'], ['mojado', 'seco'], ['suave', 'duro'], ['lleno', 'vacío'], ['ruidoso', 'silencioso'], ['temprano', 'tarde'], ['ligero', 'pesado'], ['limpio', 'sucio'], ['cerca', 'lejos'], ['primero', 'último'], ['dar', 'quitar'], ['empujar', 'jalar'], ['alto', 'bajo'], ['dentro', 'fuera'], ['recordar', 'olvidar'], ['justo', 'injusto']];
+const SENTENCES_ES = ['El gato es muy suave.', 'Me gusta intercambiar mis juguetes.', 'Mi slime es frío y pegajoso.', 'Leemos un cuento antes de dormir.', 'La rana saltó al estanque.', 'Hoy dibujé un squishy rosa.', 'Un trato justo hace amigos felices.', 'El conejo se escondió bajo mi cama.', 'Por favor comparte tus juguetes conmigo.', 'Conté diez monedas doradas y brillantes.', 'El fantasmita era muy tímido.', 'Ella reventó todas las burbujas rápido.'];
+const speak = (text) => { try { if ('speechSynthesis' in window) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.85; u.lang = lang() === 'es' ? 'es-US' : 'en-US'; speechSynthesis.speak(u); } } catch { /* no voice on this device */ } };
+const WORDS = [['cat', 'sq04'], ['pig', 'sq49'], ['bee', 'sq46'], ['sun', 'sq51'], ['bear', 'sq06'], ['frog', 'sq10'], ['star', 'sq13'], ['duck', 'sq118'], ['moon', 'sq50'], ['milk', 'sq123'], ['cloud', 'sq11'], ['heart', 'sq15'], ['donut', 'sq16'], ['whale', 'sq35'], ['ghost', 'sq38'], ['pizza', 'sq44'], ['apple', 'sq139'], ['candy', 'sq136'], ['bunny', 'sq08'], ['taco', 'sq79'],
+  ['turtle', 'sq48'], ['pickle', 'sq75'], ['cookie', 'sq82'], ['banana', 'sq84'], ['cactus', 'sq42'], ['burger', 'sq78'], ['penguin', 'sq119'], ['unicorn', 'sq23'], ['rainbow', 'sq138'], ['pumpkin', 'sq54'], ['snowman', 'sq55'], ['dumpling', 'sq20'], ['popsicle', 'sq133'], ['capybara', 'sq117'], ['butterfly', 'sq121']];
+
+// ---------- Spell It ----------
+function spell(g) {
+  let score = 0, word = '', got = 0, last = '';
+  frame(g, `<section class="card missing"><div class="spell-toy squish" data-squish id="spell-toy"></div><div class="spell-word" id="spell-word" aria-live="polite" translate="no"></div><p class="game-say" id="say">Tap the letters in order.</p><div class="tiles" id="tiles" translate="no"></div>
+    <button class="btn sm" data-act="spellHear">${icon('sound')} Say the word</button></section>`);
+  const drawWord = () => { $('#spell-word').innerHTML = word.split('').map((ch, i) => `<span class="${i < got ? 'in' : ''}">${i < got ? ch : ''}</span>`).join(''); };
+  const next = () => {
+    const pool = (ES() ? WORDS_ES : WORDS).filter(([w]) => w !== last && (score < 4 ? w.length <= 4 : score < 9 ? w.length <= 6 : true));
+    const [w, id] = pool[rnd(pool.length)]; word = last = w; got = 0;
+    $('#spell-toy').innerHTML = toySVG(id); $('#spell-toy').dataset.toy = id;
+    const extra = mixUp(L('abcdefghiklmnoprstuw', 'abcdefghijlmnoprstuvz').split('').filter((c) => !w.includes(c))).slice(0, score < 4 ? 1 : 3);
+    $('#tiles').innerHTML = mixUp([...w.split(''), ...extra]).map((ch) => `<button class="tile" data-act="spellTile" data-ch="${ch}">${ch}</button>`).join('');
+    drawWord(); $('#say').textContent = 'Tap the letters in order.';
+  };
+  actions.spellHear = () => speak(word);
+  actions.spellTile = (b) => {
+    if (b.dataset.ch !== word[got]) { sfx.no(); b.classList.add('bad'); later(() => b.classList.remove('bad'), 300); $('#say').textContent = got ? L(`Not that one. What comes after "${word.slice(0, got)}"?`, `Esa no. \u00bfQu\u00e9 sigue despu\u00e9s de "${word.slice(0, got)}"?`) : 'Not that one. What sound does it start with?'; return; }
+    got++; b.disabled = true; b.classList.add('used'); sfx.pop(); drawWord();
+    if (got === word.length) { score++; setScore(score); sfx.win(); $('#say').textContent = L(`Yes! ${word.toUpperCase()}!`, `\u00a1S\u00ed! \u00a1${word.toUpperCase()}!`); speak(word); later(next, 1100); }
+  };
+  next();
+  countdown(75, () => { track('spell', score); finish(g, score, Math.min(50, score * 5), score >= 8 ? 'Super speller!' : 'Great spelling!'); });
+}
+
+// ---------- Rhyme Time ----------
+const RHYMES = [['cat', 'hat'], ['bear', 'chair'], ['frog', 'log'], ['star', 'car'], ['duck', 'truck'], ['pig', 'wig'], ['bee', 'tree'], ['moon', 'spoon'], ['sun', 'bun'], ['cake', 'snake'], ['slime', 'time'], ['dough', 'snow'], ['spring', 'ring'], ['ball', 'wall'], ['goo', 'shoe'], ['mouse', 'house'], ['fox', 'box'], ['sheep', 'sleep'], ['kite', 'night'], ['boat', 'coat'], ['whale', 'snail'], ['ghost', 'toast'], ['heart', 'cart'], ['trade', 'shade'], ['squish', 'wish'], ['glitter', 'litter'], ['bright', 'light'], ['pickle', 'tickle']];
+function rhyme(g) {
+  let score = 0, last = -1;
+  frame(g, `<section class="card missing"><p class="game-say">Which word rhymes with</p><div class="big-word" id="big-word" translate="no"></div><div class="word-opts" id="opts" translate="no"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const RH = ES() ? RHYMES_ES : RHYMES;
+  const next = () => {
+    let i = rnd(RH.length); if (i === last) i = (i + 1) % RH.length; last = i;
+    const flip = rnd(2), ask = RH[i][flip], right = RH[i][1 - flip];
+    const wrong = mixUp(RH.filter((_, k) => k !== i).map((p) => p[rnd(2)])).filter((w) => w.slice(-2) !== right.slice(-2)).slice(0, 2);
+    $('#big-word').textContent = ask; $('#say').textContent = '';
+    $('#opts').innerHTML = mixUp([right, ...wrong]).map((w) => `<button class="btn big word" data-act="rhymePick" data-hit="${w === right ? 1 : 0}">${w}</button>`).join('');
+  };
+  actions.rhymePick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); $('#say').textContent = L(`${$('#big-word').textContent} and ${b.textContent} rhyme!`, `\u00a1${$('#big-word').textContent} y ${b.textContent} riman!`); document.querySelectorAll('.word').forEach((x) => (x.disabled = true)); later(next, 800); }
+    else { sfx.no(); b.disabled = true; $('#say').textContent = 'Say them out loud. Do the endings sound the same?'; }
+  };
+  next();
+  countdown(60, () => { track('rhyme', score); finish(g, score, Math.min(45, score * 3), score >= 12 ? 'Rhyme star!' : 'Nice rhyming!'); });
+}
+
+// ---------- Read and Find ----------
+const CLUES = [['sq10', 'It is green and it says ribbit.'], ['sq35', 'It lives in the ocean and it is very big.'], ['sq46', 'It buzzes around flowers and makes honey.'], ['sq51', 'It shines in the sky during the day.'], ['sq50', 'You can see it in the sky at night.'], ['sq44', 'It is a slice of food with cheese on top.'], ['sq118', 'It is yellow, it swims, and it says quack.'], ['sq119', 'It is a bird that cannot fly and loves the snow.'], ['sq48', 'It carries its home on its back.'], ['sq139', 'It is a red fruit that grows on a tree.'], ['sq84', 'It is a long yellow fruit that monkeys love.'], ['sq38', 'It is white and it says boo!'], ['sq55', 'It is made of snow and wears a hat.'], ['sq16', 'It is a round treat with a hole in the middle.'], ['sq13', 'It twinkles high up in the night sky.'], ['sq15', 'It is the shape that means love.'], ['sq138', 'It has many colors and comes out after the rain.'], ['sq121', 'It has pretty wings and used to be a caterpillar.'], ['sq42', 'It is a prickly plant that grows in the desert.'], ['pl24', 'It is a fish with a tall fin and sharp teeth.'], ['pl25', 'It has spots and a very long neck.'], ['pl16', 'It has a big furry mane and a loud roar.'], ['sq117', 'It is the biggest rodent in the world and it loves water.'], ['sq49', 'It is pink, it has a snout, and it says oink.'], ['sq78', 'It is a sandwich with a bun on the top and the bottom.'], ['sq133', 'It is a frozen treat on a stick.'], ['pl19', 'It is a bird that stays awake at night and says hoo.'], ['pl21', 'It is gray with big ears and a long trunk.']];
+function readfind(g) {
+  let score = 0, last = '';
+  frame(g, `<section class="card missing"><p class="read-clue" id="clue"></p><button class="btn sm" data-act="clueHear">${icon('sound')} Help me read it</button><div class="shadow-opts" id="opts"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const next = () => {
+    const set = mixUp(CLUES.filter(([id]) => id !== last)).slice(0, 4), [id, clue] = set[0]; last = id;
+    $('#clue').textContent = clue; $('#say').textContent = '';
+    $('#opts').innerHTML = mixUp(set).map(([tid]) => `<button class="odd-cell" data-act="cluePick" data-hit="${tid === id ? 1 : 0}" aria-label="${TOYS[tid].name}">${toySVG(tid)}</button>`).join('');
+  };
+  actions.clueHear = () => speak($('#clue').textContent);
+  actions.cluePick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); next(); }
+    else { sfx.no(); b.classList.add('wrong'); b.disabled = true; $('#say').textContent = 'Read the clue one more time.'; }
+  };
+  next();
+  countdown(75, () => { track('readfind', score); finish(g, score, Math.min(45, score * 4), score >= 9 ? 'Reading detective!' : 'Good reading!'); });
+}
+
+// ---------- Finish the Sentence ----------
+const SENT = [['The squishy is very ___.', 'soft', ['loud', 'tall']], ['I put my toys back on the ___.', 'shelf', ['cloud', 'spoon']], ['The slime feels cold and ___.', 'gooey', ['angry', 'sleepy']], ['We made a fair ___ at recess.', 'trade', ['bread', 'storm']], ['The springy went down the ___.', 'stairs', ['clouds', 'soup']], ['She gave her friend a big ___.', 'hug', ['rock', 'door']], ['The popper goes pop, pop, ___!', 'pop', ['moo', 'tick']], ['I counted my coins before I went to the ___.', 'shop', ['moon', 'bath']], ['The glitter made the room ___.', 'sparkle', ['whisper', 'gallop']], ['A dumpling is something you can ___.', 'eat', ['wear', 'ride']], ['The plushie was sleepy, so it went to ___.', 'bed', ['school', 'work']], ['It started to rain, so we went ___.', 'inside', ['swimming', 'upside']], ['Please ___ before you borrow my toy.', 'ask', ['run', 'jump']], ['The play dough was dry, so it felt ___.', 'hard', ['wet', 'quiet']], ['When a trade is not fair, you can say ___.', 'no thanks', ['hooray', 'goodnight']], ['The capybara loves to sit in warm ___.', 'water', ['shoes', 'boxes']], ['I was so happy that I began to ___.', 'smile', ['frown', 'sneeze']], ['Two toys for one rare toy can be a ___ trade.', 'fair', ['fuzzy', 'frozen']]];
+function endings(g) {
+  const SN = ES() ? SENT_ES : SENT;
+  let score = 0, order = mixUp(SN), n = 0;
+  frame(g, `<section class="card missing"><p class="read-clue" id="clue" translate="no"></p><div class="word-opts" id="opts" translate="no"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const next = () => {
+    if (n >= order.length) { order = mixUp(SN); n = 0; }
+    const [text, right, wrong] = order[n++];
+    $('#clue').innerHTML = text.replace('___', '<span class="blank">?</span>'); $('#say').textContent = '';
+    $('#opts').innerHTML = mixUp([right, ...wrong]).map((w) => `<button class="btn big word" data-act="endPick" data-hit="${w === right ? 1 : 0}">${w}</button>`).join('');
+  };
+  actions.endPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); $('#clue .blank').textContent = b.textContent; $('#clue .blank').classList.add('in'); document.querySelectorAll('.word').forEach((x) => (x.disabled = true)); later(next, 900); }
+    else { sfx.no(); b.disabled = true; $('#say').textContent = 'Read it with that word. Does it make sense?'; }
+  };
+  next();
+  countdown(75, () => { track('endings', score); finish(g, score, Math.min(45, score * 4), score >= 9 ? 'Sentence superstar!' : 'Good reading!'); });
+}
+
+// ================= Learning games: math =================
+// Shared quiz: show a question, three or four number answers, a timer.
+function quiz(g, secs, ev, make, cheer) {
+  let score = 0;
+  frame(g, `<section class="card missing"><div class="quiz-art" id="quiz-art"></div><p class="big-word sum" id="quiz-q"></p><div class="count-opts" id="opts" translate="no"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const next = () => {
+    const { q, right, art = '', near = [1, 2, 3, 10], opts: given, hint = 'Try again. You can do it!' } = make(score);
+    const set = new Set([right]);
+    if (given) given.forEach((v) => set.add(v));
+    let guard = 0;
+    while (set.size < 3 && guard++ < 60) { const v = right + (rnd(2) ? 1 : -1) * near[rnd(near.length)]; if (v >= 0) set.add(v); }
+    $('#quiz-art').innerHTML = art; $('#quiz-q').innerHTML = q; $('#say').textContent = ''; $('#say').dataset.hint = hint;
+    const list = [...set]; if (typeof right === 'number') list.sort((a, b) => a - b); else list.sort(() => Math.random() - 0.5);
+    $('#opts').innerHTML = list.map((v) => `<button class="btn big" data-act="quizPick" data-hit="${v === right ? 1 : 0}">${v}</button>`).join('');
+  };
+  actions.quizPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.coin(); setScore(score); next(); }
+    else { sfx.no(); b.disabled = true; $('#say').textContent = $('#say').dataset.hint; }
+  };
+  next();
+  countdown(secs, () => { track(ev, score); finish(g, score, Math.min(45, score * 3), score >= 10 ? cheer : 'Good thinking!'); });
+}
+const dots = (rows, cols) => `<div class="dot-rows">${Array.from({ length: rows }, () => `<div>${'<i></i>'.repeat(cols)}</div>`).join('')}</div>`;
+
+function times(g) {
+  quiz(g, 60, 'times', (score) => {
+    const tables = score < 4 ? [2, 5, 10] : score < 9 ? [2, 3, 4, 5, 10] : [3, 4, 6, 7, 8, 9];
+    const a = tables[rnd(tables.length)], b = 1 + rnd(score < 4 ? 5 : 10);
+    return { q: `${b} &times; ${a} = ?`, right: a * b, art: b <= 6 && a <= 10 ? dots(b, a) : '', near: [a, a * 2, 1, 2], hint: `Count ${b} groups of ${a}.` };
+  }, 'Times table champion!');
+}
+function skip(g) {
+  quiz(g, 60, 'skip', (score) => {
+    const steps = score < 4 ? [2, 5, 10] : score < 9 ? [2, 3, 4, 5, 10] : [3, 4, 6, 7, 9, 25], step = steps[rnd(steps.length)];
+    const down = score >= 6 && rnd(3) === 0, start = step * (1 + rnd(8)) + (down ? step * 5 : 0), hole = 1 + rnd(4);
+    const seq = Array.from({ length: 5 }, (_, i) => start + (down ? -1 : 1) * step * i), right = seq[hole];
+    return { q: seq.map((v, i) => (i === hole ? '<span class="blank">?</span>' : v)).join('<span class="comma">,</span> '), right, near: [step, 1, 2], hint: `The numbers go ${down ? 'down' : 'up'} by ${step} each time.` };
+  }, 'Skip counting star!');
+}
+function bonds(g) {
+  quiz(g, 60, 'bonds', (score) => {
+    const total = score < 4 ? 10 : score < 9 ? 20 : 100, a = total === 100 ? 5 * (1 + rnd(19)) : rnd(total + 1), left = rnd(2);
+    return { q: left ? `<span class="blank">?</span> + ${a} = ${total}` : `${a} + <span class="blank">?</span> = ${total}`, right: total - a, near: total === 100 ? [5, 10] : [1, 2, 3], hint: `Start at ${a} and count up to ${total}.` };
+  }, 'Number wizard!');
+}
+function clock(g) {
+  const face = (h, m) => {
+    const ha = ((h % 12) + m / 60) * 30, ma = m * 6, pt = (ang, len) => `${(50 + len * Math.sin((ang * Math.PI) / 180)).toFixed(1)} ${(50 - len * Math.cos((ang * Math.PI) / 180)).toFixed(1)}`;
+    return `<svg class="clock" viewBox="0 0 100 100" role="img" aria-label="A clock"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#2A1846" stroke-width="4"/>${Array.from({ length: 12 }, (_, i) => `<text x="${(50 + 36 * Math.sin(((i + 1) * 30 * Math.PI) / 180)).toFixed(1)}" y="${(50 - 36 * Math.cos(((i + 1) * 30 * Math.PI) / 180) + 4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" font-family="Baloo 2, sans-serif" fill="#2A1846">${i + 1}</text>`).join('')}
+      <path d="M50 50L${pt(ha, 20)}" stroke="#C81E7A" stroke-width="5" stroke-linecap="round"/><path d="M50 50L${pt(ma, 31)}" stroke="#2A1846" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="50" r="3.5" fill="#2A1846"/></svg>`;
+  };
+  const txt = (h, m) => `${h}:${String(m).padStart(2, '0')}`;
+  quiz(g, 60, 'clock', (score) => {
+    const mins = score < 3 ? [0] : score < 6 ? [0, 30] : score < 10 ? [0, 15, 30, 45] : Array.from({ length: 12 }, (_, i) => i * 5);
+    const h = 1 + rnd(12), m = mins[rnd(mins.length)], right = txt(h, m);
+    const wrong = new Set(); let guard = 0;
+    while (wrong.size < 2 && guard++ < 40) { const w = rnd(3) === 0 && m % 5 === 0 && m / 5 >= 1 && m / 5 <= 12 ? txt(m / 5, (h % 12) * 5) : txt(1 + ((h - 1 + 1 + rnd(11)) % 12), rnd(2) ? m : mins[rnd(mins.length)]); if (w !== right) wrong.add(w); }
+    return { q: 'What time is it?', right, opts: [...wrong], art: face(h, m), hint: 'The short pink hand shows the hour. The long hand shows the minutes.' };
+  }, 'Clock master!');
+}
+
+// ---------- more reading ----------
+const OPP = [['hot', 'cold'], ['big', 'small'], ['up', 'down'], ['happy', 'sad'], ['fast', 'slow'], ['day', 'night'], ['open', 'closed'], ['wet', 'dry'], ['soft', 'hard'], ['full', 'empty'], ['loud', 'quiet'], ['early', 'late'], ['light', 'heavy'], ['clean', 'dirty'], ['near', 'far'], ['first', 'last'], ['give', 'take'], ['push', 'pull'], ['tall', 'short'], ['start', 'finish'], ['inside', 'outside'], ['remember', 'forget'], ['rare', 'common'], ['fair', 'unfair']];
+function opposites(g) {
+  let last = -1;
+  quiz(g, 60, 'opposites', () => {
+    const OP = ES() ? OPP_ES : OPP;
+    let i = rnd(OP.length); if (i === last) i = (i + 1) % OP.length; last = i;
+    const flip = rnd(2), ask = OP[i][flip], right = OP[i][1 - flip];
+    const wrong = mixUp(OP.filter((_, k) => k !== i).map((p) => p[rnd(2)])).slice(0, 2);
+    return { q: `<small class="q-small">The opposite of</small><span class="q-word" translate="no">${ask}</span>`, right, opts: wrong, near: [], hint: 'Think of the word that means the other way around.' };
+  }, 'Opposites expert!');
+}
+const SENTENCES = ['The cat is very soft.', 'I like to trade my toys.', 'My slime is cold and gooey.', 'We read a story at bedtime.', 'The frog jumped into the pond.', 'She drew a pink squishy today.', 'A fair trade makes friends happy.', 'The bunny hid under my bed.', 'Please share your toys with me.', 'I counted ten shiny gold coins.', 'The little ghost was too shy.', 'He popped all the bubbles fast.'];
+function build(g) {
+  let score = 0, words = [], got = 0, lastS = '';
+  frame(g, `<section class="card missing"><p class="game-say" id="say">Tap the words in the right order.</p><div class="built" id="built" aria-live="polite" translate="no"></div><div class="tiles word-tiles" id="tiles" translate="no"></div></section>`);
+  const show = () => { $('#built').textContent = words.slice(0, got).join(' ') || '...'; };
+  const next = () => {
+    const pool = (ES() ? SENTENCES_ES : SENTENCES).filter((x) => x !== lastS && (score < 3 ? x.split(' ').length <= 5 : true));
+    const sentence = pool[rnd(pool.length)]; lastS = sentence; words = sentence.split(' '); got = 0;
+    $('#tiles').innerHTML = mixUp(words.map((w, i) => [w, i])).map(([w]) => `<button class="tile word-tile" data-act="buildTile" data-w="${w}">${w}</button>`).join('');
+    show(); $('#say').textContent = 'Tap the words in the right order.';
+  };
+  actions.buildTile = (b) => {
+    if (b.dataset.w !== words[got]) { sfx.no(); b.classList.add('bad'); later(() => b.classList.remove('bad'), 300); $('#say').textContent = got ? 'Not that word yet. Read what you have so far.' : 'A sentence starts with a capital letter.'; return; }
+    got++; b.disabled = true; b.classList.add('used'); sfx.pop(); show();
+    if (got === words.length) { score++; setScore(score); sfx.win(); $('#say').textContent = 'You built it!'; later(next, 1200); }
+  };
+  next();
+  countdown(90, () => { track('build', score); finish(g, score, Math.min(48, score * 6), score >= 6 ? 'Sentence builder!' : 'Great building!'); });
+}
+
+// ---------- more math ----------
+function fraction(g) {
+  const pie = (n, k) => { let s = ''; for (let i = 0; i < n; i++) { const a0 = (i / n) * 6.2832 - 1.5708, a1 = ((i + 1) / n) * 6.2832 - 1.5708; s += `<path d="M50 50L${(50 + 44 * Math.cos(a0)).toFixed(1)} ${(50 + 44 * Math.sin(a0)).toFixed(1)}A44 44 0 0 1 ${(50 + 44 * Math.cos(a1)).toFixed(1)} ${(50 + 44 * Math.sin(a1)).toFixed(1)}Z" fill="${i < k ? '#FFD84A' : '#FFF4E4'}" stroke="#2A1846" stroke-width="2.5" stroke-linejoin="round"/>${i < k ? `<circle cx="${(50 + 26 * Math.cos((a0 + a1) / 2)).toFixed(1)}" cy="${(50 + 26 * Math.sin((a0 + a1) / 2)).toFixed(1)}" r="5" fill="#E2483F"/>` : ''}`; } return `<svg class="clock" viewBox="0 0 100 100" role="img" aria-label="A pizza cut into ${n} slices with ${k} left">${s}</svg>`; };
+  quiz(g, 60, 'fraction', (score) => {
+    const ns = score < 4 ? [2, 3, 4] : score < 9 ? [3, 4, 5, 6] : [5, 6, 8, 10], n = ns[rnd(ns.length)], k = 1 + rnd(n - 1), right = `${k}/${n}`;
+    const wrong = [`${n - k}/${n}`, `${k}/${n + 1}`, `${Math.min(n, k + 1)}/${n}`, `${n}/${k}`].filter((w) => w !== right);
+    return { q: 'How much pizza is left?', right, opts: mixUp([...new Set(wrong)]).slice(0, 2), near: [], art: pie(n, k), hint: `Count the slices that are left, then count all ${n} slices.` };
+  }, 'Fraction whiz!');
+}
+function cents(g) {
+  const COIN = [[25, '#DCE1EA', 22], [10, '#DCE1EA', 14], [5, '#C9CFDA', 18], [1, '#E0A070', 16]];
+  quiz(g, 70, 'cents', (score) => {
+    const kinds = score < 3 ? [3, 2] : score < 7 ? [1, 2, 3] : [0, 1, 2, 3], n = 2 + rnd(score < 3 ? 3 : 5);
+    const picked = Array.from({ length: n }, () => COIN[kinds[rnd(kinds.length)]]).sort((a, b) => b[0] - a[0]), right = picked.reduce((a, c) => a + c[0], 0);
+    return { q: 'How many cents?', right, near: [1, 5, 10], art: `<div class="coin-row2">${picked.map(([v, c, r]) => `<span class="cent" style="width:${r * 2 + 8}px;height:${r * 2 + 8}px;background:${c}">${v}&cent;</span>`).join('')}</div>`, hint: 'Start with the biggest coin and count on.' };
+  }, 'Coin counter!');
+}
+function addsub(g) {
+  quiz(g, 60, 'addsub', (score) => {
+    const top = score < 3 ? 10 : score < 7 ? 20 : score < 12 ? 100 : 500, minus = rnd(2) && score >= 2;
+    let a = 1 + rnd(top), b = 1 + rnd(top); if (minus && b > a) [a, b] = [b, a];
+    return { q: `${a} ${minus ? '&minus;' : '+'} ${b} = ?`, right: minus ? a - b : a + b, near: top > 20 ? [1, 2, 10] : [1, 2, 3], hint: minus ? `Start at ${a} and count back ${b}.` : `Start at ${a} and count on ${b}.` };
+  }, 'Adding ace!');
+}
+function bigger(g) {
+  quiz(g, 60, 'bigger', (score) => {
+    const top = score < 4 ? 20 : score < 9 ? 100 : 1000; let a = 1 + rnd(top), b = rnd(6) === 0 ? a : 1 + rnd(top);
+    if (score >= 9 && rnd(2)) b = Number(String(a).split('').reverse().join('')) || b; // 47 against 74
+    const right = a > b ? '>' : a < b ? '<' : '=';
+    return { q: `${a} <span class="blank">?</span> ${b}`, right, opts: ['<', '>', '='].filter((x) => x !== right), near: [], hint: 'The open mouth of the sign always eats the bigger number.' };
+  }, 'Number detective!');
+}
+
+// ---------- fidget games ----------
+function wrapgame(g) {
+  const N = 42; let popped = 0; const t0 = Date.now();
+  frame(g, `<p class="game-say" id="say">Pop them all!</p><div class="wrap-grid">${Array.from({ length: N }, () => '<button class="bub up wrapb" data-act="wrapPop" aria-label="Bubble"></button>').join('')}</div>`);
+  actions.wrapPop = (b) => {
+    if (b.disabled) return;
+    b.disabled = true; b.classList.remove('up'); b.classList.add('flat'); popped++; sfx.pop(); setScore(popped);
+    if (popped === N) { const secs = Math.round((Date.now() - t0) / 1000), pts = Math.max(5, 70 - secs); track('pop', N); later(() => finish(g, pts, Math.min(40, 10 + Math.round(pts / 2)), `All popped in ${secs} seconds!`), 400); }
+  };
+}
+function spin(g) {
+  let vel = 0, ang = 0, run = true, last = performance.now();
+  frame(g, `<p class="game-say" id="say">Tap the spinner again and again!</p><button class="spin-big" data-act="spinTap" id="spin-big" aria-label="Spinner. Tap to spin it faster.">${toySVG('fi06')}</button><p class="game-say">Speed <b id="speed">0</b></p>`);
+  const el = $('#spin-big');
+  actions.spinTap = () => { vel = Math.min(2600, vel + 300); sfx.tap(); };
+  const loop = (now) => {
+    if (!run) return;
+    const dt = Math.min(50, now - last) / 1000; last = now;
+    ang += vel * dt; vel *= Math.pow(0.55, dt);
+    el.firstElementChild.style.transform = `rotate(${(ang % 360).toFixed(1)}deg)`;
+    setScore(Math.floor(ang / 360)); const sp = $('#speed'); if (sp) sp.textContent = Math.round(vel / 26);
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  timers.push(() => { run = false; });
+  countdown(20, () => { const spins = Math.floor(ang / 360); track('spin', spins); finish(g, spins, Math.min(40, Math.round(spins / 2)), spins >= 60 ? 'Whirlwind!' : 'Nice spinning!'); });
+}
+function box(g) {
+  frame(g, `<p class="game-say">Just for fun. Fiddle with anything!</p><div class="fbox">
+    <div class="fb-pops" role="group" aria-label="Popper">${Array.from({ length: 12 }, () => '<button class="bub up" data-act="fbPop" aria-label="Pop bubble" aria-pressed="false"></button>').join('')}</div>
+    <div class="fb-row"><button class="fb-switch" data-act="fbSwitch" aria-pressed="false" aria-label="Click switch"><i></i></button>
+      <button class="fb-spin" data-act="fbSpin" aria-label="Spinner">${toySVG('fi07')}</button>
+      <div class="fb-squish squish" data-squish data-toy="sq58" role="button" tabindex="0" aria-label="Squeeze ball">${toySVG('sq58')}</div></div>
+    <label class="fb-slide"><span>Slide</span><input type="range" min="0" max="20" value="10" id="fb-range" aria-label="Slider"></label></div>`);
+  $('#score').parentElement.hidden = true;
+  actions.fbPop = (b) => { const on = b.classList.toggle('up'); b.classList.toggle('flat', !on); b.setAttribute('aria-pressed', !on); sfx.pop(); };
+  actions.fbSwitch = (b) => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); sfx.click(); };
+  actions.fbSpin = (b) => { b.classList.remove('whirl'); void b.offsetWidth; b.classList.add('whirl'); sfx.whirr(); };
+  $('#fb-range').addEventListener('input', () => sfx.tap());
 }

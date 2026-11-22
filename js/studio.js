@@ -3,7 +3,7 @@
 // puffy 3D look as every other toy, and can be squished, traded and used in games.
 import { TOYS, registerCustom } from './data.js';
 import { toySVG, customArt, icon } from './art.js';
-import { store, save, P, addToy } from './state.js';
+import { store, save, P, addToy, track } from './state.js';
 import { $, esc, router, actions, sfx, playSound, toast, prize } from './ui.js';
 
 const COLORS = ['#2A1846', '#F0524F', '#FF9A3D', '#FFD84A', '#9BD84A', '#2CB5AC', '#4C8DF5', '#C9A8FF', '#FF8FC0', '#8A5A3C', '#FFFDF8'];
@@ -13,14 +13,24 @@ const SOUNDS = [['squish', 'Squish'], ['crunch', 'Crunch'], ['pop', 'Pop'], ['bo
 const MAX_TOYS = 60;
 
 let S = fresh();
-function fresh() { return { strokes: [], faces: [], undo: [], tool: 'pen', color: COLORS[8], w: 1, snd: 'squish', name: '', cur: null, pid: null, pencil: false }; }
+function fresh() { return { strokes: [], faces: [], undo: [], tool: 'pen', color: COLORS[8], w: 1, snd: 'squish', name: '', cur: null, pid: null, pencil: false, editId: null }; }
+// Open a squishy the player already drew, so they can add to it or change it.
+export function editDrawing(id) {
+  const t = TOYS[id];
+  if (!t || !t.custom) return;
+  S = fresh();
+  S.strokes = JSON.parse(JSON.stringify(t.art.strokes)); S.faces = JSON.parse(JSON.stringify(t.art.faces));
+  S.name = t.name; S.snd = t.snd || 'squish'; S.editId = id;
+  router.go('studio');
+}
+export function newDrawing() { if (S.editId) S = fresh(); router.go('studio'); }
 const snapshot = () => { S.undo.push(JSON.stringify([S.strokes, S.faces])); if (S.undo.length > 40) S.undo.shift(); };
 const def = () => ({ strokes: S.strokes, faces: S.faces });
 
 export function studioScreen() {
   const chip = (act, val, label, on, extra = '') => `<button class="chip" data-act="${act}" data-v="${val}" aria-pressed="${on}" ${extra}>${label}</button>`;
   return `<button class="btn back" data-act="go" data-to="toys">${icon('back')} My toys</button>
-    <h1>Squishy Studio</h1><p class="muted" id="st-hint">Draw your squishy big, in the middle. Close a shape and it fills with color.</p>
+    <h1>${S.editId ? 'Change your squishy' : 'Squishy Studio'}</h1><p class="muted st-hint" id="st-hint">${S.editId ? 'Add to your drawing, rub parts out, or change the name and sound.' : 'Draw your squishy big, in the middle. Close a shape and it fills with color.'}</p>
     <div class="studio">
       <div class="pad-wrap"><svg id="draw-pad" class="draw-pad" viewBox="0 0 100 100" role="img" aria-label="Drawing area"><g id="pad-done"></g><path id="pad-live" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="st-tools">
@@ -30,7 +40,7 @@ export function studioScreen() {
         <div class="st-row swatches" role="group" aria-label="Color">${COLORS.map((c, i) => `<button class="swatch" data-act="stColor" data-v="${c}" aria-pressed="${S.color === c}" aria-label="${NAMES[i]}" style="--c:${c}"></button>`).join('')}</div>
         <div class="st-row" role="group" aria-label="Sound when squished"><span class="st-label">Sound:</span>${SOUNDS.map(([k, l]) => chip('stSound', k, l, S.snd === k)).join('')}</div>
         <form class="st-row st-name" data-form="studio"><label for="st-name">Name</label><input id="st-name" name="name" maxlength="18" autocomplete="off" placeholder="My Squishy" value="${esc(S.name)}">
-          <button class="btn primary big" type="submit">Make my squishy!</button></form>
+          <button class="btn primary big" type="submit">${S.editId ? 'Save my changes' : 'Make my squishy!'}</button></form>
       </div>
     </div>`;
 }
@@ -45,7 +55,9 @@ const pad = () => $('#draw-pad');
 function at(e) { const r = pad().getBoundingClientRect(); return [Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100)), Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100))].map((n) => Math.round(n * 10) / 10); }
 function erase(x, y) {
   const before = S.strokes.length + S.faces.length;
-  S.strokes = S.strokes.filter((k) => { for (let i = 0; i < k.p.length; i += 2) if (Math.hypot(k.p[i] - x, k.p[i + 1] - y) < 3.5 + k.w / 2) return false; return true; });
+  // Distance to each piece of the line (not just its dots), so rubbing the middle of a long line works.
+  const near = (k) => { const r = 3.5 + k.w / 2, p = k.p; if (p.length === 2) return Math.hypot(p[0] - x, p[1] - y) < r; for (let i = 0; i + 3 < p.length; i += 2) { const ax = p[i], ay = p[i + 1], dx = p[i + 2] - ax, dy = p[i + 3] - ay, L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L)) : 0; if (Math.hypot(ax + t * dx - x, ay + t * dy - y) < r) return true; } return false; };
+  S.strokes = S.strokes.filter((k) => !near(k));
   S.faces = S.faces.filter((f) => Math.hypot(f.x - x, f.y - y) > 9 * f.s);
   if (S.strokes.length + S.faces.length !== before) { paint(); sfx.tap(); }
 }
@@ -66,6 +78,7 @@ document.addEventListener('pointerdown', (e) => {
   if (e.pointerType === 'pen' && !S.pencil) { S.pencil = true; if (S.cur) { S.cur = null; S.undo.pop(); paint(); } }
   if (S.pencil && e.pointerType === 'touch') return;
   if (S.cur) finish();
+  S.erasing = false; // a second finger must never leave the eraser switched on
   e.preventDefault();
   const [x, y] = at(e);
   try { pad().setPointerCapture(e.pointerId); } catch { /* fine without capture */ }
@@ -94,6 +107,10 @@ const stop = (e) => { if (S.pid !== e.pointerId) return; if (S.erasing) { S.eras
 document.addEventListener('pointerup', stop);
 document.addEventListener('pointercancel', stop);
 window.addEventListener('blur', () => { if (S.cur) finish(); S.erasing = false; });
+// Keep the page perfectly still while a finger or Pencil is on the drawing pad (iPad Safari
+// otherwise scrolls or bounces the page under the drawing).
+['touchstart', 'touchmove'].forEach((ev) => document.addEventListener(ev, (e) => { if (e.target.closest && e.target.closest('.pad-wrap')) e.preventDefault(); }, { passive: false }));
+document.addEventListener('gesturestart', (e) => { if (e.target.closest && e.target.closest('.pad-wrap')) e.preventDefault(); });
 
 const redraw = () => { if (S.cur) finish(); S.name = $('#st-name') ? $('#st-name').value : S.name; router.go('studio'); };
 actions.stTool = (el) => { S.tool = el.dataset.v; sfx.tap(); redraw(); };
@@ -106,11 +123,20 @@ actions.form_studio = (f) => {
   if (S.cur) finish();
   if (!S.strokes.length) { sfx.no(); return toast('Draw something first!'); }
   store.custom = store.custom || {};
+  const name = String(new FormData(f).get('name') || '').trim() || 'My Squishy';
+  if (S.editId) {
+    const id = S.editId, was = TOYS[id];
+    const kept = registerCustom({ id, name, snd: S.snd, real: !!(was && was.art.real), strokes: S.strokes, faces: S.faces });
+    if (!kept) { sfx.no(); return toast('That drawing could not be saved. Try again.'); }
+    store.custom[id] = kept.art; save();
+    S = fresh(); router.go('toys'); sfx.win();
+    return toast(`${esc(kept.name)} is updated!`);
+  }
   if (Object.keys(store.custom).length >= MAX_TOYS) { sfx.no(); return toast(`You have made ${MAX_TOYS} squishies. That is the most this device can keep.`); }
   const id = 'cu' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
-  const made = registerCustom({ id, name: String(new FormData(f).get('name') || '').trim() || 'My Squishy', snd: S.snd, strokes: S.strokes, faces: S.faces });
+  const made = registerCustom({ id, name, snd: S.snd, strokes: S.strokes, faces: S.faces });
   if (!made) { sfx.no(); return toast('That drawing could not be saved. Try again.'); }
-  store.custom[id] = made.art; addToy(id); save();
+  store.custom[id] = made.art; addToy(id); track('draw'); save();
   S = fresh();
   router.go('toys');
   prize('You made a squishy!', `<p><b>${esc(made.name)}</b> is on your shelf. Squish it, trade it, or make it your buddy.</p><p><button class="btn" data-act="buddy" data-id="${id}">Make it my buddy</button></p>`, id);

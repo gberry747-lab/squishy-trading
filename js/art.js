@@ -329,6 +329,22 @@ function fidget(t, P) {
       return `<rect x="46" y="8" width="8" height="26" rx="4" fill="${P.c2}"/><path d="M18 44Q50 20 82 44Q78 62 50 92Q22 62 18 44Z" fill="${f}"/><path d="M19 47Q50 60 81 47" fill="none" stroke="${P.c2}" stroke-width="7"/><path d="M27 62Q50 72 73 62" fill="none" stroke="#fff" stroke-width="4" opacity=".6"/>${shine(36, 36, 7, 4)}`;
     case 'pen':
       return `<g transform="rotate(32 50 52)"><rect x="42" y="6" width="16" height="12" rx="4" fill="${P.c2}"/><rect x="41" y="16" width="18" height="56" rx="6" fill="${f}"/><rect x="41" y="52" width="18" height="12" fill="${d}"/><rect x="58" y="18" width="5" height="26" rx="2.5" fill="#DCE1EA"/><path d="M43 72L57 72L50 90Z" fill="#B9BEC9"/><circle cx="50" cy="88" r="2" fill="${INK}"/><rect x="45" y="22" width="4" height="24" rx="2" fill="#fff" opacity=".5"/></g>`;
+    case 'wrap': {
+      let s = `<rect x="10" y="12" width="80" height="80" rx="12" fill="${P.base}" opacity=".3" stroke="${d}" stroke-width="2"/>`;
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) s += `<circle cx="${22 + c * 18.6}" cy="${24 + r * 18.6}" r="7.6" fill="${P.light}" stroke="${d}" stroke-width="1.2" opacity=".9"/><circle cx="${19.5 + c * 18.6}" cy="${21.5 + r * 18.6}" r="2.2" fill="#fff" opacity=".8"/>`;
+      return s;
+    }
+    case 'switch':
+      return `<rect x="20" y="16" width="60" height="74" rx="14" fill="${d}"/><rect x="20" y="12" width="60" height="74" rx="14" fill="${f}"/><rect x="34" y="24" width="32" height="50" rx="10" fill="#fff" stroke="${d}" stroke-width="2"/><rect x="39" y="28" width="22" height="26" rx="7" fill="${P.c2}"/><rect x="43" y="31" width="5" height="12" rx="2.5" fill="#fff" opacity=".6"/><circle cx="70" cy="22" r="3" fill="#9BD84A"/>`;
+    case 'timer':
+      return `<rect x="26" y="8" width="48" height="10" rx="5" fill="${d}"/><rect x="26" y="84" width="48" height="10" rx="5" fill="${d}"/><rect x="30" y="16" width="40" height="70" rx="8" fill="#EAF6FF" stroke="${d}" stroke-width="2"/><path d="M32 72Q50 64 68 72L68 80Q68 84 64 84L36 84Q32 84 32 80Z" fill="${f}"/><circle cx="44" cy="30" r="5" fill="${P.c2}"/><circle cx="56" cy="42" r="6" fill="${f}"/><circle cx="46" cy="54" r="4.5" fill="${P.c2}"/><circle cx="55" cy="62" r="3.5" fill="${f}"/><rect x="35" y="22" width="4" height="34" rx="2" fill="#fff" opacity=".7"/>`;
+    case 'pom': {
+      let s = '';
+      for (let i = 0; i < 30; i++) { const a = i * 2.39996, len = 26 + (i % 5) * 3, c = t.fx === 'rainbow' ? RAINBOW[i % 6] : (i % 3 ? P.base : P.c2); s += `<line x1="50" y1="56" x2="${(50 + len * Math.cos(a)).toFixed(1)}" y2="${(56 + len * Math.sin(a)).toFixed(1)}" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`; }
+      return s + `<circle cx="50" cy="56" r="11" fill="${t.fx === 'rainbow' ? '#FFD84A' : P.base}"/>${face(50, 56, 0.45, false, 8)}`;
+    }
+    case 'chain':
+      return `<circle cx="28" cy="56" r="16" fill="none" stroke="${d}" stroke-width="9"/><circle cx="28" cy="55" r="16" fill="none" stroke="${f}" stroke-width="6"/><circle cx="72" cy="56" r="16" fill="none" stroke="${d}" stroke-width="9"/><circle cx="72" cy="55" r="16" fill="none" stroke="${f}" stroke-width="6"/><rect x="36" y="40" width="28" height="11" rx="5.5" fill="${P.c2}" stroke="${INK}" stroke-opacity=".3" stroke-width="1"/><rect x="36" y="60" width="28" height="11" rx="5.5" fill="${P.c2}" stroke="${INK}" stroke-opacity=".3" stroke-width="1"/>`;
     case 'dimple': {
       const cs = t.fx === 'rainbow' ? ['#FF8FC0', '#FFD84A', '#8ED3FF'] : [P.base, shade(P.base, 0.3), P.base];
       return `<circle cx="14" cy="30" r="8" fill="none" stroke="#B9BEC9" stroke-width="3.5"/><rect x="7" y="34" width="86" height="42" rx="21" fill="${t.fx === 'rainbow' ? '#fff' : d}" stroke="${d}" stroke-width="2"/>${bubble(27, 55, 12.5, cs[0])}${bubble(50, 55, 12.5, cs[1])}${bubble(73, 55, 12.5, cs[2])}`;
@@ -466,13 +482,18 @@ export function customArt(t) {
 
 const DRAW = { squishy, fidget, slime, putty, dough, springy, plushie };
 
-export function toySVG(id) {
+const LOOK = {
+  girl: '<g transform="translate(72 22)"><path d="M0 0L-13 -9Q-17 0 -13 9ZM0 0L13 -9Q17 0 13 9Z" fill="#FF5FA8" stroke="#C81E7A" stroke-width="1.5" stroke-linejoin="round"/><circle r="4" fill="#C81E7A"/></g>',
+  boy: '<g transform="translate(50 20)"><path d="M-17 2Q-15 -15 0 -15Q15 -15 17 2Z" fill="#4C8DF5" stroke="#2F5FC0" stroke-width="1.5"/><rect x="8" y="-1" width="19" height="5" rx="2.5" fill="#2F5FC0"/><circle cy="-15" r="2.5" fill="#FFD84A"/></g>',
+};
+// look: 'girl' adds a bow, 'boy' adds a cap. Used only for a player's own buddy.
+export function toySVG(id, look) {
   const t = TOYS[id];
   if (!t) return '';
   const P = paint(t);
   const glow = t.fx === 'glow' ? sparkles(t) : '';
   const spark = t.fx !== 'glow' ? sparkles(t) : '';
-  return `<svg class="toy-svg" viewBox="0 0 100 100" aria-hidden="true"><defs>${P.defs}</defs>${ground(t.cat === 'springy' ? 34 : 30)}${glow}<g filter="url(#toy-puff)">${t.custom ? customArt(t) : DRAW[t.cat](t, P)}</g>${spark}</svg>`;
+  return `<svg class="toy-svg" viewBox="0 0 100 100" aria-hidden="true"><defs>${P.defs}</defs>${ground(t.cat === 'springy' ? 34 : 30)}${glow}<g filter="url(#toy-puff)">${t.custom ? customArt(t) : DRAW[t.cat](t, P)}</g>${spark}${LOOK[look] || ''}</svg>`;
 }
 
 export const coinSVG = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#F5B921" stroke="#2A1846" stroke-width="2"/><path d="M12 6.5l1.6 3.4 3.7.4-2.8 2.5.8 3.7L12 14.6l-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="#FFF3B0"/></svg>`;
