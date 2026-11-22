@@ -1,5 +1,5 @@
 // Trading: with computer friends, with another player on this device, or online with a room code.
-import { TOYS, CATS, FRIENDS, PHRASES } from './data.js';
+import { TOYS, CATS, FRIENDS, PHRASES, registerCustom } from './data.js';
 import { toySVG, icon } from './art.js';
 import { store, save, P, addToy, removeToy, addCoins, track } from './state.js';
 import { $, esc, router, actions, sfx, toyCard, coins, toast, modal, closeModal, prize, glitterBurst } from './ui.js';
@@ -289,6 +289,9 @@ function openOnline(pid) {
   if (!pl) return;
   closeModal();
   T = { mode: 'online', pid, name: pl.name, avatar: pl.avatar, theirInv: {}, mine: [], theirs: [], myCoins: 0, theirCoins: 0, myLock: false, theirLock: false, theirSig: '', said: '' };
+  // Send the drawings of any handmade squishies first, so the other device can show them.
+  const defs = Object.keys(P().inv).filter((id) => TOYS[id] && TOYS[id].custom).map((id) => TOYS[id].art);
+  if (defs.length) room.send(pid, { t: 'defs', defs });
   sendOffer(); draw(); window.scrollTo(0, 0);
 }
 function sendOffer() {
@@ -336,6 +339,10 @@ function onMsg(from, m) {
   if (m.t === 'accept') return openOnline(from);
   if (m.t === 'no') return toast(m.busy ? `${esc(pl.name)} is busy trading.` : `${esc(pl.name)} said not right now.`);
   if (!T || T.mode !== 'online' || T.pid !== from) return;
+  if (m.t === 'defs' && Array.isArray(m.defs)) {
+    m.defs.slice(0, 60).forEach((d) => { const made = registerCustom(d); if (made && Object.keys(store.custom).length < 300) store.custom[made.id] = made.art; });
+    save(); return draw();
+  }
   if (m.t === 'offer') {
     T.theirs = cleanToys(m.toys); T.theirCoins = cleanCoins(m.coins); T.theirInv = cleanInv(m.inv);
     T.theirLock = false;

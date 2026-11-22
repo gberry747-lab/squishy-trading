@@ -15,6 +15,7 @@ export const RARITY = {
   r: { name: 'Rare', value: 25 },
   e: { name: 'Epic', value: 60 },
   l: { name: 'Legendary', value: 150 },
+  h: { name: 'Handmade', value: 40 },
 };
 
 // id|name|shape|colour 1|colour 2|rarity|effect
@@ -144,7 +145,24 @@ sq121|Flutter Butterfly|butterfly|lilac|pink|r
 sq122|Mushy Marshmallow|marsh|white||c
 sq123|Strawberry Milk|milk|pink||r
 sq124|Choco Milk|milk|choc||c
-sq125|Golden Ducky|duck|gold||l|glitter`,
+sq125|Golden Ducky|duck|gold||l|glitter
+sq126|Lottie Axolotl|axo|pink|rose|r
+sq127|Spike the Hedgehog|hedgehog|tan|choc|c
+sq128|Jelly Jellyfish|jelly|lilac||r
+sq129|Glow Jellyfish|jelly|sky||e|glow
+sq130|Sleepy Seal|seal|gray||c
+sq131|Berry Macaron|macaron|pink||c
+sq132|Mint Macaron|macaron|mint||c
+sq133|Fruity Popsicle|popsicle|orange|pink|c
+sq134|Rainbow Popsicle|popsicle|pink|sky|e|rainbow
+sq135|Swirly Lollipop|lollipop|pink|white|r
+sq136|Wrapped Candy|candy|blue||c
+sq137|Golden Candy|candy|gold||l|glitter
+sq138|Over the Rainbow|rainbowarc|white||e
+sq139|Rosy Apple|apple|red||c
+sq140|Cocoa Capybara|capy|choc||c
+sq141|Glitter Capybara|capy|peach||e|glitter
+sq142|Jumbo Capybara|capy|tan||e||J`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -187,7 +205,13 @@ fi38|Glitter Noodles|noodle|lilac|pink|r|glitter
 fi39|Fidget Pad|pad|sky|yellow|r
 fi40|Golden Fidget Pad|pad|gold|orange|l|glitter
 fi41|Magnet Marbles|magnet|gray|blue|r
-fi42|Rainbow Marbles|magnet|pink||e|rainbow`,
+fi42|Rainbow Marbles|magnet|pink||e|rainbow
+fi43|Bounce Paddle|paddle|red|yellow|c
+fi44|Marble Maze|maze|sky|pink|r
+fi45|Twirly Top|top|pink|yellow|c
+fi46|Galaxy Top|top|grape|sky|e|galaxy
+fi47|Clicky Pen|pen|teal|yellow|c
+fi48|Golden Maze|maze|gold|orange|l|glitter`,
   slime: `
 sl01|Strawberry Slime|glossy|pink||c
 sl02|Ocean Slime|glossy|blue||c
@@ -219,7 +243,11 @@ sl27|Blue Raspberry Slime|glossy|sky||c
 sl28|Cookies and Cream|cloud|gray||r
 sl29|Lava Lamp Slime|clear|orange||e|glow
 sl30|Pearl Butter|butter|white||r
-sl31|Glitter Bomb Slime|glossy|pink||l|glitter`,
+sl31|Glitter Bomb Slime|glossy|pink||l|glitter
+sl32|Mango Butter|butter|orange||c
+sl33|Grape Soda Crunch|crunchy|grape||r
+sl34|Minty Cloud|cloud|mint||r
+sl35|Rainbow Sherbet|glossy|pink||e|rainbow`,
   putty: `
 pu01|Bubblegum Putty|swirl|pink|white|c
 pu02|Ocean Swirl|swirl|blue|teal|c
@@ -244,7 +272,10 @@ pu20|Peachy Putty|swirl|peach|pink|c
 pu21|Aqua Glitter Putty|metal|sky||e|glitter
 pu22|Berry Blast Putty|swirl|grape|pink|c
 pu23|Candy Corn Swirl|swirl|orange|white|c
-pu24|Midnight Glow|glow|grape||e`,
+pu24|Midnight Glow|glow|grape||e
+pu25|Lemon Zest Putty|swirl|yellow|white|c
+pu26|Mirror Shine|metal|sky||r
+pu27|Glow Lava|glow|orange||e`,
   dough: `
 do01|Red Dough|ball|red||c
 do02|Blue Dough|ball|blue||c
@@ -272,7 +303,10 @@ do23|Rainbow Dough|ball|pink||e|rainbow
 do24|Lilac Dough|ball|lilac||c
 do25|Sunny Star|star|yellow||c
 do26|Glitter Swirl|swirl|pink||e|glitter
-do27|Peach Heart|heart|peach||r`,
+do27|Peach Heart|heart|peach||r
+do28|Coral Dough|ball|rose||c
+do29|Mint Heart|heart|mint||c
+do30|Galaxy Star Dough|star|grape||e|galaxy`,
   springy: `
 sp01|Classic Springy|arc|gray||c
 sp02|Pink Springy|arc|pink||c
@@ -298,7 +332,10 @@ sp21|Sunshine Springy|arc|yellow||c
 sp22|Flamingo Springy|arc|pink|white|c
 sp23|Midnight Stack|stack|navy|sky|r
 sp24|Lemon Lime Springy|arc|yellow|lime|c
-sp25|Glitter Stack|stack|pink|lilac|e|glitter`,
+sp25|Glitter Stack|stack|pink|lilac|e|glitter
+sp26|Peachy Springy|arc|peach||c
+sp27|Ocean Stack|stack|teal|sky|c
+sp28|Golden Stack|stack|gold||l|glitter`,
   plushie: `
 pl01|Buttons the Bear|bear|tan|cream|r
 pl02|Clover the Bunny|bunny|white|pink|r
@@ -328,7 +365,12 @@ pl25|Stretch the Giraffe|giraffe|yellow|choc|e
 pl26|Woolly the Sheep|sheep|white|navy|r
 pl27|Stripes the Tiger|tiger|orange|white|e
 pl28|Moo the Cow|cow|white|navy|r
-pl29|Rainbow the Unicorn|unicorn|pink|sky|l|rainbow`,
+pl29|Rainbow the Unicorn|unicorn|pink|sky|l|rainbow
+pl30|Snoozy the Sloth|sloth|tan|cream|r
+pl31|Bubbles the Hippo|hippo|lilac|pink|r
+pl32|Bandit the Raccoon|raccoon|gray|white|e
+pl33|Fawn the Deer|deer|tan|cream|e
+pl34|Nibbles the Hamster|hamster|peach|white|r`,
 };
 
 export const TOYS = {};
@@ -391,6 +433,10 @@ export const QUESTS = [
   { id: 'claw3', text: 'Grab 3 toys in Claw Machine', ev: 'claw', goal: 3, coins: 30 },
   { id: 'stack8', text: 'Stack 8 squishies in Squishy Stack', ev: 'stack', goal: 8, coins: 30 },
   { id: 'missing5', text: 'Spot 5 missing toys', ev: 'missing', goal: 5, coins: 30 },
+  { id: 'tapit15', text: 'Tap 15 right toys in Tap It', ev: 'tapit', goal: 15, coins: 30 },
+  { id: 'hilo8', text: 'Guess right 8 times in More or Less', ev: 'hilo', goal: 8, coins: 30 },
+  { id: 'pattern6', text: 'Finish 6 patterns', ev: 'pattern', goal: 6, coins: 30 },
+  { id: 'tactoe1', text: 'Win a round of Squishy Tac Toe', ev: 'tactoe', goal: 1, coins: 30 },
   { id: 'bomb5', text: 'Throw 5 glitter bombs', ev: 'bomb', goal: 5, coins: 25 },
   { id: 'count8', text: 'Count right 8 times in Quick Count', ev: 'count', goal: 8, coins: 30 },
 ];
@@ -404,6 +450,7 @@ export const GOALS = [
   { id: 'u120', text: 'Collect 120 different toys', kind: 'unique', goal: 120, coins: 500 },
   { id: 'u160', text: 'Collect 160 different toys', kind: 'unique', goal: 160, coins: 700 },
   { id: 'u220', text: 'Collect 220 different toys', kind: 'unique', goal: 220, coins: 900 },
+  { id: 'u280', text: 'Collect 280 different toys', kind: 'unique', goal: 280, coins: 1200 },
   { id: 'u104', text: 'Collect every single toy', kind: 'unique', goal: TOY_LIST.length, coins: 1000 },
   { id: 't1', text: 'Make your first trade', kind: 'stat', ev: 'trade', goal: 1, coins: 20 },
   { id: 't10', text: 'Make 10 trades', kind: 'stat', ev: 'trade', goal: 10, coins: 80 },
@@ -561,11 +608,12 @@ export const STORIES = [
 // How each toy sounds and moves when you play with it.
 const CRUNCHY = ['beadball', 'taco', 'cookie', 'fries'];
 const POPPY = ['popper', 'popround', 'popheart', 'dimple', 'peapod', 'keycap', 'cube', 'meshball'];
-const CLICKY = ['track', 'slug', 'pad', 'magnet'];
-const SPINNY = ['spinner', 'pinwheel', 'gear', 'yoyo', 'ring', 'twisty'];
+const CLICKY = ['track', 'slug', 'pad', 'magnet', 'maze', 'pen'];
+const SPINNY = ['spinner', 'pinwheel', 'gear', 'yoyo', 'ring', 'twisty', 'top'];
 export function playStyle(id) {
   const t = TOYS[id];
   if (!t) return 'squish';
+  if (t.custom) return t.snd || 'squish';
   if (CRUNCHY.includes(t.v) || (t.cat === 'slime' && t.v === 'crunchy')) return 'crunch';
   if (t.cat === 'fidget') return SPINNY.includes(t.v) ? 'spin' : POPPY.includes(t.v) ? 'pop' : CLICKY.includes(t.v) ? 'click' : t.v === 'noodle' ? 'stretch' : 'squish';
   if (t.cat === 'springy') return 'boing';
@@ -573,4 +621,29 @@ export function playStyle(id) {
   if (t.cat === 'putty') return 'stretch';
   if (t.cat === 'plushie') return 'soft';
   return 'squish';
+}
+
+// ---------- squishies players draw themselves ----------
+// A drawing is a list of lines in a 0-100 square. Everything is checked and trimmed here,
+// because a drawing can arrive from another device during an online trade.
+const SOUNDS = ['squish', 'crunch', 'pop', 'boing', 'squelch', 'soft'];
+const num = (n, lo, hi) => Math.round(Math.max(lo, Math.min(hi, Number(n) || 0)) * 10) / 10;
+export function cleanDef(d) {
+  if (!d || typeof d !== 'object' || !/^cu[a-z0-9]{6,24}$/.test(String(d.id)) || !Array.isArray(d.strokes)) return null;
+  const strokes = d.strokes.slice(0, 150).map((k) => {
+    if (!k || !Array.isArray(k.p) || k.p.length < 2 || !/^#[0-9a-fA-F]{6}$/.test(String(k.c))) return null;
+    const p = k.p.slice(0, 1400).map((n) => num(n, 0, 100));
+    if (p.length % 2) p.pop();
+    return { c: String(k.c), w: num(k.w, 1, 14), f: !!k.f, p };
+  }).filter(Boolean);
+  if (!strokes.length) return null;
+  const faces = (Array.isArray(d.faces) ? d.faces : []).slice(0, 6).map((f) => ({ x: num(f && f.x, 0, 100), y: num(f && f.y, 0, 100), s: num(f && f.s, 0.4, 2) }));
+  const name = String(d.name || '').replace(/[<>&"']/g, '').trim().slice(0, 18) || 'My Squishy';
+  return { id: String(d.id), name, snd: SOUNDS.includes(d.snd) ? d.snd : 'squish', strokes, faces };
+}
+export function registerCustom(d) {
+  const c = cleanDef(d);
+  if (!c) return null;
+  TOYS[c.id] = { id: c.id, name: c.name, cat: 'squishy', v: 'custom', c1: 'pink', c2: '', r: 'h', fx: '', big: false, value: RARITY.h.value, custom: true, snd: c.snd, art: c };
+  return TOYS[c.id];
 }

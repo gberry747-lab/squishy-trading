@@ -1,5 +1,5 @@
 // Four mini-games that pay coins.
-import { TOYS, TOY_LIST, CATS } from './data.js';
+import { TOYS, TOY_LIST, CATS, RARITY, FRIENDS } from './data.js';
 import { toySVG, icon } from './art.js';
 import { P, save, addCoins, track, rollToy } from './state.js';
 import { $, router, actions, sfx, coins, confetti, glitterBurst } from './ui.js';
@@ -21,8 +21,14 @@ const GAMES = [
   { id: 'claw', name: 'Claw Machine', art: 'pl23', how: 'Line up the claw and drop it. Rarer toys score more.', unit: 'points' },
   { id: 'stack', name: 'Squishy Stack', art: 'sq97', how: 'Drop each squishy on top of the last one. How tall can you build?', unit: 'stacked' },
   { id: 'missing', name: 'What Is Missing?', art: 'sq38', how: 'Remember the toys. One sneaks away. Which one?', unit: 'spotted' },
+  { id: 'tapit', name: 'Tap It!', art: 'fi02', how: 'Toys pop up. Tap only the kind the sign asks for.', unit: 'points' },
+  { id: 'hilo', name: 'More or Less', art: 'sq137', how: 'Is the next toy worth more coins or less? Learn what makes a toy rare.', unit: 'right guesses' },
+  { id: 'pattern', name: 'Finish the Pattern', art: 'sq138', how: 'Look at the row of toys. Which one comes next?', unit: 'patterns' },
+  { id: 'tactoe', name: 'Squishy Tac Toe', art: 'pl32', how: 'Get three in a row before your computer friend does. Best of three rounds.', unit: 'wins' },
 ];
 const view = () => $('#view');
+// The player's own handmade squishies join in several games.
+const mine = () => Object.keys(P().inv).filter((id) => TOYS[id] && TOYS[id].custom).map((id) => TOYS[id]);
 const best = (id) => P().stats['best_' + id] || 0;
 
 export function gamesScreen() {
@@ -67,7 +73,7 @@ function finish(g, score, won, line) {
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
+actions.play = (el) => { sfx.tap(); ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe })[el.dataset.id](GAMES.find((g) => g.id === el.dataset.id)); };
 
 // ---------- Pop Party ----------
 function pop(g) {
@@ -93,7 +99,7 @@ function pop(g) {
 
 // ---------- Memory Match ----------
 function match(g) {
-  const pool = [...TOY_LIST].sort(() => Math.random() - 0.5).slice(0, 6).map((t) => t.id);
+  const pool = [...mine().sort(() => Math.random() - 0.5).slice(0, 2), ...[...TOY_LIST].sort(() => Math.random() - 0.5)].slice(0, 6).map((t) => t.id);
   const deck = [...pool, ...pool].sort(() => Math.random() - 0.5);
   let open = [], found = 0, moves = 0, lock = false;
   frame(g, `<p class="muted">Moves: <b id="moves">0</b></p><div class="mem-grid">${deck.map((id, i) => `<button class="mem" data-act="mem" data-i="${i}" aria-label="Card ${i + 1}, face down"><span class="mem-front">${toySVG(id)}</span><span class="mem-back">?</span></button>`).join('')}</div>`);
@@ -159,7 +165,7 @@ function catchGame(g) {
   arena.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') { x -= 8; place(); e.preventDefault(); } if (e.key === 'ArrowRight') { x += 8; place(); e.preventDefault(); } });
   actions.tubL = () => { x -= 12; place(); }; actions.tubR = () => { x += 12; place(); };
   place();
-  const pool = TOY_LIST.filter((t) => t.cat === 'squishy' || t.cat === 'plushie');
+  const pool = [...TOY_LIST.filter((t) => t.cat === 'squishy' || t.cat === 'plushie'), ...Array.from({ length: 12 }, () => mine()).flat()];
   const loop = (now) => {
     if (!run) return;
     const dt = Math.min(50, now - last); last = now;
@@ -364,7 +370,7 @@ function shuffle(g) {
     open = false; round++;
     cups.forEach((c) => c.classList.remove('peek', 'miss'));
     prize = rnd(3);
-    const toy = TOY_LIST[rnd(TOY_LIST.length)];
+    const own = mine(), toy = own.length && Math.random() < 0.5 ? own[rnd(own.length)] : TOY_LIST[rnd(TOY_LIST.length)];
     cups.forEach((c, i) => { c.querySelector('.cup-toy').innerHTML = i === prize ? toySVG(toy.id) : ''; });
     $('#say').textContent = 'Watch the toy!';
     cups[prize].classList.add('peek');
@@ -503,7 +509,7 @@ function claw(g) {
 
 // ---------- Squishy Stack ----------
 function stack(g) {
-  const STEP = 50, pool = TOY_LIST.filter((t) => t.cat === 'squishy' && ['blob', 'bun', 'bear', 'cat', 'goocube', 'marsh', 'loaf', 'gooball', 'dumpling'].includes(t.v));
+  const STEP = 50, pool = TOY_LIST.filter((t) => t.cat === 'squishy' && ['blob', 'bun', 'bear', 'cat', 'goocube', 'marsh', 'loaf', 'gooball', 'dumpling'].includes(t.v)).concat(mine(), mine());
   let n = 0, lives = 2, x = 50, dir = 1, speed = 0.05, prevX = 50, run = true, busy = false, last = performance.now(), piece = null;
   frame(g, `<p class="game-say" id="say" aria-live="polite">Tries left: <span id="lives">2</span></p><div class="stack-box" id="stack-box" data-act="stackDrop"><div class="stack-inner" id="stack-inner"></div></div>
     <div class="row center"><button class="btn primary big" data-act="stackDrop">Drop!</button></div>`);
@@ -560,4 +566,116 @@ function missing(g) {
   };
   round();
   countdown(50, () => { track('missing', score); finish(g, score, Math.min(45, score * 5), score >= 6 ? 'Super memory!' : 'Good remembering!'); });
+}
+
+// ---------- Tap It! ----------
+function tapit(g) {
+  const cats = Object.keys(CATS), want = cats[rnd(cats.length)];
+  let score = 0, hits = 0;
+  frame(g, `<p class="game-say">Tap only the <b class="pill big">${CATS[want].name}</b></p><div class="tap-grid">${Array.from({ length: 9 }, (_, i) => `<button class="tap-cell" data-act="tapCell" data-i="${i}" aria-label="Empty spot"></button>`).join('')}</div>`);
+  const cells = [...document.querySelectorAll('.tap-cell')];
+  const clear = (c) => { c.innerHTML = ''; c.dataset.cat = ''; c.classList.remove('full'); c.setAttribute('aria-label', 'Empty spot'); };
+  const pop = () => {
+    const free = cells.filter((c) => !c.classList.contains('full'));
+    if (!free.length) return;
+    const c = free[rnd(free.length)], pool = Math.random() < 0.45 ? TOY_LIST.filter((t) => t.cat === want) : TOY_LIST.filter((t) => t.cat !== want), t = pool[rnd(pool.length)];
+    c.innerHTML = toySVG(t.id); c.dataset.cat = t.cat; c.classList.add('full'); c.setAttribute('aria-label', `${t.name}, ${CATS[t.cat].one}`);
+    const stamp = String(Math.random()); c.dataset.stamp = stamp;
+    later(() => { if (c.dataset.stamp === stamp) clear(c); }, Math.max(900, 1500 - hits * 15));
+  };
+  actions.tapCell = (c) => {
+    if (!c.classList.contains('full')) return;
+    if (c.dataset.cat === want) { score++; hits++; sfx.pop(); c.classList.add('good'); }
+    else { score = Math.max(0, score - 1); sfx.no(); c.classList.add('bad'); }
+    setScore(score); clear(c); later(() => c.classList.remove('good', 'bad'), 220);
+  };
+  pop(); every(pop, 520);
+  countdown(30, () => { track('tapit', hits); finish(g, score, Math.min(45, score * 2), score >= 18 ? 'Lightning fingers!' : 'Sharp tapping!'); });
+}
+
+// ---------- More or Less ----------
+function hilo(g) {
+  let score = 0, lives = 3, cur = TOY_LIST[rnd(TOY_LIST.length)], nxt = null, busy = false;
+  const card = (t, hidden) => `<div class="hilo-card">${hidden ? '<div class="hilo-q">?</div>' : toySVG(t.id)}<b>${hidden ? 'Next toy' : t.name}</b><span class="pill ${hidden ? '' : 'r-' + t.r}">${hidden ? 'Worth ?' : `${RARITY[t.r].name}${t.big ? ' Jumbo' : ''}: worth ${t.value}`}</span></div>`;
+  frame(g, `<section class="card hilo"><p class="game-say" id="say" aria-live="polite">Tries left: 3</p><div class="hilo-row" id="hilo-row"></div>
+    <div class="row center"><button class="btn primary big" data-act="hiloPick" data-v="more">Worth more</button><button class="btn big" data-act="hiloPick" data-v="less">Worth less</button></div></section>`);
+  const deal = () => {
+    busy = false;
+    const others = TOY_LIST.filter((t) => t.id !== cur.id && t.value !== cur.value);
+    nxt = Math.random() < 0.88 ? others[rnd(others.length)] : TOY_LIST[rnd(TOY_LIST.length)];
+    $('#hilo-row').innerHTML = card(cur) + '<span class="swap" aria-hidden="true">' + icon('trade') + '</span>' + card(nxt, true);
+  };
+  const end = () => { track('hilo', score); finish(g, score, Math.min(45, score * 3), score >= 10 ? 'Toy expert!' : 'Good guessing!'); };
+  actions.hiloPick = (b) => {
+    if (busy) return;
+    busy = true;
+    const right = nxt.value === cur.value || (b.dataset.v === 'more') === (nxt.value > cur.value);
+    $('#hilo-row').innerHTML = card(cur) + '<span class="swap" aria-hidden="true">' + icon('trade') + '</span>' + card(nxt);
+    if (right) { score++; sfx.pop(); setScore(score); $('#say').textContent = `Yes! ${nxt.value} is ${nxt.value === cur.value ? 'the same as' : nxt.value > cur.value ? 'more than' : 'less than'} ${cur.value}.`; }
+    else { lives--; sfx.no(); $('#say').textContent = `Not this time. ${nxt.value} is ${nxt.value > cur.value ? 'more' : 'less'} than ${cur.value}. Tries left: ${lives}`; }
+    later(() => { if (lives <= 0 || score >= 15) return end(); cur = nxt; deal(); }, right ? 1000 : 1700);
+  };
+  deal();
+}
+
+// ---------- Finish the Pattern ----------
+function pattern(g) {
+  let score = 0;
+  frame(g, `<section class="card pattern"><p class="game-say" id="say">Which toy comes next?</p><div class="pat-row" id="pat-row"></div><div class="shadow-opts miss-opts" id="opts"></div></section>`);
+  const next = () => {
+    const kinds = score < 2 ? ['AB'] : score < 5 ? ['AB', 'AAB', 'ABB'] : ['AAB', 'ABB', 'ABC', 'AABB', 'ABCB'];
+    const unit = kinds[rnd(kinds.length)], cats = mixUp(Object.keys(CATS)).slice(0, 3);
+    const toys = cats.map((c) => { const p = TOY_LIST.filter((t) => t.cat === c); return p[rnd(p.length)]; });
+    const map = { A: toys[0], B: toys[1], C: toys[2] };
+    const len = unit.length * 2 + 1 + rnd(2), seq = Array.from({ length: len }, (_, i) => map[unit[i % unit.length]]);
+    const answer = seq[len - 1];
+    $('#pat-row').innerHTML = seq.slice(0, -1).map((t) => `<span class="miss-toy">${toySVG(t.id)}</span>`).join('') + '<span class="miss-toy hide">?</span>';
+    $('#opts').innerHTML = mixUp(toys).map((t) => `<button class="odd-cell" data-act="patPick" data-hit="${t === answer ? 1 : 0}" aria-label="${t.name}">${toySVG(t.id)}</button>`).join('');
+  };
+  actions.patPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); next(); }
+    else { sfx.no(); b.classList.add('wrong'); b.disabled = true; }
+  };
+  next();
+  countdown(45, () => { track('pattern', score); finish(g, score, Math.min(45, score * 4), score >= 8 ? 'Pattern pro!' : 'Good thinking!'); });
+}
+
+// ---------- Squishy Tac Toe ----------
+function tactoe(g) {
+  const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  const me = P().buddy, bot = FRIENDS[rnd(FRIENDS.length)];
+  let wins = 0, draws = 0, round = 0, cells = [], busy = false;
+  frame(g, `<p class="game-say" id="say" aria-live="polite"></p><div class="ttt" id="ttt"></div>`);
+  const winner = (b) => { for (const [a, c, d] of LINES) if (b[a] && b[a] === b[c] && b[a] === b[d]) return [b[a], [a, c, d]]; return b.every(Boolean) ? ['draw', []] : null; };
+  const draw = (line = []) => { $('#ttt').innerHTML = cells.map((v, i) => `<button class="ttt-cell${line.includes(i) ? ' win' : ''}" data-act="tttPick" data-i="${i}" aria-label="${v === 'me' ? 'Your squishy' : v === 'bot' ? bot.name + "'s toy" : 'Empty square ' + (i + 1)}" ${v ? 'disabled' : ''}>${v ? toySVG(v === 'me' ? me : bot.avatar) : ''}</button>`).join(''); };
+  const start = () => { round++; cells = Array(9).fill(''); busy = false; draw(); $('#say').textContent = `Round ${round} of 3 against ${bot.name}. Your turn!`; };
+  const over = (res, line) => {
+    busy = true; draw(line);
+    if (res === 'me') { wins++; setScore(wins); sfx.win(); $('#say').textContent = 'Three in a row. You win this round!'; }
+    else if (res === 'bot') { sfx.no(); $('#say').textContent = `${bot.name} got three in a row.`; }
+    else { draws++; $('#say').textContent = 'A tie! Nobody got three.'; }
+    later(() => { if (round >= 3) { track('tactoe', wins); finish(g, wins, 8 + wins * 12 + draws * 5, wins >= 2 ? 'Tac Toe champion!' : wins ? 'Nice playing!' : 'Good game!'); } else start(); }, 1500);
+  };
+  const botMove = () => {
+    const free = cells.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
+    const find = (who) => free.find((i) => { const b = [...cells]; b[i] = who; const w = winner(b); return w && w[0] === who; });
+    let m = find('bot');
+    if (m === undefined && Math.random() < 0.75) m = find('me');
+    if (m === undefined && !cells[4] && Math.random() < 0.6) m = 4;
+    if (m === undefined) m = free[rnd(free.length)];
+    cells[m] = 'bot'; sfx.tap();
+    const w = winner(cells);
+    if (w) return over(w[0], w[1]);
+    busy = false; draw(); $('#say').textContent = 'Your turn!';
+  };
+  actions.tttPick = (b) => {
+    const i = +b.dataset.i;
+    if (busy || cells[i]) return;
+    cells[i] = 'me'; sfx.squish(); busy = true;
+    const w = winner(cells);
+    if (w) return over(w[0], w[1]);
+    draw(); $('#say').textContent = `${bot.name} is thinking...`;
+    later(botMove, 650);
+  };
+  start();
 }

@@ -5,6 +5,7 @@ import { $, esc, router, actions, sfx, playSound, glitterBurst, toggleMute, toyC
 import { tradeScreen } from './trade.js';
 import { gamesScreen } from './games.js';
 import { can3D, mount3D, dispose3D } from './buddy3d.js';
+import { studioScreen, studioReady, myDrawings } from './studio.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -24,17 +25,17 @@ function header() {
 }
 onChange(header);
 
-const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop };
+const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen };
 function go(to = tab, arg) {
   if (router.cleanup) { router.cleanup(); router.cleanup = null; }
   if (!P()) return welcome();
   ensureDaily();
   tab = to;
-  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === to ? 'page' : 'false'));
+  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to) ? 'page' : 'false'));
   view.className = 'view v-' + to;
   view.innerHTML = SCREENS[to](arg);
   header();
-  window.scrollTo(0, 0);
+  if (to === 'studio') studioReady(); else window.scrollTo(0, 0);
   dispose3D();
   if (to === 'home' && can3D(P().buddy)) mount3D($('.hero-toy'), P().buddy).then((ok) => { const h = $('#squish-hint'); if (ok && h) h.hidden = false; });
 }
@@ -221,6 +222,7 @@ function toys() {
   }
   return `<h1>${shelf === 'mine' ? 'My toys' : CATS[shelf].name + ' shelf'}</h1>
     <p class="muted">${shelf === 'mine' ? 'Tap a toy to squish it, sell extras or make it your buddy.' : shelf === 'plushie' ? 'Plushies are bonus prizes. Win them from stories, goals, the prize wheel and Mega bags.' : 'Find every toy on this shelf to win a bonus plushie.'}</p>
+    <div class="row"><button class="btn primary" data-act="go" data-to="studio">Draw your own squishy</button>${myDrawings().length ? `<span class="pill">${myDrawings().length} handmade</span>` : ''}</div>
     <div class="chips" role="tablist">${chips.map(([k, l]) => `<button class="chip" role="tab" aria-selected="${k === shelf}" data-act="shelf" data-id="${k}">${l}</button>`).join('')}</div>
     <div class="grid">${grid}</div>`;
 }
@@ -284,8 +286,25 @@ function stories() {
 }
 let reading = null;
 actions.story = (el) => { reading = { s: STORIES.find((x) => x.id === el.dataset.id) }; reading.at = reading.s.start; sfx.tap(); page(); };
-actions.choose = (el) => { reading.at = el.dataset.id; sfx.tap(); speechSynthesis?.cancel(); page(); };
-actions.readAloud = () => {
+actions.choose = (el) => { reading.at = el.dataset.id; sfx.tap(); page(); };
+// Story pages are read by a recorded narrator. Pages that say the player's name were
+// recorded as "Grace Emilia", so other names fall back to the device's own voice.
+let voice = null;
+function stopVoice() { if (voice) { voice.pause(); voice = null; } if ('speechSynthesis' in window) speechSynthesis.cancel(); const b = $('#read-btn'); if (b) b.setAttribute('aria-pressed', 'false'); }
+actions.readAloud = (btn) => {
+  if (voice || ('speechSynthesis' in window && speechSynthesis.speaking)) return stopVoice();
+  const { s, at } = reading, raw = s.nodes[at].t;
+  if (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia') {
+    const a = new Audio(`audio/stories/${s.id}_${at}.mp3`);
+    voice = a; btn.setAttribute('aria-pressed', 'true');
+    a.onended = () => { if (voice === a) stopVoice(); };
+    a.onerror = () => { if (voice === a) { voice = null; deviceVoice(); } };
+    a.play().catch(() => { if (voice === a) { voice = null; deviceVoice(); } });
+    return;
+  }
+  deviceVoice();
+};
+const deviceVoice = () => {
   if (!('speechSynthesis' in window)) return toast('This device cannot read aloud.');
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance($('#story-text').textContent); u.rate = 0.9; u.pitch = 1.1;
@@ -293,7 +312,8 @@ actions.readAloud = () => {
 };
 function page() {
   const p = P(), { s, at } = reading, n = s.nodes[at];
-  router.cleanup = () => window.speechSynthesis?.cancel();
+  stopVoice();
+  router.cleanup = stopVoice;
   let foot;
   if (n.end) {
     const rec = (p.stories[s.id] = p.stories[s.id] || {}), first = Object.keys(rec).length === 0, newEnd = !rec[n.end];
@@ -311,9 +331,9 @@ function page() {
   }
   view.className = 'view v-reader';
   view.innerHTML = `<button class="btn back" data-act="go" data-to="stories">${icon('back')} Stories</button>
-    <article class="card reader"><h1>${s.title}</h1><div class="reader-art squish" data-squish data-toy="${n.art}">${toySVG(n.art)}</div>
+    <article class="card reader"><h1>${s.title}</h1><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${n.art}">${toySVG(n.art)}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
     <p id="story-text" class="story-text">${esc(n.t.replaceAll('{name}', p.name))}</p>
-    <button class="btn sm" data-act="readAloud">${icon('sound')} Read it to me</button>${foot}</article>`;
+    <button class="btn sm" data-act="readAloud" id="read-btn" aria-pressed="false">${icon('sound')} Read it to me</button>${foot}</article>`;
   window.scrollTo(0, 0);
 }
 
@@ -321,8 +341,15 @@ function page() {
 actions.who = () => {
   const p = P();
   modal(`<h2>Who is playing?</h2><div class="players">${store.profiles.map((x) => `<button class="player ${x.id === p.id ? 'sel' : ''}" data-act="switch" data-id="${x.id}"><span class="who-art">${toySVG(x.buddy)}</span><b>${esc(x.name)}</b><small>${coins(x.coins)}</small></button>`).join('')}</div>
-    <div class="row"><button class="btn primary" data-act="addPlayer">Add a player</button><button class="btn" data-act="grownups">For grown-ups</button></div>`, { label: 'Players' });
+    <div class="row"><button class="btn primary" data-act="pickIcon">Change my squishy icon</button><button class="btn" data-act="addPlayer">Add a player</button><button class="btn" data-act="grownups">For grown-ups</button></div>`, { label: 'Players' });
 };
+actions.pickIcon = () => {
+  const p = P();
+  modal(`<h2>Pick your squishy icon</h2><p class="muted">This is the toy next to your name, and your buddy on the home screen. Tap any toy you own.</p>
+    <div class="grid pick-grid">${ownedList().map((id) => toyCard(id, { act: 'buddy', cls: id === p.buddy ? 'sel' : '', tag: id === p.buddy ? 'Now' : '' })).join('')}</div>
+    <div class="row"><button class="btn" data-act="closeModal">Done</button><button class="btn" data-act="iconDraw">Draw a new one</button></div>`, { label: 'Pick your icon', cls: 'wide picker' });
+};
+actions.iconDraw = () => { closeModal(); go('studio'); };
 actions.switch = (el) => { store.cur = el.dataset.id; save(); closeModal(); go('home'); toast(`Hi, ${esc(P().name)}!`); };
 actions.addPlayer = () => { closeModal(); welcome(true); };
 actions.grownups = () => modal(`<h2>For grown-ups</h2>

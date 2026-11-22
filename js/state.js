@@ -1,11 +1,14 @@
 // Saved game: players, coins, toys, daily challenges. Lives in this browser only.
-import { TOYS, TOY_LIST, QUESTS, GOALS, FRIENDS, STORIES, byCat } from './data.js';
+import { TOYS, TOY_LIST, QUESTS, GOALS, FRIENDS, STORIES, byCat, registerCustom } from './data.js';
 
 const KEY = 'gest.v1';
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; }
 }
 export const store = load() || { profiles: [], cur: null, mute: false };
+// Squishies drawn on this device (or received in a trade) live here, so every player can see them.
+store.custom = store.custom || {};
+Object.values(store.custom).forEach(registerCustom);
 export function save() {
   try { localStorage.setItem(KEY, JSON.stringify(store)); } catch { /* private window: play without saving */ }
 }
@@ -97,7 +100,8 @@ export function removeToy(id, n = 1, p = P()) {
   changed();
 }
 export function addCoins(n, p = P()) { p.coins = Math.max(0, p.coins + n); changed(); }
-export const uniqueCount = (p = P()) => Object.keys(p.seen).length;
+// Handmade squishies are extra: they do not count toward the collection goals.
+export const uniqueCount = (p = P()) => Object.keys(p.seen).filter((id) => TOYS[id] && !TOYS[id].custom).length;
 export const ownedList = (p = P()) => Object.keys(p.inv).filter((id) => TOYS[id]).sort((a, b) => TOYS[b].value - TOYS[a].value || a.localeCompare(b));
 
 export function track(ev, n = 1, p = P()) {
