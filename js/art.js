@@ -549,9 +549,30 @@ export function customArt(t) {
 const DRAW = { squishy, fidget, slime, putty, dough, springy, plushie };
 
 const LOOK = {
-  girl: '<g transform="translate(72 22)"><path d="M0 0L-13 -9Q-17 0 -13 9ZM0 0L13 -9Q17 0 13 9Z" fill="#FF5FA8" stroke="#C81E7A" stroke-width="1.5" stroke-linejoin="round"/><circle r="4" fill="#C81E7A"/></g>',
-  boy: '<g transform="translate(50 20)"><path d="M-17 2Q-15 -15 0 -15Q15 -15 17 2Z" fill="#4C8DF5" stroke="#2F5FC0" stroke-width="1.5"/><rect x="8" y="-1" width="19" height="5" rx="2.5" fill="#2F5FC0"/><circle cy="-15" r="2.5" fill="#FFD84A"/></g>',
+  girl: (y) => `<g transform="translate(72 ${y + 6})"><path d="M0 0L-13 -9Q-17 0 -13 9ZM0 0L13 -9Q17 0 13 9Z" fill="#FF5FA8" stroke="#C81E7A" stroke-width="1.5" stroke-linejoin="round"/><circle r="4" fill="#C81E7A"/></g>`,
+  boy: (y) => `<g transform="translate(50 ${y + 4})"><path d="M-17 2Q-15 -15 0 -15Q15 -15 17 2Z" fill="#4C8DF5" stroke="#2F5FC0" stroke-width="1.5"/><rect x="8" y="-1" width="19" height="5" rx="2.5" fill="#2F5FC0"/><circle cy="-15" r="2.5" fill="#FFD84A"/></g>`,
 };
+// Where the top of a toy's head is, so a cap or bow sits on it. Every toy is a different shape, so
+// this is measured from the drawing itself: the highest row that is filled across the middle.
+// Thin things on top (a horn, a stalk, ears off to the side) are skipped.
+const tops = {};
+function headTop(id, art) {
+  if (id in tops) return tops[id];
+  let top = 16;
+  try {
+    const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('width', 100); svg.setAttribute('height', 100);
+    svg.style.cssText = 'position:absolute;left:-200px;top:0;visibility:hidden;pointer-events:none';
+    svg.innerHTML = art; document.body.appendChild(svg);
+    const shapes = [...svg.querySelectorAll('path,circle,ellipse,rect,polygon')].filter((e) => e.getAttribute('fill') !== 'none' && !e.closest('defs,clipPath,mask'))
+      .map((e) => ({ e, m: e.getCTM().inverse() }));
+    const pt = svg.createSVGPoint();
+    const hit = (x, y) => shapes.some(({ e, m }) => { pt.x = x; pt.y = y; return e.isPointInFill(pt.matrixTransform(m)); });
+    for (let y = 2; y <= 70; y++) if (hit(43, y) && hit(50, y) && hit(57, y)) { top = y; break; }
+    svg.remove();
+  } catch (e) { /* keep the default */ }
+  return (tops[id] = top);
+}
 // look: 'girl' adds a bow, 'boy' adds a cap. Used only for a player's own buddy.
 export function toySVG(id, look) {
   const t = TOYS[id];
@@ -559,7 +580,8 @@ export function toySVG(id, look) {
   const P = paint(t);
   const glow = t.fx === 'glow' ? sparkles(t) : '';
   const spark = t.fx !== 'glow' ? sparkles(t) : '';
-  return `<svg class="toy-svg" viewBox="0 0 100 100" aria-hidden="true"><defs>${P.defs}</defs>${ground(t.cat === 'springy' ? 34 : 30)}${glow}<g filter="url(#toy-puff)">${t.custom ? customArt(t) : DRAW[t.cat](t, P)}</g>${spark}${LOOK[look] || ''}</svg>`;
+  const art = t.custom ? customArt(t) : DRAW[t.cat](t, P);
+  return `<svg class="toy-svg" viewBox="0 0 100 100" aria-hidden="true"><defs>${P.defs}</defs>${ground(t.cat === 'springy' ? 34 : 30)}${glow}<g filter="url(#toy-puff)">${art}</g>${spark}${LOOK[look] ? LOOK[look](headTop(id, art)) : ''}</svg>`;
 }
 
 export const coinSVG = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#F5B921" stroke="#2A1846" stroke-width="2"/><path d="M12 6.5l1.6 3.4 3.7.4-2.8 2.5.8 3.7L12 14.6l-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="#FFF3B0"/></svg>`;

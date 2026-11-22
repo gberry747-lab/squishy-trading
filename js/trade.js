@@ -1,6 +1,9 @@
 // Trading: with computer friends, with another player on this device, or online with a room code.
 import { TOYS, CATS, FRIENDS, PHRASES, registerCustom } from './data.js';
-import { toySVG, icon } from './art.js';
+import { toySVG, icon, COL } from './art.js';
+import { GAME_LIST, playGame, hooks } from './games.js';
+import { roomHTML, cleanRoom, roomToSend } from './extras.js';
+import { TOY_LIST } from './data.js';
 import { store, save, P, addToy, removeToy, addCoins, track } from './state.js';
 import { $, esc, router, actions, sfx, toyCard, coins, toast, modal, closeModal, prize, glitterBurst } from './ui.js';
 import { Room, cleanToys, cleanCoins, cleanInv } from './online.js';
@@ -12,6 +15,54 @@ const view = () => $('#view');
 const value = (ids) => ids.reduce((a, id) => a + TOYS[id].value, 0);
 const toMap = (arr) => arr.reduce((m, id) => ((m[id] = (m[id] || 0) + 1), m), {});
 
+// ---------- friendship: every trade with a computer friend wins hearts ----------
+const LEVELS = [[0, 'New friend'], [3, 'Friend'], [8, 'Good friend'], [15, 'Best friend'], [25, 'Super best friend']];
+const heartsOf = (id) => (P().friends || {})[id] || 0;
+const levelOf = (h) => LEVELS.reduce((a, [n], i) => (h >= n ? i : a), 0);
+function addHearts(b, n) {
+  const p = P(); p.friends = p.friends || {};
+  const before = levelOf(p.friends[b.id] || 0);
+  p.friends[b.id] = (p.friends[b.id] || 0) + n;
+  const after = levelOf(p.friends[b.id]);
+  if (after <= before) { save(); return ''; }
+  // A new friendship level comes with a present: a toy from the friend's favorite family.
+  const want = after >= 4 ? 'l' : after >= 3 ? 'e' : 'r', pool = TOY_LIST.filter((t) => !t.custom && t.cat === b.fav && t.r === want), gift = (pool.filter((t) => !p.seen[t.id])[0] || pool[Math.floor(Math.random() * pool.length)] || TOY_LIST[0]).id;
+  addToy(gift); save();
+  return `<p class="pill big">${b.name} is now your ${LEVELS[after][1].toLowerCase()}!</p><p>Here is a friendship present: <b>${esc(TOYS[gift].name)}</b></p>`;
+}
+const heartLine = (id) => { const h = heartsOf(id), lv = levelOf(h), next = LEVELS[lv + 1]; return `<small class="hearts"><span aria-hidden="true">&hearts;</span> ${h} &middot; ${LEVELS[lv][1]}${next ? '' : ' &#9733;'}</small>`; };
+
+// ---------- friend requests: three friends each want one kind of toy today ----------
+const COLNAME = { pink: 'Pink', rose: 'Rose', peach: 'Peach', cream: 'Cream', tan: 'Tan', choc: 'Brown', red: 'Red', orange: 'Orange', yellow: 'Yellow', gold: 'Gold', lime: 'Green', mint: 'Mint', teal: 'Teal', sky: 'Sky blue', blue: 'Blue', lilac: 'Lilac', grape: 'Purple', white: 'White', gray: 'Gray', navy: 'Navy' };
+const RARNAME = { c: 'Common', r: 'Rare' };
+function asks(p = P()) {
+  if (p.daily.asks) return p.daily.asks;
+  const bots = [...FRIENDS].sort(() => Math.random() - 0.5).slice(0, 3), pool = TOY_LIST.filter((t) => !t.custom && (t.r === 'c' || t.r === 'r') && COLNAME[t.c1]);
+  p.daily.asks = bots.map((b) => { const t = pool[Math.floor(Math.random() * pool.length)]; return Math.random() < 0.6 ? { bot: b.id, cat: t.cat, c1: t.c1 } : { bot: b.id, cat: t.cat, r: t.r }; });
+  save(); return p.daily.asks;
+}
+const askFits = (a, t) => !t.custom && t.cat === a.cat && (a.c1 ? t.c1 === a.c1 : t.r === a.r);
+const askHave = (a, p = P()) => Object.keys(p.inv).filter((id) => TOYS[id] && askFits(a, TOYS[id]) && !(id === p.buddy && p.inv[id] < 2));
+const askPay = (a) => (a.c1 ? 50 : a.r === 'r' ? 60 : 40);
+function asksHTML() {
+  const p = P();
+  return `<section class="card"><h2>Friends are looking for...</h2><p class="muted">Find the toy a friend wants and give it to them. You win coins and two hearts.</p><div class="asks">${asks(p).map((a, i) => {
+    const b = FRIENDS.find((x) => x.id === a.bot), have = askHave(a, p);
+    return `<div class="ask-row ${a.done ? 'done' : ''}"><span class="mini-art">${toySVG(b.avatar)}</span><span class="ask-what"><b>${b.name}</b> <span>wants</span> <span class="pill">${a.c1 ? `<i class="sw" style="background:${COL[a.c1]}"></i>${COLNAME[a.c1]}` : RARNAME[a.r]}</span> <span class="pill">${CATS[a.cat].one}</span></span>
+      ${a.done ? '<span class="pill">Done!</span>' : have.length ? `<button class="btn sm primary" data-act="askGive" data-i="${i}">Give one</button>` : `<small class="muted">You do not have one yet. Win ${coins(askPay(a))}</small>`}</div>`; }).join('')}</div></section>`;
+}
+actions.askGive = (el) => {
+  const a = asks()[+el.dataset.i]; if (!a || a.done) return;
+  modal(`<h2>Which one will you give?</h2><div class="pick-grid">${askHave(a).map((id) => toyCard(id, { act: 'askPick', extra: `data-i="${el.dataset.i}"`, count: P().inv[id] })).join('')}</div>`, { label: 'Pick a toy to give', cls: 'wide' });
+};
+actions.askPick = (el) => {
+  const p = P(), a = asks(p)[+el.dataset.i], id = el.dataset.id, b = a && FRIENDS.find((x) => x.id === a.bot);
+  if (!a || a.done || !p.inv[id] || !askFits(a, TOYS[id])) return closeModal();
+  removeToy(id); addCoins(askPay(a)); a.done = 1; track('ask'); const up = addHearts(b, 2); save();
+  closeModal(); router.go('trade');
+  prize(`${b.name} says thank you!`, `<p>You gave ${esc(TOYS[id].name)}. You win ${coins(askPay(a))} and two hearts.</p>${up}`, b.avatar);
+};
+
 // ---------- trade hub ----------
 let hubMode = 'bot';
 export function tradeScreen() {
@@ -19,9 +70,9 @@ export function tradeScreen() {
   const p = P(), others = store.profiles.filter((x) => x.id !== p.id);
   const mode = (k, title, sub) => `<button class="mode" data-act="tMode" data-v="${k}" aria-pressed="${hubMode === k}"><b>${title}</b><small>${sub}</small></button>`;
   const panel = hubMode === 'bot'
-    ? `<section><h2>Pick a computer friend</h2><p class="muted">They get new toys every day. Each one has a favorite kind and will trade extra for it. Tap one to open the trading board.</p>
+    ? `${asksHTML()}<section><h2>Pick a computer friend</h2><p class="muted">They get new toys every day. Each one has a favorite kind and will trade extra for it. Tap one to open the trading board.</p>
       <div class="friends">${FRIENDS.map((b) => `<button class="card friend" data-act="tBot" data-id="${b.id}"><span class="friend-art">${toySVG(b.avatar)}</span>
-        <span><b>${b.name}</b><small>Loves ${CATS[b.fav].name.toLowerCase()}</small></span></button>`).join('')}</div></section>`
+        <span><b>${b.name}</b><small>Loves ${CATS[b.fav].name.toLowerCase()}</small>${heartLine(b.id)}</span></button>`).join('')}</div></section>`
     : hubMode === 'local'
       ? `<section class="card"><h2>Two players, one screen</h2><p class="muted">Trade with someone sitting next to you. Each player needs their own name and toys, and you both have to agree.</p>
       <div class="row">${others.map((x) => `<button class="btn" data-act="tLocal" data-id="${x.id}"><span class="mini-art">${toySVG(x.buddy)}</span>Trade with ${esc(x.name)}</button>`).join('')}
@@ -210,7 +261,7 @@ function celebrate(get, getCoins, line) {
 
 // ---------- computer friends ----------
 actions.tBot = (el) => {
-  const bot = FRIENDS.find((b) => b.id === el.dataset.id);
+  const base = FRIENDS.find((b) => b.id === el.dataset.id), bot = { ...base, thr: base.thr * (1 - 0.03 * levelOf(heartsOf(base.id))) }; // better friends give kinder deals
   T = { mode: 'bot', bot, inv: toMap(P().daily.bots[bot.id]), mine: [], theirs: [], myCoins: 0, theirCoins: 0 };
   sfx.tap(); draw(); window.scrollTo(0, 0);
 };
@@ -229,7 +280,8 @@ actions.tOffer = () => {
   inv.push(...give); save();
   T = { mode: 'bot', bot: b, inv: toMap(inv), mine: [], theirs: [], myCoins: 0, theirCoins: 0 };
   draw();
-  celebrate(get, back, back ? `${b.name} says: "You gave me so much! Here are some coins to make it fair."` : `${b.name} says: "Thank you! Great trade!"`);
+  const up = addHearts(b, v.mood === 'love' ? 2 : 1);
+  celebrate(get, back, (back ? `${b.name} says: "You gave me so much! Here are some coins to make it fair."` : `${b.name} says: "Thank you! Great trade!"`) + (up ? `</p>${up}<p>` : ''));
 };
 
 // ---------- a friend on this device ----------
@@ -258,11 +310,12 @@ actions.tAgree = (el) => {
 
 // ---------- online ----------
 const info = () => ({ name: P().name, avatar: P().buddy });
-function leaveRoom() { if (room) { room.leave(); room = null; } T = null; }
+function leaveRoom() { if (room) { room.leave(); room = null; } T = null; VS = null; hooks.finish = null; }
 function wire() {
   room.on('players', () => {
     if (T && T.mode === 'online' && !room.players.some((x) => x.id === T.pid)) { closeModal(); T = null; toast('Your friend left the room.'); }
-    if (!T) lobby();
+    if (VS && !room.players.some((x) => x.id === VS.pid)) { toast('Your friend left the room.'); if (VS.theirs == null) VS.theirs = -1; if (VS.mine != null) showVs(); }
+    if (!T && !VS) lobby();
   });
   room.on('closed', () => { leaveRoom(); router.go('trade'); toast('The room closed.'); });
   room.on('error', () => toast('The connection had a hiccup.'));
@@ -295,9 +348,47 @@ function lobby() {
     <section class="card room"><p class="muted">Room code</p><p class="code" aria-label="Room code ${room.code.split('').join(' ')}">${room.code.split('').map((c) => `<span>${c}</span>`).join('')}</p>
       <p>Tell your friend this code. They tap <b>Trade</b>, type the code and press <b>Join a room</b>.</p></section>
     <h2>Friends in this room</h2>
-    <div class="friends">${others.map((x) => `<button class="card friend" data-act="tInvite" data-id="${esc(x.id)}"><span class="friend-art">${toySVG(x.avatar)}</span><span><b>${esc(x.name)}</b><small>Tap to trade</small></span></button>`).join('') || '<p class="muted">Waiting for friends to join... Keep this screen open.</p>'}</div>`;
+    <div class="friends">${others.map((x) => `<button class="card friend" data-act="tMenu" data-id="${esc(x.id)}"><span class="friend-art">${toySVG(x.avatar)}</span><span><b translate="no">${esc(x.name)}</b><small>Tap to trade, play or visit</small></span></button>`).join('') || '<p class="muted">Waiting for friends to join... Keep this screen open.</p>'}</div>`;
 }
-actions.tInvite = (el) => { room.send(el.dataset.id, { t: 'invite' }); toast('Asking them to trade...'); };
+actions.tInvite = (el) => { closeModal(); room.send(el.dataset.id, { t: 'invite' }); toast('Asking them to trade...'); };
+// ---------- online: play a game against a friend, or visit their room ----------
+const VS_GAMES = ['pop', 'letters', 'stopgo', 'addsub', 'bigger', 'firstsound', 'where'].filter((id) => GAME_LIST.some((g) => g.id === id));
+const gameName = (id) => (GAME_LIST.find((g) => g.id === id) || {}).name || '';
+let VS = null, askedGame = null, askedRoom = '';
+actions.tMenu = (el) => {
+  const pl = room && room.players.find((x) => x.id === el.dataset.id); if (!pl) return;
+  const id = esc(pl.id);
+  modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2 translate="no">${esc(pl.name)}</h2>
+    <div class="modes"><button class="mode" data-act="tInvite" data-id="${id}"><b>Trade</b><small>Swap toys on the trading board</small></button>
+    <button class="mode" data-act="tGamePick" data-id="${id}"><b>Play a game</b><small>Same game, same time. Who gets the best score?</small></button>
+    <button class="mode" data-act="tVisit" data-id="${id}"><b>Visit their room</b><small>See how they decorated it</small></button></div></div>`, { label: 'What do you want to do?' });
+};
+actions.tGamePick = (el) => {
+  modal(`<h2>Pick a game to play together</h2><div class="modes">${VS_GAMES.map((g) => `<button class="mode" data-act="tGameAsk" data-id="${esc(el.dataset.id)}" data-g="${g}"><b>${gameName(g)}</b></button>`).join('')}</div>`, { label: 'Pick a game' });
+};
+actions.tGameAsk = (el) => { closeModal(); askedGame = { pid: el.dataset.id, g: el.dataset.g }; room.send(el.dataset.id, { t: 'game?', g: el.dataset.g }); toast('Asking them to play...'); };
+actions.tGameYes = (el) => { room.send(el.dataset.id, { t: 'game!', g: el.dataset.g }); startVs(el.dataset.id, el.dataset.g); };
+actions.tVisit = (el) => { closeModal(); askedRoom = el.dataset.id; room.send(el.dataset.id, { t: 'room?' }); toast('Knocking on their door...'); };
+function startVs(pid, g) {
+  const pl = room.players.find((x) => x.id === pid); if (!pl || !VS_GAMES.includes(g)) return;
+  closeModal(); askedGame = null;
+  VS = { pid, g, name: pl.name, avatar: pl.avatar, mine: null, theirs: null, paid: false };
+  hooks.finish = (gm, score) => { if (!VS || !room) return; VS.mine = score; room.send(VS.pid, { t: 'score', g: VS.g, n: score }); showVs(); };
+  playGame(g);
+  const stop = router.cleanup;
+  router.cleanup = () => { if (stop) stop(); endVs(); leaveRoom(); }; // walking away from the game leaves the room
+}
+function endVs() { hooks.finish = null; VS = null; }
+function showVs() {
+  if (!VS) return;
+  const me = VS.mine, them = VS.theirs, both = them != null, gone = them === -1;
+  const line = !both ? 'Waiting for your friend to finish...' : gone ? 'Your friend left the game.' : me > them ? 'You win!' : me < them ? 'Your friend wins this time. Good game!' : 'It is a tie!';
+  if (both && !gone && me >= them && !VS.paid) { VS.paid = true; addCoins(10); sfx.win(); }
+  view().className = 'view v-lobby';
+  view().innerHTML = `<section class="card result"><h1>${gameName(VS.g)}</h1><div class="vs-row"><div><div class="vs-art">${toySVG(P().buddy)}</div><b>You</b><span class="vs-n">${me}</span></div><div><div class="vs-art">${toySVG(VS.avatar)}</div><b translate="no">${esc(VS.name)}</b><span class="vs-n">${both && !gone ? them : '...'}</span></div></div>
+    <p class="game-say">${line}</p>${both && !gone && me >= them ? `<p>Bonus: ${coins(10)}</p>` : ''}<button class="btn primary big" data-act="tVsBack">Back to the room</button></section>`;
+}
+actions.tVsBack = () => { endVs(); router.cleanup = leaveRoom; lobby(); };
 function openOnline(pid) {
   const pl = room.players.find((x) => x.id === pid);
   if (!pl) return;
@@ -347,8 +438,23 @@ actions.tInviteNo = (el) => { room.send(el.dataset.id, { t: 'no' }); closeModal(
 function onMsg(from, m) {
   const pl = room.players.find((x) => x.id === from);
   if (!pl) return;
+  if (m.t === 'room?') return room.send(from, { t: 'room', room: roomToSend() });
+  if (m.t === 'room') {
+    if (askedRoom !== from) return;
+    askedRoom = '';
+    return modal(`<h2><span translate="no">${esc(pl.name)}</span></h2><p class="muted">This is their room.</p>${roomHTML(cleanRoom(m.room), false)}`, { label: 'A friend\'s room', cls: 'wide' });
+  }
+  if (m.t === 'game?') {
+    const g = String(m.g || '');
+    if (T || VS || !VS_GAMES.includes(g)) return room.send(from, { t: 'no', busy: true });
+    sfx.pop();
+    return modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2><span translate="no">${esc(pl.name)}</span> <span>wants to play</span> <span>${gameName(g)}</span></h2>
+      <div class="row center"><button class="btn primary big" data-act="tGameYes" data-id="${esc(from)}" data-g="${g}">Yes!</button><button class="btn big" data-act="tInviteNo" data-id="${esc(from)}">Not now</button></div></div>`, { label: 'Game invite' });
+  }
+  if (m.t === 'game!') { if (askedGame && askedGame.pid === from && askedGame.g === m.g && !T && !VS) startVs(from, askedGame.g); return; }
+  if (m.t === 'score') { if (VS && VS.pid === from && m.g === VS.g) { VS.theirs = cleanCoins(m.n); if (VS.mine != null) showVs(); } return; }
   if (m.t === 'invite') {
-    if (T) return room.send(from, { t: 'no', busy: true });
+    if (T || VS) return room.send(from, { t: 'no', busy: true });
     sfx.pop();
     return modal(`<div class="prize"><div class="prize-toy">${toySVG(pl.avatar)}</div><h2>${esc(pl.name)} wants to trade!</h2>
       <div class="row center"><button class="btn primary big" data-act="tInviteYes" data-id="${esc(from)}">Yes!</button><button class="btn big" data-act="tInviteNo" data-id="${esc(from)}">Not now</button></div></div>`, { label: 'Trade invite' });

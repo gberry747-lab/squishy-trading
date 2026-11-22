@@ -15,6 +15,8 @@ const STEPS = [
   { tab: 'games', sel: '.card', t: 'Games win you coins! There are reading games, math games, memory games, fidget games and calm games for bedtime.' },
   { tab: 'stories', sel: '.story-card', t: 'In every story, you choose what happens next. Tap any word to hear it. Each story has many endings to find.' },
   { tab: 'studio', sel: '.pad, .card', t: 'This is the Squishy Studio. Draw your very own squishy, then keep it, squish it and trade it!' },
+  { tab: 'room', sel: '.room-stage', t: 'This is your very own room. Buy furniture and wallpaper with coins, put your toys in it, and drag things where you want them.' },
+  { tab: 'album', sel: '.sticker.ready, .stickers', t: 'This is your sticker album. You win stickers for collecting, trading, reading and playing. Tap a new sticker to stick it in and win coins.' },
   { tab: 'home', sel: '[data-act=tour]', t: 'That is everything! If you forget, tap Show me around and I will come back. Have fun!' },
 ];
 let go = null, at = -1, mode = '', glow = [];
@@ -31,7 +33,7 @@ function build() {
 function unglow() { glow.forEach((x) => x.classList.remove('guide-glow')); glow = []; }
 function light(sel, tab) {
   unglow();
-  const nav = document.querySelector(`#nav [data-to="${tab === 'studio' ? 'toys' : tab}"]`), t = sel && document.querySelector('#view ' + sel.split(', ').join(', #view ')) || (sel && document.querySelector(sel));
+  const nav = document.querySelector(`#nav [data-to="${tab === 'studio' ? 'toys' : tab === 'room' || tab === 'album' ? 'home' : tab}"]`), t = sel && document.querySelector('#view ' + sel.split(', ').join(', #view ')) || (sel && document.querySelector(sel));
   [nav, t].forEach((x) => { if (x) { x.classList.add('guide-glow'); glow.push(x); } });
   if (t && !t.closest('.top')) t.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }

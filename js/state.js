@@ -109,6 +109,7 @@ export const ownedList = (p = P()) => Object.keys(p.inv).filter((id) => TOYS[id]
 export function track(ev, n = 1, p = P()) {
   if (!p) return;
   p.stats[ev] = (p.stats[ev] || 0) + n;
+  if (ev === 'game' || ev === 'story' || ev === 'trade') p.egg = Math.min(10, (p.egg || 0) + 1);
   if (p.daily) p.daily.quests.forEach((q) => {
     const def = QUESTS.find((x) => x.id === q.id);
     if (def.ev === ev) q.n = Math.min(def.goal, q.n + n);

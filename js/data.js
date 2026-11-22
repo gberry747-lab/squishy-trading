@@ -740,6 +740,42 @@ export const STORIES = [
 // Stories with reading and math questions built in. "ask" must be answered before the choices appear.
 STORIES.push(
   {
+    id: 'pearl', kind: 'Adventure', title: "The Mermaid's Lost Pearl", toy: 'sq222', prize: 'pl37', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'sq222', t: "{name} and {buddy} are at the beach. A small voice calls from a rock pool. It is a tiny mermaid! \"I lost my glowing pearl,\" she says. \"Without it, the sea will be dark tonight. Will you help me?\"", ask: { q: 'What did the mermaid lose?', a: 'Her glowing pearl', w: ['Her silver comb', 'Her pet fish'] }, c: [['Look in the rock pools', 'b'], ['Dive under the waves', 'c']] },
+      b: { art: 'sq183', t: "The rock pools are full of life. You count 6 crabs and 7 starfish. One crab is holding something round and shiny. \"I will swap it,\" says the crab, \"for something soft.\"", ask: { q: 'How many crabs and starfish are there altogether?', a: '13', w: ['12', '14'] }, c: [['Give the crab a hug', 'd'], ['Look closer at the shiny thing', 'e']] },
+      c: { art: 'sq185', t: "Splash! Under the water, a school of fish swims by. There are 4 rows with 5 fish in each row. \"Follow us,\" they bubble. \"We saw a light near the old shipwreck and near the coral cave.\"", ask: { q: 'How many fish are in the school?', a: '20', w: ['9', '25'] }, c: [['Swim to the shipwreck', 'f'], ['Swim to the coral cave', 'g']] },
+      d: { art: 'sq184', t: "The crab has never had a hug before. He goes all pink and happy. \"Here, take it!\" It is not the pearl. It is a shiny button. But now you have a new crab friend who knows every pool on the beach.", end: 'Crab Hugger' },
+      e: { art: 'sq221', t: "You look closer. It is the pearl! It rolled into the crab's shell while he was sleeping. He gives it back with a tiny bow. That night the sea glows bright, and the mermaid waves from the waves.", end: 'Sharp Eyes' },
+      f: { art: 'sq190', t: "Inside the old shipwreck, a jellyfish is using the pearl as a night light for her babies. \"They are afraid of the dark,\" she says. You help her hang up glowing seaweed, and she happily gives the pearl back.", end: 'Kind Helper' },
+      g: { art: 'sq187', t: "The coral cave is full of rainbow fish, all dancing around the glowing pearl. They did not know it was lost! They carry it back to the mermaid like a parade, and you get to lead the way.", end: 'Parade Leader' },
+    },
+  },
+  {
+    id: 'cookie', kind: 'Mystery', title: 'The Midnight Cookie Mystery', toy: 'sq158', prize: 'pl38', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'sq158', t: "It is sleepover night! {name} has a plate of 12 cookies for the toys. But when the lights come back on, 5 cookies are gone. There are crumbs on the floor. {buddy} gasps. \"A cookie mystery!\"", ask: { q: 'How many cookies are left on the plate?', a: '7', w: ['5', '17'] }, c: [['Follow the trail of crumbs', 'b'], ['Ask the toys what they saw', 'c']] },
+      b: { art: 'sq163', t: "The crumbs lead across the rug and under the bed. It is dark under there. You can hear a tiny munch, munch, munch. Two small eyes blink at you.", c: [['Shine your flashlight', 'd'], ['Roll a cookie under the bed', 'e']] },
+      c: { art: 'sq161', t: "The sleepy koala says, \"I saw a shadow with big round ears.\" The puppy says, \"I heard little feet go pitter-patter to the toy chest.\" Hmm. Big round ears and little feet.", ask: { q: 'What did the koala see?', a: 'A shadow with big round ears', w: ['A shadow with a long tail', 'A big green hat'] }, c: [['Open the toy chest', 'f'], ['Set a cookie trap', 'g']] },
+      d: { art: 'sq164', t: "Click! In the light you see a little mouse squishy with cookie on her whiskers. \"I am sorry,\" she squeaks. \"I was too shy to ask.\" You tell her she is always invited. She comes out and joins the sleepover.", end: 'Shy Friend Found' },
+      e: { art: 'sq163', t: "You roll one cookie under the bed. A tiny paw rolls it back, broken into 2 halves. \"One for you, one for me,\" says a squeaky voice. The cookie thief likes to share! You giggle and share the rest too.", end: 'Fair Share' },
+      f: { art: 'sq165', t: "You lift the lid. Surprise! Five toys jump out, each one holding a cookie. \"We were saving them for a midnight party for YOU!\" they shout. It was not a thief at all. It was a surprise.", end: 'Midnight Party' },
+      g: { art: 'sq193', t: "You put one cookie on a pillow and hide. Soon an owl swoops down. \"Whoo took the cookies? Not me,\" she says. \"But I saw it all. A mouse took them to feed her 4 hungry babies.\" You pack up more cookies and bring them over.", end: 'Cookie Delivery' },
+    },
+  },
+  {
+    id: 'candy', kind: 'Adventure', title: 'Rocket to the Candy Planet', toy: 'sq228', prize: 'pl39', coins: 40, start: 'a',
+    nodes: {
+      a: { art: 'sq228', t: "A little UFO lands in the garden with a soft bump. The door opens. \"We need a taste tester on the Candy Planet!\" says a tiny green pilot. {name} and {buddy} climb in. 3, 2, 1, zoom!", c: [['Fly past the moon', 'b'], ['Take the shortcut through the stars', 'c']] },
+      b: { art: 'sq50', t: "The moon is made of sleepy gray dust. The pilot counts moon rocks as you pass: 10, 20, 30, 40. \"One more ten and we are there!\" he says.", ask: { q: 'What number comes next?', a: '50', w: ['41', '45'] }, c: [['Land in the Lollipop Forest', 'd'], ['Land by the Soda Lake', 'e']] },
+      c: { art: 'sq157', t: "The stars whoosh by like glitter. But oh no! The ship needs 9 star sparks to keep going, and you only have 6. Shiny sparks float outside the window.", ask: { q: 'How many more star sparks do you need?', a: '3', w: ['2', '15'] }, c: [['Catch sparks with a net', 'f'], ['Ask a passing comet for help', 'g']] },
+      d: { art: 'sq213', t: "The Lollipop Forest smells like strawberries. The trees are as tall as houses. You taste a red one, a blue one and a green one. \"Which is the best?\" asks the pilot. You say all three, and they make you Royal Taste Tester.", end: 'Royal Taste Tester' },
+      e: { art: 'sq212', t: "The Soda Lake fizzes and pops. Cotton candy clouds float over it. You and {buddy} ride a marshmallow boat all the way across, laughing as the bubbles tickle your nose.", end: 'Bubble Sailor' },
+      f: { art: 'sq13', t: "You lean out with a net. One spark, two sparks, three sparks! The ship hums and glows. The pilot gives you a badge that says Star Catcher, and the stars seem to wink at you.", end: 'Star Catcher' },
+      g: { art: 'sq229', t: "The comet has a long sparkly tail. \"Hold on tight!\" it says, and pulls the ship along like a kite. You land on the Candy Planet faster than anyone ever has. A new record!", end: 'Comet Rider' },
+    },
+  },
+  {
     // A long story. A choice can pack something for later: [label, next page, thing you get, things you need].
     id: 'mountain', kind: 'Big adventure', title: 'The Secret of Glitter Mountain', toy: 'sq101', prize: 'pl12', coins: 80, start: 'a', secret: 'Keeper of the Mountain',
     nodes: {

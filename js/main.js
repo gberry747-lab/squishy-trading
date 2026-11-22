@@ -8,6 +8,8 @@ import { can3D, mount3D, dispose3D } from './buddy3d.js';
 import { studioScreen, studioReady, myDrawings, editDrawing, newDrawing } from './studio.js';
 import { initLang, lang, setLang, say } from './i18n.js';
 import { guideVisit, initGuide } from './guide.js';
+import { albumScreen, roomScreen, homeExtras } from './extras.js';
+import { myStoryScreen, initMyStory } from './mystory.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -28,13 +30,13 @@ function header() {
 }
 onChange(header);
 
-const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest };
+const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest, album: albumScreen, room: roomScreen, mystory: myStoryScreen };
 function go(to = tab, arg) {
   if (router.cleanup) { router.cleanup(); router.cleanup = null; }
   if (!P()) return welcome();
   ensureDaily();
   tab = to;
-  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' ? 'stories' : to) ? 'page' : 'false'));
+  document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.to === (to === 'studio' ? 'toys' : to === 'quest' || to === 'mystory' ? 'stories' : to === 'album' || to === 'room' ? 'home' : to) ? 'page' : 'false'));
   view.className = 'view v-' + to;
   view.innerHTML = SCREENS[to](arg);
   header();
@@ -161,6 +163,7 @@ function home() {
       <button class="mode" data-act="playMode" data-v="bot"><b>1 player</b><small>You against the computer</small></button>
       <button class="mode" data-act="playMode" data-v="local"><b>2 players</b><small>Together on this screen</small></button>
       <button class="mode" data-act="playMode" data-v="online"><b>Online</b><small>A friend on their own device</small></button></div></section>
+    ${homeExtras()}
     ${offerCard()}
     <section class="card"><h2>Today's challenges</h2><ul class="quests">${d.quests.map(questRow).join('')}</ul>
       ${allClaimed ? (d.chest ? '<p class="muted">All done. New challenges tomorrow!</p>' : `<button class="btn primary" data-act="chest">Open the bonus chest</button>`) : '<p class="muted">Finish all three to open the bonus chest.</p>'}</section>
@@ -331,6 +334,7 @@ function stories() {
   const q = p.quest || { ch: 0 };
   return `<h1>Story time</h1><p class="muted">You choose what happens next. Every story has lots of endings to find. Finish a story to win coins and a plushie.</p>
     <button class="card story-card quest-card" data-act="go" data-to="quest"><span class="story-art">${toySVG('sq23')}</span><span><b>Story Mode: The Glitter Crown</b><small>${q.ch >= QUEST.length ? 'Finished! The crown is whole.' : `Chapter ${Math.min(q.ch + 1, QUEST.length)} of ${QUEST.length}. Read, solve and explore.`}</small></span></button>
+    <button class="card story-card quest-card" data-act="go" data-to="mystory"><span class="story-art">${toySVG('sq208')}</span><span><b>Story maker</b><small>${(p.myStories || []).length ? `You have written ${(p.myStories || []).length} stories. Read them or write a new one.` : 'Write your own choose-your-path story.'}</small></span></button>
     <div class="story-list">${STORIES.map((s) => {
       const got = Object.keys(p.stories[s.id] || {}).length;
       return `<button class="card story-card" data-act="story" data-id="${s.id}"><span class="story-art">${toySVG(s.toy)}</span>
@@ -338,7 +342,9 @@ function stories() {
     }).join('')}</div>`;
 }
 let reading = null;
-actions.story = (el) => { reading = { s: STORIES.find((x) => x.id === el.dataset.id), ok: {}, has: {} }; reading.at = reading.s.start; sfx.tap(); page(); };
+const findStory = (id) => STORIES.find((x) => x.id === id) || (P().myStories || []).find((x) => x.id === id);
+initMyStory((s) => { reading = { s, ok: {}, has: {} }; reading.at = s.start; page(); window.scrollTo(0, 0); });
+actions.story = (el) => { reading = { s: findStory(el.dataset.id), ok: {}, has: {} }; if (!reading.s) return go('stories'); reading.at = reading.s.start; sfx.tap(); page(); };
 actions.choose = (el) => { if (el.dataset.set) reading.has[el.dataset.set] = 1; reading.at = el.dataset.id; sfx.tap(); page(); };
 // A choice may need things packed or won earlier: 'a+b' needs both, 'a|b' needs either one.
 const canPick = (need) => !need || (need.includes('|') ? need.split('|').some((k) => reading.has[k]) : need.split('+').every((k) => reading.has[k]));
@@ -363,7 +369,7 @@ function stopVoice() { if (voice) { voice.pause(); voice = null; } if ('speechSy
 actions.readAloud = (btn) => {
   if (voice || ('speechSynthesis' in window && speechSynthesis.speaking)) return stopVoice();
   const { s, at } = reading, raw = s.nodes[at].t;
-  if (lang() === 'en' && (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia')) {
+  if (!s.mine && lang() === 'en' && (!raw.includes('{name}') || P().name.trim().toLowerCase() === 'grace emilia')) {
     const a = new Audio(`audio/stories/${s.id}_${at}.mp3`);
     voice = a; btn.setAttribute('aria-pressed', 'true');
     a.onended = () => { if (voice === a) stopVoice(); };
@@ -385,7 +391,13 @@ function page() {
   router.cleanup = stopVoice;
   p.pages = p.pages || {}; (p.pages[s.id] = p.pages[s.id] || {})[at] = 1; save();
   let foot;
-  if (n.end) {
+  if (n.end && s.mine) {
+    const paid = (p.daily.read = p.daily.read || {});
+    if (!paid[s.id]) { paid[s.id] = 1; track('story'); }
+    sfx.win(); confetti(20);
+    foot = `<div class="ending"><p class="pill big" translate="no">${esc(n.end)}</p><p>You wrote this story. Great job, author!</p>
+      <div class="row center"><button class="btn primary" data-act="story" data-id="${s.id}">Read again</button><button class="btn" data-act="go" data-to="mystory">My stories</button></div></div>`;
+  } else if (n.end) {
     const rec = (p.stories[s.id] = p.stories[s.id] || {}), first = Object.keys(rec).length === 0, newEnd = !rec[n.end];
     rec[n.end] = 1;
     const paid = (p.daily.read = p.daily.read || {});
@@ -399,11 +411,11 @@ function page() {
       <p class="muted">${Object.keys(rec).length} of ${endings(s)} endings found.</p>
       <div class="row center"><button class="btn primary" data-act="story" data-id="${s.id}">Read again</button><button class="btn" data-act="storyMap">Story map</button><button class="btn" data-act="go" data-to="stories">More stories</button></div></div>`;
   } else {
-    foot = n.ask && !reading.ok[at] ? askHTML(n.ask, 'storyAsk') : `<p class="what">What do you do?</p><div class="choices">${n.c.filter((c) => canPick(c[3])).map(([l, to, set]) => `<button class="btn big choice" data-act="choose" data-id="${to}" data-set="${set || ''}">${l}</button>`).join('')}</div><button class="btn sm map-btn" data-act="storyMap">Story map</button>`;
+    foot = n.ask && !reading.ok[at] ? askHTML(n.ask, 'storyAsk') : `<p class="what">What do you do?</p><div class="choices">${n.c.filter((c) => canPick(c[3])).map(([l, to, set]) => `<button class="btn big choice" data-act="choose" data-id="${to}" data-set="${set || ''}" ${s.mine ? 'translate="no"' : ''}>${esc(l)}</button>`).join('')}</div><button class="btn sm map-btn" data-act="storyMap">Story map</button>`;
   }
   view.className = 'view v-reader';
   view.innerHTML = `<button class="btn back" data-act="go" data-to="stories">${icon('back')} Stories</button>
-    <article class="card reader"><h1>${s.title}</h1><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${n.art}">${toySVG(n.art)}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy, p.style)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
+    <article class="card reader"><h1 ${s.mine ? 'translate="no"' : ''}>${esc(s.title)}</h1><div class="reader-stage"><div class="reader-art squish" data-squish data-toy="${TOYS[n.art] ? n.art : 'sq01'}">${toySVG(TOYS[n.art] ? n.art : 'sq01')}</div><div class="reader-buddy"><div class="squish" data-squish data-toy="${p.buddy}">${toySVG(p.buddy, p.style)}</div><small>with ${esc(TOYS[p.buddy].name)}</small></div></div>
     <p id="story-text" class="story-text" translate="no">${wordsHTML(fillStory(n.t, p))}</p><p class="muted tap-hint">Tap any word to hear it.</p>
     <button class="btn sm" data-act="readAloud" id="read-btn" aria-pressed="false">${icon('sound')} Read it to me</button>${foot}</article>`;
   window.scrollTo(0, 0);

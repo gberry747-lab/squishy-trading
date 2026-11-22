@@ -102,8 +102,11 @@ function countdown(sec, done) {
     if (left <= 0) done();
   }, 100);
 }
+export const hooks = { finish: null };
+export function playGame(id) { const g = GAMES.find((x) => x.id === id); if (g) START()[id](g); }
 function finish(g, score, won, line) {
   stopAll();
+  if (hooks.finish) setTimeout(() => hooks.finish && hooks.finish(g, score), 1600);
   const p = P(), isBest = score > best(g.id);
   if (isBest) p.stats['best_' + g.id] = score;
   p.stats['plays_' + g.id] = (p.stats['plays_' + g.id] || 0) + 1;

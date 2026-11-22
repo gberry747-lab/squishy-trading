@@ -510,6 +510,44 @@ body.easy .ask-q, body.easy .read-clue { line-height: 1.6; font-weight: 600; } b
 @keyframes glow-pulse { 50% { outline-color: var(--accent); } }
 body.guiding .view { padding-bottom: 260px; }
 @media (prefers-reduced-motion: reduce) { .squish-tag, .hero-toy.pay::after, .guide-art, .guide-glow { animation: none; } }
+/* sticker album */
+.stickers { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+.sticker { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; background: none; border: 3px dashed var(--line); border-radius: 18px; text-align: center; color: var(--ink); }
+.sticker b { font: 800 .9rem/1.15 var(--display); } .sticker small { font-size: .78rem; color: var(--muted); }
+.sticker-art { width: 68px; height: 68px; border-radius: 50%; background: #fff; border: 4px solid #fff; box-shadow: 0 0 0 3px var(--line); padding: 4px; }
+.sticker.locked .sticker-art { filter: grayscale(1) brightness(1.15); opacity: .45; }
+.sticker.have { border-style: solid; border-color: var(--ok); background: #EAFBF3; } .sticker.have .sticker-art { box-shadow: 0 0 0 3px var(--ok); transform: rotate(-5deg); }
+.sticker.ready { border-style: solid; border-color: var(--accent); background: #FFF0F7; animation: tag-bob 1.2s ease-in-out infinite; cursor: pointer; } .sticker.ready small { color: var(--accent); font-weight: 800; } .sticker.ready .sticker-art { box-shadow: 0 0 0 3px #FFD84A; }
+/* daily gift and mystery egg */
+.gift-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 8px 0 12px; }
+.gift { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border: 3px solid var(--line); border-radius: 14px; background: #fff; min-width: 0; } .gift small { font-size: .7rem; font-weight: 800; color: var(--muted); }
+.gift-what { display: grid; place-items: center; width: 100%; height: 34px; } .gift-what svg { width: 30px; height: 30px; } .gift-what .coins { font-size: .78rem; gap: 2px; } .gift-what .coins svg { width: 14px; height: 14px; }
+.gift.done { background: #EAFBF3; border-color: var(--ok); opacity: .7; } .gift.now { border-color: var(--accent); background: #FFF0F7; animation: tag-bob 1.2s ease-in-out infinite; }
+.egg-card { display: flex; gap: 14px; align-items: center; } .egg { width: 96px; flex: none; } .egg-card.ready .egg { animation: egg-wiggle .6s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes egg-wiggle { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
+.egg-bar { height: 16px; background: var(--line); border: 3px solid var(--ink); border-radius: 999px; overflow: hidden; max-width: 260px; } .egg-bar i { display: block; height: 100%; background: #FFD84A; border-radius: 999px; }
+/* my room */
+.room-stage { position: relative; width: 100%; max-width: 720px; aspect-ratio: 4 / 3; margin: 8px auto; border: 4px solid var(--ink); border-radius: 22px; overflow: hidden; background: #fff; touch-action: none; user-select: none; }
+.room-wall { position: absolute; inset: 0 0 34% 0; } .room-floor { position: absolute; inset: 66% 0 0 0; border-top: 4px solid var(--ink); }
+.thing { position: absolute; aspect-ratio: 1; transform: translate(-50%, -82%); background: none; border: 0; padding: 0; touch-action: none; cursor: grab; } .thing svg { width: 100%; height: 100%; display: block; pointer-events: none; overflow: visible; }
+.thing.picked { outline: 4px dashed var(--accent); outline-offset: 2px; border-radius: 14px; } span.thing { cursor: default; }
+.room-bar { justify-content: space-between; align-items: center; max-width: 720px; margin: 0 auto 10px; }
+.room-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; margin-top: 10px; }
+.room-opt { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; background: #fff; border: 3px solid var(--line); border-radius: 16px; color: var(--ink); text-align: center; } .room-opt.on { border-color: var(--ok); background: #EAFBF3; }
+.room-opt b { font: 800 .88rem/1.15 var(--display); } .room-opt small { font-size: .78rem; color: var(--muted); } .room-sw { width: 64px; height: 64px; border-radius: 12px; border: 2px solid var(--line); overflow: hidden; } .room-sw svg { width: 100%; height: 100%; }
+/* story maker */
+.ms-page { margin-top: 12px; } .ms-head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; } .ms-head h2 { margin: 0; }
+.ms-art { width: 68px; height: 68px; flex: none; background: var(--soft); border: 3px solid var(--ink); border-radius: 16px; padding: 4px; }
+.ms-page textarea, .ms-choice input, .ms-title { width: 100%; font: 400 1.15rem/1.6 'Lexend', var(--body); letter-spacing: .02em; color: var(--ink); background: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 10px 12px; user-select: text; -webkit-user-select: text; }
+.ms-ideas { margin: 8px 0; gap: 6px; align-items: center; } .ms-choice { display: flex; gap: 8px; align-items: center; margin: 6px 0; flex-wrap: wrap; } .ms-choice input { flex: 1; min-width: 160px; } .ms-choice label { font-weight: 800; }
+.ms-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; } .ms-row .row { margin-top: 8px; gap: 6px; } .ms-foot { margin: 18px 0; }
+/* friends: hearts and requests */
+.hearts { display: block; color: var(--accent); font-weight: 800; }
+.asks { display: grid; gap: 8px; } .ask-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border: 3px solid var(--line); border-radius: 16px; background: #fff; } .ask-row.done { opacity: .6; }
+.ask-what { flex: 1; min-width: 150px; } .ask-row .mini-art { width: 44px; height: 44px; flex: none; } .sw { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); margin-right: 5px; vertical-align: -2px; }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.vs-row { display: flex; justify-content: center; gap: 28px; margin: 14px 0; } .vs-row > div { display: grid; justify-items: center; gap: 2px; } .vs-art { width: 88px; height: 88px; } .vs-n { font: 800 2.4rem var(--display); color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .sticker.ready, .gift.now, .egg-card.ready .egg { animation: none; } }
 .lang-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 0 0 12px; font: 700 1rem var(--display); }
 
 /* Grace's trading board */
