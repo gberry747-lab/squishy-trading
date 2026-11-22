@@ -174,7 +174,85 @@ sq150|Strawberry Pudding|pudding|pink|red|c
 sq151|Buttery Croissant|croissant|tan||r
 sq152|Cinnamon Roll|cinroll|tan|white|c
 sq153|Rainbow Mochi|blob|pink||e|rainbow
-sq154|Jumbo Cinnamon Roll|cinroll|tan|white|e||J`,
+sq154|Jumbo Cinnamon Roll|cinroll|tan|white|e||J
+sq155|Foxy Roxy|fox|orange||c
+sq156|Snowy Fox|fox|white||r
+sq157|Galaxy Fox|fox|grape||e|galaxy
+sq158|Bamboo Panda|panda|white||c
+sq159|Pink Panda|panda|pink||r
+sq160|Glitter Panda|panda|white||e|glitter
+sq161|Sleepy Koala|koala|gray||c
+sq162|Lilac Koala|koala|lilac||r
+sq163|Cheesy Mouse|mouse|gray||c
+sq164|Sugar Mouse|mouse|white||r
+sq165|Peanut Puppy|puppy|tan||c
+sq166|Cocoa Puppy|puppy|choc||c
+sq167|Cloud Puppy|puppy|white||r
+sq168|Jumbo Puppy|puppy|cream||e||J
+sq169|Sunny Lion|lion|yellow||r
+sq170|Golden Lion|lion|gold||e|glitter
+sq171|Tiny Tiger|tiger|orange||r
+sq172|Snow Tiger|tiger|white||e
+sq173|Cheeky Monkey|monkey|choc||c
+sq174|Banana Monkey|monkey|yellow||r
+sq175|Moo Moo Cow|cow|white|choc|c
+sq176|Strawberry Cow|cow|pink|red|r
+sq177|Blueberry Cow|cow|sky|blue|e
+sq178|Woolly Sheep|sheep|white|peach|c
+sq179|Cotton Sheep|sheep|pink|cream|r
+sq180|Rainbow Sheep|sheep|white|peach|e|rainbow
+sq181|Dotty Deer|deer|tan||r
+sq182|Snowflake Deer|deer|white||e|glitter
+sq183|Snappy Crab|crab|red||c
+sq184|Coral Crab|crab|rose||r
+sq185|Bubbles Fish|fish|orange||c
+sq186|Ocean Fish|fish|blue||c
+sq187|Rainbow Fish|fish|pink||e|rainbow
+sq188|Wobble Jellyfish|jellyfish|lilac||c
+sq189|Moonlight Jellyfish|jellyfish|mint||e|glow
+sq190|Galaxy Jellyfish|jellyfish|navy||l|galaxy
+sq191|Slowpoke Snail|snail|peach|lime|c
+sq192|Candy Snail|snail|pink|sky|r
+sq193|Golden Snail|snail|gold|yellow|l|glitter
+sq194|Blinky Owl|owl|grape||r
+sq195|Snowy Owl|owl|white||e
+sq196|Zesty Lemon|lemon|yellow||c
+sq197|Lime Squeeze|lemon|lime||c
+sq198|Perky Pear|pear|lime||c
+sq199|Golden Pear|pear|gold||e|glitter
+sq200|Sunny Pineapple|pineapple|yellow||r
+sq201|Pink Pineapple|pineapple|pink||e
+sq202|Fuzzy Peach|peachf|peach|red|c
+sq203|Jumbo Peach|peachf|peach|red|e||J
+sq204|Syrup Waffle|waffle|tan|choc|c
+sq205|Strawberry Waffle|waffle|cream|pink|r
+sq206|Cherry Pie|pie|red|tan|c
+sq207|Blueberry Pie|pie|blue|tan|r
+sq208|Pumpkin Pie|pie|orange|tan|r
+sq209|Sprinkle Cake Pop|cakepop|pink|white|c
+sq210|Choco Cake Pop|cakepop|choc|pink|c
+sq211|Mint Cake Pop|cakepop|mint|choc|r
+sq212|Pink Cotton Candy|cottoncandy|pink||c
+sq213|Blue Cotton Candy|cottoncandy|sky||c
+sq214|Rainbow Cotton Candy|cottoncandy|pink||e|rainbow
+sq215|Ruby Gem|gem|red||r
+sq216|Sapphire Gem|gem|blue||r
+sq217|Emerald Gem|gem|teal||e
+sq218|Diamond Gem|gem|white||l|glitter
+sq219|Daisy Squish|flower|white|yellow|c
+sq220|Sunflower Squish|flower|yellow|choc|r
+sq221|Cherry Blossom|flower|pink|yellow|r
+sq222|Seashell Squish|shell|peach||c
+sq223|Mermaid Shell|shell|lilac||e|glitter
+sq224|Tea Time Cup|teacup|pink|tan|c
+sq225|Minty Tea Cup|teacup|mint|tan|r
+sq226|Kitty Paw|paw|white|pink|c
+sq227|Puppy Paw|paw|tan|choc|c
+sq228|Glitter Paw|paw|lilac|pink|e|glitter
+sq229|Little UFO|ufo|gray|yellow|r
+sq230|Galaxy UFO|ufo|grape|mint|l|galaxy
+sq231|Jumbo Panda|panda|white||l||J
+sq232|Jumbo Fox|fox|orange||e||J`,
   fidget: `
 fi01|Rainbow Popper|popper|pink||r|rainbow
 fi02|Pink Popper|popper|pink||c
@@ -661,6 +739,39 @@ export const STORIES = [
 
 // Stories with reading and math questions built in. "ask" must be answered before the choices appear.
 STORIES.push(
+  {
+    // A long story. A choice can pack something for later: [label, next page, thing you get, things you need].
+    id: 'mountain', kind: 'Big adventure', title: 'The Secret of Glitter Mountain', toy: 'sq101', prize: 'pl12', coins: 80, start: 'a', secret: 'Keeper of the Mountain',
+    nodes: {
+      a: { art: 'sq13', t: "A map slides under the door. It shows a path to Glitter Mountain. At the top there is a door with three locks. {name} and {buddy} look at each other. \"Let's go!\" But the bag has room for just one more thing.", ask: { q: 'How many locks are on the door at the top?', a: 'Three', w: ['Two', 'Five'] }, c: [['Pack a bag of snacks', 'b', 'snack'], ['Pack a long rope', 'b', 'rope']] },
+      b: { art: 'sq42', t: "The path leads to the Whispering Woods. The trees are tall and the leaves go shh, shh, shh. Here the path splits in two. One way is soft and green with moss. The other way runs beside a river.", c: [['Take the mossy path', 'c'], ['Walk beside the river', 'r']] },
+      c: { art: 'pl19', t: "On the mossy path, an owl sits on a low branch. She is blinking hard. \"I dropped my glasses,\" she says. \"I can not see a thing. Could you help me look?\" The sun is getting low.", c: [['Stop and help her look', 'c2', 'owl'], ['Say sorry and hurry on', 'd']] },
+      c2: { art: 'pl19', t: "{name} looks under 6 leaves. {buddy} looks under 7 more. There! The glasses are under the very last leaf. \"Thank you,\" says the owl. \"Take my little lantern. It shines in the darkest places.\"", ask: { q: 'How many leaves did you look under altogether?', a: '13', w: ['12', '14'] }, c: [['Thank the owl and walk on', 'd']] },
+      r: { art: 'sq48', t: "The river is wide. There are 3 rows of stepping stones, with 4 stones in each row. A big old turtle floats near the bank. \"I can give you a ride,\" he says slowly, \"if you are not in a rush.\"", ask: { q: 'How many stepping stones are there in all?', a: '12', w: ['7', '10'] }, c: [['Ride on the turtle', 'r2', 'turtle'], ['Hop across the stones', 'd']] },
+      r2: { art: 'sq48', t: "The turtle swims slow and steady. Little fish wave as you pass. \"My name is Pebble,\" says the turtle. \"If you ever need a friend, just call my name.\" He lets you off on the far bank.", c: [['Wave goodbye to Pebble', 'd']] },
+      d: { art: 'pl12', t: "Past the woods there is a wooden bridge. A baby dragon sits right in the middle of it. His tummy goes rumble, rumble. \"I am SO hungry,\" he says. \"Nobody can cross until I feel better.\"", c: [['Share your snacks with him', 'd2', 'scale', 'snack'], ['Tell him a funny joke', 'd3'], ['Ask him what is wrong', 'd3']] },
+      d2: { art: 'pl12', t: "The dragon eats 5 crackers and 4 berries. He smiles a big, toothy smile. \"You are kind! My name is Ember.\" He gives {name} one of his scales. It is warm, like a mug of cocoa. \"Call me if you need me.\"", ask: { q: 'How many things did Ember eat?', a: '9', w: ['8', '54'] }, c: [['Cross the bridge', 'e']] },
+      d3: { art: 'pl12', t: "{buddy} pulls a silly face. The dragon giggles, and a puff of smoke pops out of his nose. \"Okay, okay, you can cross,\" he says. He is still hungry, but he waves as you go by.", c: [['Cross the bridge', 'e']] },
+      e: { art: 'sq50', t: "Next is the Echo Cave. It is very dark inside. Drip, drip, drip goes the water. You can not see the walls at all. Somewhere far inside, something hums a soft tune.", c: [["Light the owl's lantern", 'e2', 'song', 'owl'], ['Feel along the wall', 'e3'], ['Call out hello', 'e4']] },
+      e2: { art: 'sq13', t: "The lantern glows gold. Now you can see! The walls are covered in pictures of stars. Under them are the words of a song: \"Glitter high, glitter low, wake up, mountain, time to glow.\" {name} learns it by heart.", ask: { q: 'What does the song ask the mountain to do?', a: 'Wake up and glow', w: ['Go to sleep', 'Make it rain'] }, c: [['Walk out the far side', 'f']] },
+      e3: { art: 'sq11', t: "You keep one hand on the cold, bumpy wall. Step by step by step. It takes a long time, but at last you see a circle of light. You made it through without seeing a thing!", c: [['Step out into the light', 'f']] },
+      e4: { art: 'sq11', t: "\"Hello!\" you call. \"Hello... hello... hello,\" says the cave. You called 1 time and the echo came back 3 times. You follow the sound of your own voice all the way out.", ask: { q: 'How many hellos were there altogether?', a: '4', w: ['3', '2'] }, c: [['Step out into the light', 'f']] },
+      f: { art: 'sq55', t: "Now you stand under a tall cliff. Glitter Mountain is at the top. High up on a ledge, a bird's nest holds something small and shiny. There are stairs, but they wind around and around.", c: [['Climb up with your rope', 'f2', 'key', 'rope'], ['Take the long winding stairs', 'f3']] },
+      f2: { art: 'fi13', t: "You throw the rope over a rock and climb. Up, up, up! You pass right by the nest. Inside is a tiny silver key. The bird nods at you. \"Take it. It is no use to me.\"", c: [['Climb to the very top', 'g']] },
+      f3: { art: 'sp07', t: "The stairs go around and around. There are 10 steps, then 10 more, then 10 more. Your legs feel like jelly. Half way up, you can see that shiny thing in the nest, far out of reach.", ask: { q: 'How many steps have you climbed?', a: '30', w: ['20', '13'] }, c: [['Ask Ember to fly up and fetch it', 'f4', 'key', 'scale'], ['Keep on climbing', 'g']] },
+      f4: { art: 'pl12', t: "You hold the warm scale and call, \"Ember!\" Whoosh! The baby dragon zooms up the cliff. He picks up the shiny thing ever so gently and drops it into your hands. It is a tiny silver key.", c: [['Climb to the very top', 'g']] },
+      g: { art: 'sq101', t: "Here it is: the door of Glitter Mountain. It has three locks. One is a keyhole. One is shaped like a music note. One is shaped like a hand, and it feels cold as ice.", c: [['Open all three locks', 's', '', 'key+song+scale'], ['Knock on the door', 'h'], ['Look for another way in', 'h2']] },
+      h: { art: 'sq117', t: "Knock, knock, knock. A small window opens. A capybara peeks out. \"I am the door keeper,\" she says. \"Answer me this. I have a face and two hands, but no arms and no legs. What am I?\"", ask: { q: 'What has a face and two hands, but no arms and no legs?', a: 'A clock', w: ['A cat', 'A shoe'] }, c: [['Step inside', 'i']] },
+      h2: { art: 'sl02', t: "Around the side there is a round hole. It looks like a slide! {buddy} goes first. Wheee! You zip around 2 bends and then 6 more, and land with a soft plop on a pile of pillows.", ask: { q: 'How many bends were in the slide?', a: '8', w: ['7', '26'] }, c: [['Stand up and look around', 'i']] },
+      i: { art: 'sq15', t: "In the middle of the mountain sits the Glitter Heart. It is as big as a bed, but its light is weak and gray. \"It has been lonely for a long, long time,\" says a tiny voice. What will you do?", c: [['Give it a great big hug', 'x1'], ['Sing it any song you know', 'x2'], ['Polish it with your sleeve', 'x3'], ['Call your new friends to come', 'x4', '', 'turtle|scale|owl']] },
+      x1: { art: 'sq101', t: "{name} and {buddy} hug the Glitter Heart as hard as they can. It gets warm. Then warmer. Then it glows pink, and glitter rains down like snow. A hug was just what it needed.", end: 'Warm Heart' },
+      x2: { art: 'sq138', t: "You sing the first song that pops into your head. {buddy} hums along. The Glitter Heart starts to hum too! Soon the whole mountain is singing, and rainbows shine out of every window.", end: 'Mountain Singer' },
+      x3: { art: 'sq13', t: "You rub and rub with your sleeve. Under the gray dust, the Glitter Heart is as bright as a star. \"Much better,\" says the tiny voice. \"I can see again!\" Your sleeve will be sparkly forever.", end: 'Sparkle Polisher' },
+      x4: { art: 'sq142', t: "You call for the friends you made on the way. One by one, they come! Soon the room is full of laughing and talking. The Glitter Heart glows gold. It is not lonely any more.", end: 'Many Friends' },
+      s: { art: 'fi13', t: "The silver key turns with a click. {name} sings, \"Glitter high, glitter low, wake up, mountain, time to glow.\" The note lock rings like a bell. Then you press Ember's warm scale to the icy hand. Crack! The ice melts.", ask: { q: 'What melted the icy hand lock?', a: "Ember's warm scale", w: ['The silver key', 'The lantern'] }, c: [['Push open the great door', 's2']] },
+      s2: { art: 'sq101', t: "The great door swings wide. Inside, the Glitter Heart is wide awake and shining like the sun. \"You were kind. You were brave. You listened,\" it says. \"From today, you are the Keeper of Glitter Mountain.\" It places a tiny glitter crown on {buddy}.", end: 'Keeper of the Mountain' },
+    },
+  },
   {
     id: 'crown', kind: 'Princess', title: 'Princess Mochi and the Missing Crown', toy: 'sq01', prize: 'pl36', coins: 40, start: 'a',
     nodes: {

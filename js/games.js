@@ -7,10 +7,10 @@ import { lang } from './i18n.js';
 
 const GAMES = [
   { id: 'pop', name: 'Pop Party', art: 'fi01', how: 'Pop the bubbles that puff up. Gold ones are worth 3!', unit: 'pops', sec: 'fidget' },
-  { id: 'match', name: 'Memory Match', art: 'sq13', how: 'Flip two cards. Find all the matching toys.', unit: 'points' },
+  { id: 'match', name: 'Memory Match', art: 'sq13', how: 'Flip two cards. Find all the matching toys.', unit: 'points', sec: 'focus' },
   { id: 'mix', name: 'Slime Lab', art: 'sl12', how: 'Pick the two colors that mix into the slime on the card.', unit: 'perfect mixes' },
   { id: 'catch', name: 'Squishy Catch', art: 'do03', how: 'Slide the tub to catch falling toys. Dodge the mud!', unit: 'catches' },
-  { id: 'copy', name: 'Copy Cat', art: 'fi04', how: 'Watch the bubbles light up, then tap them in the same order.', unit: 'patterns' },
+  { id: 'copy', name: 'Copy Cat', art: 'fi04', how: 'Watch the bubbles light up, then tap them in the same order.', unit: 'patterns', sec: 'focus' },
   { id: 'sort', name: 'Toy Sorter', art: 'sq36', how: 'Which shelf does the toy belong on? Sort as many as you can.', unit: 'toys sorted' },
   { id: 'stairs', name: 'Springy Stairs', art: 'sp07', how: 'Tap when the dot is in the green to walk the springy down the stairs.', unit: 'steps' },
   { id: 'odd', name: 'Odd One Out', art: 'sq32', how: 'One toy is different from the rest. Find it fast!', unit: 'found' },
@@ -21,7 +21,7 @@ const GAMES = [
   { id: 'blast', name: 'Glitter Blast', art: 'sq112', how: 'Glitter bombs float up. Pop them before they get away, but leave the rain clouds!', unit: 'points' },
   { id: 'claw', name: 'Claw Machine', art: 'pl23', how: 'Line up the claw and drop it. Rarer toys score more.', unit: 'points' },
   { id: 'stack', name: 'Squishy Stack', art: 'sq97', how: 'Drop each squishy on top of the last one. How tall can you build?', unit: 'stacked' },
-  { id: 'missing', name: 'What Is Missing?', art: 'sq38', how: 'Remember the toys. One sneaks away. Which one?', unit: 'spotted' },
+  { id: 'missing', name: 'What Is Missing?', art: 'sq38', how: 'Remember the toys. One sneaks away. Which one?', unit: 'spotted', sec: 'focus' },
   { id: 'tapit', name: 'Tap It!', art: 'fi02', how: 'Toys pop up. Tap only the kind the sign asks for.', unit: 'points' },
   { id: 'hilo', name: 'More or Less', art: 'sq137', how: 'Is the next toy worth more coins or less? Learn what makes a toy rare.', unit: 'right guesses', sec: 'math' },
   { id: 'pattern', name: 'Finish the Pattern', art: 'sq138', how: 'Look at the row of toys. Which one comes next?', unit: 'patterns', sec: 'math' },
@@ -38,6 +38,19 @@ const GAMES = [
   { id: 'skip', name: 'Skip Count', art: 'sp07', how: 'Count by 2s, 5s, 10s and more. Find the missing number.', unit: 'right answers', sec: 'math' },
   { id: 'clock', name: 'What Time Is It?', art: 'sq51', how: 'Read the clock and pick the right time.', unit: 'right answers', sec: 'math' },
   { id: 'bonds', name: 'Make the Number', art: 'sq61', how: 'What is missing? Fill in the sum to make 10, 20 or 100.', unit: 'right answers', sec: 'math' },
+  { id: 'letters', name: 'Letter Detective', art: 'fi13', how: 'Some letters look alike. Find every one that matches.', unit: 'rounds', sec: 'read' },
+  { id: 'firstsound', name: 'First Sound', art: 'sq46', how: 'Say the word. Which letter does it start with?', unit: 'right answers', sec: 'read' },
+  { id: 'chunks', name: 'Word Chunks', art: 'sq121', how: 'Big words are made of small parts. Put the parts in order.', unit: 'words', sec: 'read' },
+  { id: 'hearfind', name: 'Hear and Find', art: 'pl19', how: 'Listen to the word, then find it. Some of them look very alike!', unit: 'right answers', sec: 'read' },
+  { id: 'bigmatch', name: 'Mega Memory Match', art: 'sq158', how: 'Sixteen cards! Flip two at a time and find all eight pairs.', unit: 'points', sec: 'focus' },
+  { id: 'wordmatch', name: 'Word and Toy Match', art: 'sq163', how: 'Flip two cards. Match each word to its toy.', unit: 'points', sec: 'focus' },
+  { id: 'where', name: 'Where Did It Hide?', art: 'sq155', how: 'Look at the toys. The boxes close. Which box is the toy hiding in?', unit: 'found', sec: 'focus' },
+  { id: 'changed', name: 'What Changed?', art: 'sq193', how: 'Look closely at the toys. One of them swaps for a new toy. Which one?', unit: 'spotted', sec: 'focus' },
+  { id: 'stopgo', name: 'Stop and Go', art: 'sq10', how: 'Tap when the sign says GO. Keep your hands still when it says STOP.', unit: 'points', sec: 'focus' },
+  { id: 'steps', name: 'Follow the Steps', art: 'sq13', how: 'Read the steps, remember them, then tap the toys in that order.', unit: 'rounds', sec: 'focus' },
+  { id: 'breathe', name: 'Breathe with Mochi', art: 'sq01', how: 'Breathe in as Mochi grows. Breathe out as Mochi shrinks. Slow and soft.', unit: 'breaths', sec: 'calm' },
+  { id: 'stars', name: 'Starry Sky', art: 'sq50', how: 'Tap the night sky to hang stars, one at a time. No score and no hurry.', unit: 'stars', sec: 'calm' },
+  { id: 'tuckin', name: 'Tuck-In Time', art: 'pl01', how: 'Your toys are sleepy. Tuck each one into bed and say good night.', unit: 'toys asleep', sec: 'calm' },
   { id: 'opposites', name: 'Opposites', art: 'sq51', how: 'Hot and cold, big and small. Pick the word that means the opposite.', unit: 'opposites', sec: 'read' },
   { id: 'build', name: 'Build the Sentence', art: 'sq131', how: 'The words are mixed up. Tap them in the right order to make a sentence.', unit: 'sentences', sec: 'read' },
   { id: 'fraction', name: 'Fraction Pizza', art: 'sq44', how: 'How much of the pizza is left? Pick the right fraction.', unit: 'right answers', sec: 'math' },
@@ -53,8 +66,9 @@ const view = () => $('#view');
 const mine = () => Object.keys(P().inv).filter((id) => TOYS[id] && TOYS[id].custom).map((id) => TOYS[id]);
 const best = (id) => P().stats['best_' + id] || 0;
 
-const SECTIONS = [['read', 'Reading games', 'Spelling, rhymes and reading for meaning.'], ['math', 'Math and thinking games', 'Adding, times tables, clocks, patterns and fair trades.'], ['fidget', 'Fidget games', 'Pop, spin and click. Good for calm, busy fingers.'], ['vs', 'Play together', 'Play the computer, or a friend on this screen.'], ['fun', 'Fun games', 'Quick games to win coins.']];
+const SECTIONS = [['read', 'Reading games', 'Spelling, rhymes and reading for meaning.'], ['math', 'Math and thinking games', 'Adding, times tables, clocks, patterns and fair trades.'], ['focus', 'Memory and focus games', 'Remembering, listening and stopping to think.'], ['fidget', 'Fidget games', 'Pop, spin and click. Good for calm, busy fingers.'], ['calm', 'Calm and bedtime', 'Slow, quiet games for winding down.'], ['vs', 'Play together', 'Play the computer, or a friend on this screen.'], ['fun', 'Fun games', 'Quick games to win coins.']];
 const secOf = (g) => g.sec || (g.vs ? 'vs' : 'fun');
+export const GAME_LIST = GAMES;
 export function gamesScreen() {
   const card = (g) => `<article class="card game-card"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div>
       <div><h3>${g.name}</h3><p class="muted">${g.how}</p>${best(g.id) ? `<p class="pill">Best: ${best(g.id)} ${g.unit}</p>` : ''}</div>
@@ -92,6 +106,7 @@ function finish(g, score, won, line) {
   stopAll();
   const p = P(), isBest = score > best(g.id);
   if (isBest) p.stats['best_' + g.id] = score;
+  p.stats['plays_' + g.id] = (p.stats['plays_' + g.id] || 0) + 1;
   addCoins(won); track('game'); save();
   sfx.win(); if (won >= 20) confetti();
   view().innerHTML = `<section class="card result"><div class="game-art squish" data-squish data-toy="${g.art}">${toySVG(g.art)}</div><h1>${line}</h1>
@@ -100,7 +115,7 @@ function finish(g, score, won, line) {
 }
 const setScore = (n) => { const el = $('#score'); if (el) el.textContent = n; };
 
-const START = () => ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe, four, tug, quick, math, spell, rhyme, readfind, endings, times, skip, clock, bonds, opposites, build, fraction, cents, addsub, bigger, wrapgame, spin, box });
+const START = () => ({ pop, match, mix, catch: catchGame, copy, sort, stairs, odd, shadow, judge, shuffle, count, blast, claw, stack, missing, tapit, hilo, pattern, tactoe, four, tug, quick, math, spell, rhyme, readfind, endings, times, skip, clock, bonds, opposites, build, fraction, cents, addsub, bigger, wrapgame, spin, box, bigmatch, wordmatch, where, changed, letters, firstsound, chunks, hearfind, stopgo, steps, breathe, stars, tuckin });
 // Games marked "vs" ask first: play the computer, or a friend on the same screen?
 actions.play = (el) => {
   sfx.tap();
@@ -136,8 +151,8 @@ function pop(g) {
 }
 
 // ---------- Memory Match ----------
-function match(g) {
-  const pool = [...mine().sort(() => Math.random() - 0.5).slice(0, 2), ...[...TOY_LIST].sort(() => Math.random() - 0.5)].slice(0, 6).map((t) => t.id);
+function match(g, N = 6) {
+  const pool = [...mine().sort(() => Math.random() - 0.5).slice(0, 2), ...[...TOY_LIST].sort(() => Math.random() - 0.5)].slice(0, N).map((t) => t.id);
   const deck = [...pool, ...pool].sort(() => Math.random() - 0.5);
   let open = [], found = 0, moves = 0, lock = false;
   frame(g, `<p class="muted">Moves: <b id="moves">0</b></p><div class="mem-grid">${deck.map((id, i) => `<button class="mem" data-act="mem" data-i="${i}" aria-label="Card ${i + 1}, face down"><span class="mem-front">${toySVG(id)}</span><span class="mem-back">?</span></button>`).join('')}</div>`);
@@ -150,7 +165,7 @@ function match(g) {
     const [a, b] = open; open = [];
     if (deck[+a.dataset.i] === deck[+b.dataset.i]) {
       a.classList.add('done'); b.classList.add('done'); a.disabled = b.disabled = true; found++; sfx.pop(); setScore(found * 10);
-      if (found === 6) { track('match'); const pts = Math.max(20, 120 - moves * 5); later(() => finish(g, pts, Math.max(12, 44 - moves * 2), moves <= 9 ? 'Super memory!' : 'All matched!'), 600); }
+      if (found === N) { track('match'); const pts = Math.max(20, N * 20 - moves * 5); later(() => finish(g, pts, Math.max(12, N * 7 + 2 - moves * 2), moves <= N + 3 ? 'Super memory!' : 'All matched!'), 600); }
     } else {
       lock = true;
       later(() => { [a, b].forEach((x, k) => { x.classList.remove('open'); x.setAttribute('aria-label', `Card ${+x.dataset.i + 1}, face down`); }); lock = false; }, 800);
@@ -1117,4 +1132,231 @@ function box(g) {
   actions.fbSwitch = (b) => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); sfx.click(); };
   actions.fbSpin = (b) => { b.classList.remove('whirl'); void b.offsetWidth; b.classList.add('whirl'); sfx.whirr(); };
   $('#fb-range').addEventListener('input', () => sfx.tap());
+}
+
+// ---------- letters and sounds ----------
+function letters(g) {
+  const SETS = [['b', 'd', 'p', 'q'], ['b', 'd', 'p', 'q'], ['m', 'w', 'n', 'u'], ['b', 'd', 'h', 'n'], ['6', '9', 'b', 'q'], ['f', 't', 'l', 'j']];
+  let score = 0, target = '', left = 0;
+  frame(g, `<section class="card missing"><p class="game-say">${L('Find every', 'Encuentra cada')} <span class="big-letter" id="target" translate="no"></span></p><div class="letter-grid" id="lg" translate="no"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const next = () => {
+    const set = SETS[Math.min(SETS.length - 1, rnd(1 + Math.min(SETS.length - 1, score)))]; target = set[rnd(set.length)];
+    const n = score < 3 ? 12 : 16, hits = 3 + rnd(3), cells = mixUp([...Array(hits).fill(target), ...Array.from({ length: n - hits }, () => { const o = set.filter((c) => c !== target); return o[rnd(o.length)]; })]);
+    left = hits; $('#target').textContent = target; $('#say').textContent = '';
+    $('#lg').innerHTML = cells.map((c) => `<button class="tile letter" data-act="letterPick" data-hit="${c === target ? 1 : 0}">${c}</button>`).join('');
+  };
+  actions.letterPick = (b) => {
+    if (b.dataset.hit !== '1') { sfx.no(); b.classList.add('bad'); later(() => b.classList.remove('bad'), 300); $('#say').textContent = L('Look at which way it faces.', 'Mira hacia dónde mira la letra.'); return; }
+    b.disabled = true; b.classList.add('found'); sfx.pop(); left--;
+    if (left === 0) { score++; setScore(score); sfx.win(); later(next, 700); }
+  };
+  next();
+  countdown(70, () => { track('letters', score); finish(g, score, Math.min(45, score * 5), score >= 7 ? 'Letter detective!' : 'Sharp eyes!'); });
+}
+function firstsound(g) {
+  let score = 0, word = '', last = '';
+  frame(g, `<section class="card missing"><div class="spell-toy squish" data-squish id="fs-toy"></div><p class="game-say">Which letter does it start with?</p><div class="count-opts" id="opts" translate="no"></div><button class="btn sm" data-act="fsHear">${icon('sound')} Say the word</button><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const next = () => {
+    const pool = (ES() ? WORDS_ES : WORDS).filter(([w]) => w !== last), [w, id] = pool[rnd(pool.length)]; word = last = w;
+    $('#fs-toy').innerHTML = toySVG(id); $('#fs-toy').dataset.toy = id; $('#say').textContent = '';
+    const look = { b: 'd', d: 'b', p: 'q', q: 'p', m: 'n', n: 'm' }, right = w[0], wrong = new Set([look[right]].filter(Boolean));
+    while (wrong.size < 2) { const c = 'bcdfghlmnprst'[rnd(13)]; if (c !== right) wrong.add(c); }
+    $('#opts').innerHTML = mixUp([right, ...wrong]).map((c) => `<button class="btn big letter-btn" data-act="fsPick" data-hit="${c === right ? 1 : 0}">${c}</button>`).join('');
+    later(() => speak(word), 250);
+  };
+  actions.fsHear = () => speak(word);
+  actions.fsPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); $('#say').textContent = L(`Yes! ${word} starts with ${word[0]}.`, `¡Sí! ${word} empieza con ${word[0]}.`); document.querySelectorAll('.letter-btn').forEach((x) => (x.disabled = true)); later(next, 1100); }
+    else { sfx.no(); b.disabled = true; $('#say').textContent = L('Say the word slowly. What is the very first sound?', 'Di la palabra despacio. ¿Cuál es el primer sonido?'); }
+  };
+  next();
+  countdown(70, () => { track('firstsound', score); finish(g, score, Math.min(45, score * 4), score >= 9 ? 'Sound star!' : 'Good listening!'); });
+}
+const CHUNKS = [['but', 'ter', 'fly', 'sq121'], ['u', 'ni', 'corn', 'sq23'], ['pump', 'kin', 'sq54'], ['cook', 'ie', 'sq82'], ['tur', 'tle', 'sq48'], ['pick', 'le', 'sq75'], ['pen', 'guin', 'sq119'], ['cac', 'tus', 'sq42'], ['dump', 'ling', 'sq20'], ['rain', 'bow', 'sq138'], ['pop', 'si', 'cle', 'sq133'], ['can', 'dy', 'sq136'], ['bun', 'ny', 'sq08'], ['ap', 'ple', 'sq139'], ['snow', 'man', 'sq55'], ['do', 'nut', 'sq16']];
+const CHUNKS_ES = [['ga', 'to', 'sq04'], ['pa', 'to', 'sq118'], ['lu', 'na', 'sq50'], ['nu', 'be', 'sq11'], ['ra', 'na', 'sq10'], ['a', 'be', 'ja', 'sq46'], ['co', 'ne', 'jo', 'sq08'], ['tor', 'tu', 'ga', 'sq48'], ['man', 'za', 'na', 'sq139'], ['ga', 'lle', 'ta', 'sq82'], ['es', 'tre', 'lla', 'sq13'], ['ma', 'ri', 'po', 'sa', 'sq121'], ['u', 'ni', 'cor', 'nio', 'sq23'], ['ba', 'lle', 'na', 'sq35'], ['pa', 'le', 'ta', 'sq133']];
+function chunks(g) {
+  let score = 0, parts = [], got = 0, lastW = '';
+  frame(g, `<section class="card missing"><div class="spell-toy squish" data-squish id="ck-toy"></div><div class="built" id="built" translate="no"></div><p class="game-say" id="say">Tap the parts in order to build the word.</p><div class="tiles word-tiles" id="tiles" translate="no"></div><button class="btn sm" data-act="ckHear">${icon('sound')} Say the word</button></section>`);
+  const show = () => { $('#built').innerHTML = parts.map((x, i) => `<span class="chunk ${i < got ? 'in' : ''}">${i < got ? x : '&nbsp;'}</span>`).join(''); };
+  const next = () => {
+    const pool = (ES() ? CHUNKS_ES : CHUNKS).filter((c) => c.join('') !== lastW && (score < 3 ? c.length <= 3 : true)), pick = pool[rnd(pool.length)];
+    lastW = pick.join(''); parts = pick.slice(0, -1); got = 0; const id = pick[pick.length - 1];
+    $('#ck-toy').innerHTML = toySVG(id); $('#ck-toy').dataset.toy = id;
+    $('#tiles').innerHTML = mixUp(parts.map((x, i) => [x, i])).map(([x]) => `<button class="tile word-tile" data-act="ckTile" data-w="${x}">${x}</button>`).join('');
+    show(); $('#say').textContent = 'Tap the parts in order to build the word.'; later(() => speak(parts.join('')), 250);
+  };
+  actions.ckHear = () => speak(parts.join(''));
+  actions.ckTile = (b) => {
+    if (b.dataset.w !== parts[got]) { sfx.no(); b.classList.add('bad'); later(() => b.classList.remove('bad'), 300); $('#say').textContent = 'Say the word slowly and clap each part.'; return; }
+    got++; b.disabled = true; b.classList.add('used'); sfx.pop(); show();
+    if (got === parts.length) { score++; setScore(score); sfx.win(); speak(parts.join('')); later(next, 1200); }
+  };
+  next();
+  countdown(80, () => { track('chunks', score); finish(g, score, Math.min(45, score * 5), score >= 7 ? 'Word builder!' : 'Great chunking!'); });
+}
+const LOOKALIKE = [['was', 'saw', 'as'], ['on', 'no', 'in'], ['of', 'for', 'from'], ['there', 'three', 'tree'], ['who', 'how', 'now'], ['left', 'felt', 'lift'], ['big', 'dig', 'pig'], ['bad', 'dad', 'pad'], ['pat', 'tap', 'apt'], ['top', 'pot', 'opt'], ['quiet', 'quite', 'quit'], ['were', 'where', 'wear'], ['then', 'than', 'them'], ['dog', 'bog', 'god']];
+const LOOKALIKE_ES = [['sol', 'los', 'sal'], ['mesa', 'masa', 'misa'], ['paso', 'peso', 'piso'], ['casa', 'cosa', 'caso'], ['mano', 'mono', 'malo'], ['pato', 'palo', 'pavo'], ['boca', 'bota', 'boda'], ['luna', 'lana', 'lona'], ['dedo', 'debo', 'bebo'], ['pala', 'bala', 'sala']];
+function hearfind(g) {
+  let score = 0, word = '', last = -1;
+  frame(g, `<section class="card missing"><p class="game-say">Listen, then find the word.</p><button class="btn primary big" data-act="hfHear">${icon('sound')} Say it again</button><div class="word-opts hf" id="opts" translate="no"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const LK = ES() ? LOOKALIKE_ES : LOOKALIKE, canTalk = 'speechSynthesis' in window;
+  const next = () => {
+    let i = rnd(LK.length); if (i === last) i = (i + 1) % LK.length; last = i;
+    word = LK[i][rnd(3)]; $('#say').textContent = canTalk ? '' : word;
+    $('#opts').innerHTML = mixUp(LK[i]).map((w) => `<button class="btn big word" data-act="hfPick" data-hit="${w === word ? 1 : 0}">${w}</button>`).join('');
+    later(() => speak(word), 300); if (!canTalk) later(() => { if ($('#say')) $('#say').textContent = ''; }, 1500);
+  };
+  actions.hfHear = () => speak(word);
+  actions.hfPick = (b) => {
+    if (b.dataset.hit === '1') { score++; sfx.pop(); setScore(score); document.querySelectorAll('.hf .word').forEach((x) => (x.disabled = true)); later(next, 700); }
+    else { sfx.no(); b.disabled = true; $('#say').textContent = L('Look at each letter, one by one.', 'Mira cada letra, una por una.'); speak(word); }
+  };
+  next();
+  countdown(70, () => { track('hearfind', score); finish(g, score, Math.min(45, score * 4), score >= 9 ? 'Super listener!' : 'Good listening!'); });
+}
+
+// ---------- focus ----------
+function stopgo(g) {
+  let score = 0, state = 'wait', tapped = false;
+  frame(g, `<p class="game-say" id="say" aria-live="polite">Get ready...</p><button class="sg-pad" data-act="sgTap" id="sg" aria-label="Tap here when it says GO"><span class="sg-sign" id="sg-sign"></span><span class="sg-toy">${toySVG('sq10')}</span></button>`);
+  const pad = $('#sg'), sign = $('#sg-sign');
+  const round = () => {
+    const go = Math.random() < 0.65; state = go ? 'go' : 'stop'; tapped = false;
+    pad.className = 'sg-pad ' + state; sign.textContent = L(go ? 'GO!' : 'STOP', go ? '¡YA!' : 'ALTO'); $('#say').textContent = '';
+    later(() => {
+      if (state === 'stop' && !tapped) { score++; setScore(score); $('#say').textContent = L('Great waiting!', '¡Qué buena espera!'); }
+      else if (state === 'go' && !tapped) $('#say').textContent = L('That one was a GO.', 'Esa era de ¡YA!');
+      state = 'wait'; pad.className = 'sg-pad'; sign.textContent = '';
+      later(round, 500 + rnd(600));
+    }, Math.max(850, 1500 - score * 25));
+  };
+  actions.sgTap = () => {
+    if (state === 'wait' || tapped) return;
+    tapped = true;
+    if (state === 'go') { score++; setScore(score); sfx.pop(); $('#say').textContent = L('Yes!', '¡Sí!'); }
+    else { sfx.no(); $('#say').textContent = L('Oops, that was a STOP. Hands still next time.', 'Uy, era ALTO. Manos quietas la próxima vez.'); }
+  };
+  later(round, 900);
+  countdown(45, () => { track('stopgo', score); finish(g, score, Math.min(45, score * 2), score >= 20 ? 'Super self-control!' : 'Good stopping and going!'); });
+}
+function steps(g) {
+  let score = 0, order = [], at = 0, open = false;
+  const ITEMS = () => (ES() ? WORDS_ES : WORDS).filter(([w]) => w.length <= 6).slice(0, 14);
+  frame(g, `<section class="card missing"><p class="read-clue" id="clue" translate="no"></p><div class="shadow-opts steps-grid" id="opts"></div><p class="game-say" id="say" aria-live="polite"></p></section>`);
+  const next = () => {
+    const n = score < 2 ? 2 : score < 5 ? 3 : 4, six = mixUp(ITEMS()).slice(0, 6); order = mixUp(six).slice(0, n); at = 0; open = false;
+    const names = order.map(([w]) => w), text = ES() ? `Primero toca: ${names[0]}. ${names.slice(1).map((w, i) => (i === names.length - 2 ? `Al final: ${w}.` : `Luego: ${w}.`)).join(' ')}` : `First tap the ${names[0]}. ${names.slice(1).map((w, i) => (i === names.length - 2 ? `Last, the ${w}.` : `Then the ${w}.`)).join(' ')}`;
+    $('#clue').textContent = text; $('#opts').innerHTML = ''; $('#say').textContent = L('Read the steps. Get ready to remember them.', 'Lee los pasos. Prepárate para recordarlos.');
+    later(() => { $('#clue').textContent = L('Now tap them in order.', 'Ahora tócalos en orden.'); $('#say').textContent = ''; open = true;
+      $('#opts').innerHTML = six.map(([w, id]) => `<button class="odd-cell" data-act="stepPick" data-w="${w}" aria-label="${w}">${toySVG(id)}</button>`).join(''); }, 2600 + n * 1300);
+  };
+  actions.stepPick = (b) => {
+    if (!open) return;
+    if (b.dataset.w !== order[at][0]) { sfx.no(); open = false; $('#say').textContent = L('Not that one. Here are the steps again.', 'Esa no. Aquí van los pasos otra vez.'); return later(next, 1300); }
+    b.disabled = true; b.classList.add('found'); sfx.pop(); at++;
+    if (at === order.length) { score++; setScore(score); sfx.win(); open = false; later(next, 900); }
+  };
+  next();
+  countdown(110, () => { track('steps', score); finish(g, score, Math.min(45, score * 6), score >= 6 ? 'Amazing memory!' : 'Good remembering!'); });
+}
+
+// ---------- calm and bedtime: slow, quiet, no timers ----------
+const chime = (n) => { try { sfx.note([262, 294, 330, 392, 440, 523][n % 6] / 1); } catch { /* quiet */ } };
+function calmFrame(g, inner) { frame(g, inner); view().classList.add('calm'); const sc = $('#score'); if (sc) sc.parentElement.hidden = true; }
+function breathe(g) {
+  const ROUNDS = 6; let n = 0;
+  calmFrame(g, `<div class="calm-stage"><div class="breath" id="breath">${toySVG('sq01')}</div><p class="calm-say" id="say" aria-live="polite">Get comfy...</p><p class="calm-sub" id="sub"></p></div>`);
+  const b = $('#breath');
+  const cycle = () => {
+    if (n >= ROUNDS) { track('breathe', n); return finish(g, n, 10, 'Nice and calm.'); }
+    n++; $('#sub').textContent = L(`Breath ${n} of ${ROUNDS}`, `Respiración ${n} de ${ROUNDS}`);
+    b.className = 'breath in'; $('#say').textContent = L('Breathe in...', 'Inhala...');
+    later(() => { $('#say').textContent = L('Hold...', 'Sostén...'); }, 4000);
+    later(() => { b.className = 'breath out'; $('#say').textContent = L('Breathe out...', 'Exhala...'); }, 5500);
+    later(cycle, 11500);
+  };
+  later(cycle, 1500);
+}
+function stars(g) {
+  let n = 0;
+  calmFrame(g, `<div class="sky" id="sky" data-act="skyTap" role="button" tabindex="0" aria-label="Night sky. Tap to hang a star."><span class="moon">${toySVG('sq50')}</span></div><p class="calm-say" id="say" aria-live="polite">Tap the sky to hang a star.</p><div class="row center"><button class="btn" data-act="skyClear">Clear the sky</button><button class="btn" data-act="go" data-to="games">Good night</button></div>`);
+  actions.skyTap = (el, e) => {
+    const r = $('#sky').getBoundingClientRect(), st = document.createElement('i');
+    st.className = 'star'; st.style.left = (((e.clientX || r.left + r.width / 2) - r.left) / r.width) * 100 + '%'; st.style.top = (((e.clientY || r.top + r.height / 2) - r.top) / r.height) * 100 + '%';
+    st.style.setProperty('--s', 0.6 + Math.random() * 0.9); st.style.animationDelay = Math.random() * 2 + 's';
+    $('#sky').append(st); n++; chime(n);
+    $('#say').textContent = n >= 20 ? L('What a beautiful sky. Sweet dreams.', 'Qué cielo tan bonito. Dulces sueños.') : L(`${n} stars`, `${n} estrellas`);
+    if (n === 20) track('stars', 20);
+  };
+  actions.skyClear = () => { document.querySelectorAll('#sky .star').forEach((x) => x.remove()); n = 0; $('#say').textContent = L('Tap the sky to hang a star.', 'Toca el cielo para colgar una estrella.'); };
+}
+function tuckin(g) {
+  const own = Object.keys(P().inv).filter((id) => TOYS[id]).sort(() => Math.random() - 0.5).slice(0, 6); let asleep = 0;
+  calmFrame(g, `<p class="calm-say" id="say" aria-live="polite">Tap each toy to tuck it in.</p><div class="beds">${own.map((id) => `<button class="bed" data-act="tuck" aria-label="Tuck in ${TOYS[id].name}" aria-pressed="false"><span class="bed-toy">${toySVG(id)}</span><span class="blanket"></span><span class="zzz" aria-hidden="true">z z z</span></button>`).join('')}</div>`);
+  actions.tuck = (b) => {
+    if (b.getAttribute('aria-pressed') === 'true') return;
+    b.setAttribute('aria-pressed', 'true'); asleep++; chime(asleep);
+    $('#say').textContent = asleep === own.length ? L('Everyone is asleep. Good night!', 'Todos están dormidos. ¡Buenas noches!') : L('Shhh... good night.', 'Shhh... buenas noches.');
+    if (asleep === own.length) { track('tuckin', asleep); later(() => finish(g, asleep, 10, 'Good night, sleep tight.'), 2600); }
+  };
+}
+
+// ---------- more memory games ----------
+function bigmatch(g) { match(g, 8); }
+function wordmatch(g) {
+  const W = mixUp(ES() ? WORDS_ES : WORDS).slice(0, 6);
+  const deck = mixUp([...W.map(([w, id]) => ({ k: w, h: toySVG(id) })), ...W.map(([w]) => ({ k: w, h: `<b class="mem-word" translate="no">${w}</b>` }))]);
+  let open = [], found = 0, moves = 0, lock = false;
+  frame(g, `<p class="muted">Moves: <b id="moves">0</b></p><div class="mem-grid">${deck.map((c, i) => `<button class="mem" data-act="wmem" data-i="${i}" aria-label="Card ${i + 1}, face down"><span class="mem-front">${c.h}</span><span class="mem-back">?</span></button>`).join('')}</div>`);
+  actions.wmem = (c) => {
+    if (lock || c.classList.contains('open')) return;
+    c.classList.add('open'); c.setAttribute('aria-label', deck[+c.dataset.i].k); sfx.tap(); open.push(c);
+    if (open.length < 2) return;
+    moves++; $('#moves').textContent = moves;
+    const [a, b] = open; open = [];
+    if (deck[+a.dataset.i].k === deck[+b.dataset.i].k) {
+      a.classList.add('done'); b.classList.add('done'); a.disabled = b.disabled = true; found++; sfx.pop(); setScore(found * 10); speak(deck[+a.dataset.i].k);
+      if (found === 6) { track('match'); const pts = Math.max(20, 130 - moves * 5); later(() => finish(g, pts, Math.max(12, 46 - moves * 2), moves <= 10 ? 'Super memory!' : 'All matched!'), 700); }
+    } else { lock = true; later(() => { [a, b].forEach((x) => { x.classList.remove('open'); x.setAttribute('aria-label', `Card ${+x.dataset.i + 1}, face down`); }); lock = false; }, 1000); }
+  };
+}
+function where(g) {
+  let score = 0, cells = [], target = -1, open = false;
+  frame(g, `<section class="card missing"><p class="game-say" id="say" aria-live="polite">Remember where each toy is.</p><div class="where-ask" id="ask"></div><div class="shadow-opts steps-grid" id="opts"></div></section>`);
+  const next = () => {
+    const n = score < 2 ? 3 : score < 5 ? 4 : score < 8 ? 5 : 6; open = false;
+    cells = mixUp(TOY_LIST).slice(0, n).map((t) => t.id); target = rnd(n);
+    $('#ask').innerHTML = ''; $('#say').textContent = 'Remember where each toy is.';
+    $('#opts').innerHTML = cells.map((id, i) => `<button class="odd-cell box" data-act="wherePick" data-i="${i}" aria-label="Box ${i + 1}"><span class="box-toy">${toySVG(id)}</span><span class="box-lid">?</span></button>`).join('');
+    later(() => { document.querySelectorAll('.box').forEach((b) => b.classList.add('shut')); $('#ask').innerHTML = toySVG(cells[target]); $('#say').textContent = 'Which box is this toy hiding in?'; open = true; }, 1800 + n * 700);
+  };
+  actions.wherePick = (b) => {
+    if (!open) return; open = false;
+    document.querySelectorAll('.box').forEach((x) => x.classList.remove('shut'));
+    if (+b.dataset.i === target) { score++; setScore(score); sfx.win(); b.classList.add('found'); $('#say').textContent = 'You remembered!'; }
+    else { sfx.no(); b.classList.add('bad'); $('#say').textContent = 'Not that box. Look where it was.'; }
+    later(next, 1400);
+  };
+  next();
+  countdown(100, () => { track('where', score); finish(g, score, Math.min(45, score * 5), score >= 7 ? 'Super memory!' : 'Good remembering!'); });
+}
+function changed(g) {
+  let score = 0, open = false, at = -1;
+  frame(g, `<section class="card missing"><p class="game-say" id="say" aria-live="polite">Look closely at the toys.</p><div class="shadow-opts steps-grid" id="opts"></div></section>`);
+  const draw = (ids) => { $('#opts').innerHTML = ids.map((id, i) => `<button class="odd-cell" data-act="chPick" data-i="${i}" aria-label="${TOYS[id].name}">${toySVG(id)}</button>`).join(''); };
+  const next = () => {
+    const n = score < 3 ? 4 : score < 6 ? 5 : 6; open = false;
+    const pool = mixUp(TOY_LIST).slice(0, n + 1).map((t) => t.id), ids = pool.slice(0, n);
+    draw(ids); $('#opts').classList.remove('hide'); $('#say').textContent = 'Look closely at the toys.';
+    later(() => { $('#opts').classList.add('hide'); $('#say').textContent = 'Close your eyes...'; }, 2200 + n * 500);
+    later(() => { at = rnd(n); ids[at] = pool[n]; draw(ids); $('#opts').classList.remove('hide'); $('#say').textContent = 'One toy changed. Which one is new?'; open = true; }, 3400 + n * 500);
+  };
+  actions.chPick = (b) => {
+    if (!open) return; open = false;
+    if (+b.dataset.i === at) { score++; setScore(score); sfx.win(); b.classList.add('found'); $('#say').textContent = 'Yes! That one is new.'; }
+    else { sfx.no(); b.classList.add('bad'); const r = document.querySelector(`[data-act=chPick][data-i="${at}"]`); if (r) r.classList.add('found'); $('#say').textContent = 'It was this one.'; }
+    later(next, 1400);
+  };
+  next();
+  countdown(100, () => { track('changed', score); finish(g, score, Math.min(45, score * 5), score >= 7 ? 'Eagle eyes!' : 'Good looking!'); });
 }
