@@ -82,7 +82,8 @@ export function tradeScreen() {
       <form class="join" data-form="join"><label class="sr" for="code">Room code</label><input id="code" name="code" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" required pattern="[A-Za-z]{4}"><button class="btn" type="submit">Join a room</button></form></div></section>`;
   return `<h1>Trading post</h1><p class="muted">Who do you want to trade with?</p>
     <div class="modes" role="group" aria-label="Who to trade with">${mode('bot', '1 player', 'You and a computer friend')}${mode('local', '2 players', 'On this iPad or computer')}${mode('online', 'Online', 'Friends on their own devices')}</div>
-    ${panel}`;
+    ${panel}
+    <section class="card giant-link"><h2>The ultimate trade</h2><p class="muted">Give some of your toys to wake up a giant squishy that is bigger than a city.</p><button class="btn primary" data-act="go" data-to="giants">See the giants</button></section>`;
 }
 export const setHub = (m) => { hubMode = m; };
 actions.tMode = (el) => { hubMode = el.dataset.v; sfx.tap(); router.go('trade'); };

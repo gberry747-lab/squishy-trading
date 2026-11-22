@@ -10,6 +10,7 @@ import { initLang, lang, setLang, say } from './i18n.js';
 import { guideVisit, initGuide } from './guide.js';
 import { albumScreen, roomScreen, homeExtras } from './extras.js';
 import { myStoryScreen, initMyStory } from './mystory.js';
+import { giantsScreen } from './giants.js';
 
 const view = $('#view');
 let tab = 'home';
@@ -30,7 +31,7 @@ function header() {
 }
 onChange(header);
 
-const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest, album: albumScreen, room: roomScreen, mystory: myStoryScreen };
+const SCREENS = { home, toys, trade: tradeScreen, games: gamesScreen, stories, shop, studio: studioScreen, quest, album: albumScreen, room: roomScreen, mystory: myStoryScreen, giants: giantsScreen };
 function go(to = tab, arg) {
   if (router.cleanup) { router.cleanup(); router.cleanup = null; }
   if (!P()) return welcome();
