@@ -4,6 +4,7 @@ import { TOYS } from './data.js';
 
 const PREFIX = 'gesquishy-v1-';
 const LETTERS = 'BCDFGHJKLMNPQRSTVWXZ';
+export const MAX_PLAYERS = 6; // everyone in a room, counting the player who made it
 const makeCode = () => Array.from({ length: 4 }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]).join('');
 
 function loadPeer() {
@@ -55,7 +56,7 @@ export class Room {
     c.on('data', (m) => {
       if (!m || typeof m !== 'object') return;
       if (m.t === 'hello') {
-        if (this.players.length >= 6) return c.send({ t: 'full' });
+        if (this.players.length >= MAX_PLAYERS) return c.send({ t: 'full' });
         if (this.conns[c.peer]) return;
         this.conns[c.peer] = c;
         this.players.push({ id: c.peer, ...cleanInfo(m.info) });
@@ -82,7 +83,8 @@ export class Room {
     await loadPeer();
     return new Promise((res, rej) => {
       const peer = new window.Peer();
-      const fail = (err) => { clearTimeout(timer); if (!this.joined) { peer.destroy(); rej(err); } else this.emit('closed'); };
+      // Say why first: closing the connection fires this again with a plain 'closed'.
+      const fail = (err) => { clearTimeout(timer); if (!this.joined) { rej(err); peer.destroy(); } else this.emit('closed'); };
       const timer = setTimeout(() => fail(new Error('timeout')), 15000);
       peer.on('open', (id) => {
         this.me = id;
@@ -92,7 +94,7 @@ export class Room {
         c.on('data', (m) => {
           if (!m || typeof m !== 'object') return;
           if (m.t === 'room' && Array.isArray(m.players)) {
-            this.players = m.players.filter((p) => p && typeof p === 'object' && p.id != null).slice(0, 6).map((p) => ({ id: String(p.id), ...cleanInfo(p) }));
+            this.players = m.players.filter((p) => p && typeof p === 'object' && p.id != null).slice(0, MAX_PLAYERS).map((p) => ({ id: String(p.id), ...cleanInfo(p) }));
             if (!this.joined) { this.joined = true; clearTimeout(timer); this.peer = peer; this.code = code; res(code); }
             this.emit('players');
           } else if (m.t === 'full') fail(new Error('full'));

@@ -1209,7 +1209,7 @@ export default {
 "On this iPad or computer": "En este iPad o computadora",
 "One bag costs 40 coins. How much do 2 bags cost?": "Una bolsa cuesta 40 monedas. ¿Cuánto cuestan 2 bolsas?",
 "One friend gets everything": "Un amiguito se queda con todo",
-"One friend makes a room and tells the others the 4-letter code. Up to 6 friends can join. Ask a grown-up first!": "Un amiguito crea una sala y les dice a los demás el código de 4 letras. Pueden entrar hasta 6 amiguitos. ¡Antes pregunta a un adulto!",
+"One friend makes a room and tells the others the 4-letter code. Up to 6 players can be in one room. Ask a grown-up first!": "Un amiguito crea una sala y les dice a los demás el código de 4 letras. Caben hasta 6 jugadores en una sala. ¡Antes pregunta a un adulto!",
 "One spoon it is. The slime turns smooth, stretchy and perfect. But it looks a little plain. What should go in?": "Una cucharada, entonces. El slime queda suave, elástico y perfecto. Pero se ve un poquito simple. ¿Qué le ponemos?",
 "One toy changed. Which one is new?": "Un juguete cambió. ¿Cuál es el nuevo?",
 "One toy is different from the rest. Find it fast!": "Un juguete es diferente a los demás. ¡Encuéntralo rápido!",

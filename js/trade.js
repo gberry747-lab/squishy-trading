@@ -78,7 +78,7 @@ export function tradeScreen() {
       ? `<section class="card"><h2>Two players, one screen</h2><p class="muted">Trade with someone sitting next to you. Each player needs their own name and toys, and you both have to agree.</p>
       <div class="row">${others.map((x) => `<button class="btn" data-act="tLocal" data-id="${x.id}"><span class="mini-art">${toySVG(x.buddy)}</span>Trade with ${esc(x.name)}</button>`).join('')}
       <button class="btn ${others.length ? '' : 'primary'}" data-act="addPlayer">Add ${others.length ? 'another' : 'the second'} player</button></div></section>`
-      : `<section class="card"><h2>Trade with friends online</h2><p class="muted">One friend makes a room and tells the others the 4-letter code. Up to 6 friends can join. Ask a grown-up first!</p>
+      : `<section class="card"><h2>Trade with friends online</h2><p class="muted">One friend makes a room and tells the others the 4-letter code. Up to 6 players can be in one room. Ask a grown-up first!</p>
       <div class="row"><button class="btn primary" data-act="tHost">Make a room</button>
       <form class="join" data-form="join"><label class="sr" for="code">Room code</label><input id="code" name="code" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" required pattern="[A-Za-z]{4}"><button class="btn" type="submit">Join a room</button></form></div></section>`;
   return `<h1>Trading post</h1><p class="muted">Who do you want to trade with?</p>
