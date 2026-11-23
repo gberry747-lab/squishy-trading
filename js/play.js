@@ -2,13 +2,23 @@
 // The last two share five little scenes. Each scene is a backdrop with things a squishy can hide behind.
 import { TOYS, TOY_LIST } from './data.js';
 import { toySVG, icon } from './art.js';
-import { P, save, addCoins, ownedList, track } from './state.js';
+import { P, save, addCoins, ownedList, track, store } from './state.js';
 import { $, esc, router, actions, sfx, coins, toast, confetti, glitterBurst } from './ui.js';
+import { lang } from './i18n.js';
 
 const view = () => $('#view');
 const rnd = (n) => Math.floor(Math.random() * n);
 const mix = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((x) => x[1]);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+// Mochi's recorded voice for these games, in English and Spanish. One player is reused so a tablet
+// lets it talk after a timer or a friend's move. Silent when the sound is off.
+let voicer = null;
+function voice(key, wait = 0) {
+  if (store.mute) return;
+  const go = () => { try { voicer = voicer || new Audio(); voicer.pause(); voicer.src = `audio/play/${lang() === 'es' ? 'es' : 'en'}/${key}.mp3`; voicer.play().catch(() => {}); } catch { /* no sound on this device */ } };
+  if (wait) setTimeout(go, wait); else go();
+}
+const hush = () => { if (voicer) voicer.pause(); };
 const K = 'stroke="#2A1846" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
 
 // ---------- things in a scene (each is drawn in a 100 by 100 box, standing on the bottom edge) ----------
@@ -121,7 +131,7 @@ const likeShow = () => { view().innerHTML = likeHTML(); window.scrollTo(0, 0); }
 actions.likeStart = (el) => {
   const n = [5, 10, 15].includes(+el.dataset.n) ? +el.dataset.n : 5;
   L = { n, i: 0, pool: mix(TOY_LIST.filter((t) => !t.custom)).slice(0, n * 2), picks: [], won: 0, busy: false };
-  sfx.tap(); likeShow();
+  sfx.tap(); likeShow(); voice('like_intro');
 };
 actions.likePick = (el) => {
   if (!L || L.busy) return;
@@ -133,7 +143,7 @@ actions.likePick = (el) => {
   setTimeout(() => {
     if (!L) return;
     L.i++; L.busy = false;
-    if (L.i >= L.n) { L.won = L.n * 2; addCoins(L.won); track('game'); sfx.win(); confetti(30); }
+    if (L.i >= L.n) { L.won = L.n * 2; addCoins(L.won); track('game'); sfx.win(); confetti(30); voice('like_end', 500); }
     save();
     if ($('.like-row') || L.i >= L.n) likeShow();
   }, 750);
@@ -146,7 +156,8 @@ let R = null;
 export function pretendScreen() {
   const p = P(); p.play = p.play || {};
   R = { scene: KEYS.includes(p.playScene) ? p.playScene : 'city', sel: -1, say: false, tray: handful(12) };
-  setTimeout(pretendWire, 0);
+  setTimeout(pretendWire, 0); router.cleanup = hush;
+  if (!actors().length) voice('play_intro');
   return pretendHTML();
 }
 const actors = () => { const p = P(); return (p.play[R.scene] = (p.play[R.scene] || []).filter((a) => a && TOYS[a.id])); };
@@ -202,7 +213,7 @@ actions.pSay = () => { if (picked()) { R.say = true; sfx.tap(); pretendShow(); }
 actions.pPhrase = (el) => {
   const it = picked(), s = SAYS[+el.dataset.i];
   if (!it || !s) return;
-  it.say = s; it.zz = false; R.say = false; sfx.pop(); pretendShow();
+  it.say = s; it.zz = false; R.say = false; sfx.pop(); pretendShow(); voice('say' + +el.dataset.i);
   setTimeout(() => { if (it.say === s) { it.say = ''; if (R && $('#pstage.pretend')) pretendShow(); } }, 3500);
 };
 actions.pJump = () => { if (picked()) { bounce('jump', 700); sfx.boing(); } };
@@ -220,7 +231,7 @@ actions.pClear = () => { if (!R) return; P().play[R.scene] = []; R.sel = -1; sav
 const HN = 5, HIDE_SECS = 45, SEEK_SECS = 60, BOT_LOOKS = 6, TRAP_COST = 5;
 let H = null;
 export const hsActive = () => !!H;
-export function hsStop() { if (H) { clearInterval(H.tick); clearTimeout(H.botT); } H = null; }
+export function hsStop() { if (H) { clearInterval(H.tick); clearTimeout(H.botT); } H = null; hush(); }
 export function hideScreen() {
   hsStop(); router.cleanup = hsStop;
   return `<button class="btn back" data-act="go" data-to="games">${icon('back')} Games</button><h1>Squishy Hide and Seek</h1>
@@ -255,8 +266,9 @@ function hRound(r) {
     H.tray.slice(0, HN).forEach((id, k) => { H.hid[spots[k]] = id; }); H.gold = spots[0]; H.trap = spots[HN];
     return hSeek();
   }
-  if (H.mode === 'online' && H.hider === 'them') { H.phase = 'dark'; hTimer(() => {}); return hDraw(); }
+  if (H.mode === 'online' && H.hider === 'them') { H.phase = 'dark'; hTimer(() => {}); voice('hs_dark'); return hDraw(); }
   H.phase = H.mode === 'local' ? 'eyes' : 'scene';
+  voice(H.phase === 'eyes' ? 'hs_eyes' : 'hs_where');
   hDraw();
 }
 function hTimer(onEnd) {
@@ -313,10 +325,10 @@ function hDraw() {
   }
   v.innerHTML = html; window.scrollTo(0, 0);
 }
-actions.hEyes = () => { if (H && H.phase === 'eyes') { H.phase = 'scene'; sfx.tap(); hDraw(); } };
+actions.hEyes = () => { if (H && H.phase === 'eyes') { H.phase = 'scene'; sfx.tap(); hDraw(); voice('hs_where'); } };
 actions.hScene = (el) => {
   if (!H || H.phase !== 'scene' || !SCENES[el.dataset.v]) return;
-  H.scene = el.dataset.v; H.phase = 'hide'; H.left = HIDE_SECS; sfx.whoosh(); hDraw();
+  H.scene = el.dataset.v; H.phase = 'hide'; H.left = HIDE_SECS; sfx.whoosh(); hDraw(); voice('hs_hide');
   hTimer(() => { // time is up: Mochi tucks the rest away
     const free = mix(SCENES[H.scene].spots.map((_, i) => i).filter((i) => !H.hid[i] && H.trap !== i)), rest = H.tray.filter((id) => !Object.values(H.hid).includes(id));
     while (hidCount() < HN && free.length && rest.length) { const i = free.pop(); H.hid[i] = rest.pop(); if (H.gold < 0) H.gold = i; }
@@ -331,14 +343,14 @@ function hHidden() {
   clearInterval(H.tick); H.take = '';
   if (H.gold < 0 || !H.hid[H.gold]) H.gold = +Object.keys(H.hid)[0];
   sfx.win();
-  if (H.mode === 'local') { H.phase = 'dark'; return hDraw(); }
-  H.phase = 'watch'; hDraw();
+  if (H.mode === 'local') { H.phase = 'dark'; voice('hs_dark', 600); return hDraw(); }
+  H.phase = 'watch'; hDraw(); voice('hs_watch', 600);
   if (H.mode === 'online') H.link.send({ k: 'ready', r: H.round, scene: H.scene, hid: Object.entries(H.hid).map(([i, id]) => [+i, id]), trap: H.trap, gold: H.gold });
   else hBot(BOT_LOOKS);
 }
 function hSeek() {
   H.phase = 'seek'; H.left = SEEK_SECS; H.found = {}; H.looked = {}; H.hints = 2; H.trapped = false;
-  hDraw(); sfx.whoosh();
+  hDraw(); sfx.whoosh(); voice('hs_seek');
   hTimer(hEnd);
 }
 // Looking behind one hiding place. Used by a real seeker, by Mochi, and to show a far-away friend's taps.
@@ -349,11 +361,12 @@ function hLook(i, quiet) {
   if (H.hid[i]) {
     H.found[i] = 1; sfx.boing(); if (H.gold === i) { setTimeout(sfx.win, 200); confetti(14); }
     if (say && !quiet) say.textContent = H.gold === i ? 'You found the golden squishy!' : 'You found one!';
+    if (!quiet) voice(H.gold === i ? 'hs_gold' : 'hs_one');
   } else if (H.trap === i) {
     H.trapped = true; sfx.bomb();
     if (el) { const b = el.getBoundingClientRect(); glitterBurst(b.left + b.width / 2, b.top + b.height / 2, 90, 1.2); }
-    if (!quiet) { H.left = Math.max(1, H.left - TRAP_COST); if (say) say.textContent = `Glitter trap! You lose ${TRAP_COST} seconds.`; }
-  } else { sfx.soft(); if (say && !quiet) say.textContent = 'Nobody here. Keep looking!'; }
+    if (!quiet) { voice('hs_trap', 300); H.left = Math.max(1, H.left - TRAP_COST); if (say) say.textContent = `Glitter trap! You lose ${TRAP_COST} seconds.`; }
+  } else { sfx.soft(); if (!quiet) voice('hs_none'); if (say && !quiet) say.textContent = 'Nobody here. Keep looking!'; }
   const keep = say ? say.textContent : '';
   hDraw();
   if (keep && !quiet && $('#h-say')) $('#h-say').textContent = keep;
@@ -382,7 +395,7 @@ actions.hHint = () => {
   H.hints--; hDraw();
   const el = document.querySelector(`.spot[data-i="${left[rnd(left.length)]}"]`);
   if (el) el.classList.add('giggle');
-  sfx.twinkle(); setTimeout(sfx.twinkle, 250);
+  sfx.twinkle(); setTimeout(sfx.twinkle, 250); voice('hs_hint', 400);
   if ($('#h-say')) $('#h-say').textContent = 'Did you hear that giggle?';
 };
 // Mochi takes a few looks, one at a time.
@@ -405,6 +418,7 @@ function hEnd(fromFriend) {
   if (!H.paid) { H.paid = true; addCoins(won); track('game'); }
   H.result = { total, found, gold, trap: !!H.trapped, coins: won };
   H.phase = 'result'; hDraw();
+  voice(found >= total ? 'hs_all' : found ? 'hs_good' : 'hs_great', 900);
   if (found >= total && mine) { confetti(50); sfx.win(); } else sfx.coin();
 }
 actions.hSwap = () => {
