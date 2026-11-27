@@ -1818,6 +1818,7 @@ export default {
 "That looks fair to me. Deal?": "Me parece justo. ¿Trato hecho?",
 "That night you cannot stop thinking about it. The next day, you tell Benny. He smiles. \"I felt funny too. Let's fix it.\" Friends fix things together.": "Esa noche no puedes dejar de pensar en eso. Al día siguiente, se lo cuentas a Benny. Él sonríe. «Yo también me sentí raro. Vamos a arreglarlo». Los amiguitos arreglan las cosas juntos.",
 "That room is full.": "Esa sala está llena.",
+"We found the room, but the internet would not let us in. Ask a grown-up for help.": "Encontramos la sala, pero el internet no nos dejó entrar. Pídele ayuda a un adulto.",
 "The Dough Bakery Rush": "La prisa en la panadería de plastilina",
 "The Drawing Studio": "El estudio de dibujo",
 "The End": "Fin",

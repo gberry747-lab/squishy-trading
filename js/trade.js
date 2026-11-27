@@ -351,7 +351,7 @@ actions.form_join = async (f) => {
   room = new Room(info());
   router.cleanup = leaveRoom;
   try { await room.join(code); wire(); lobby(); }
-  catch (e) { leaveRoom(); router.go('trade'); toast(e.message === 'full' ? 'That room is full.' : 'Could not find that room. Check the code and try again.', 4000); }
+  catch (e) { leaveRoom(); router.go('trade'); toast(e.message === 'full' ? 'That room is full.' : e.message === 'blocked' ? 'We found the room, but the internet would not let us in. Ask a grown-up for help.' : 'Could not find that room. Check the code and try again.', 6000); }
 };
 function lobby() {
   if (!room) return;
